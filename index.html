@@ -213,10 +213,10 @@
             font-size: 12.5px;
         }
 
-        /* Hero com Video Background Cinematográfico */
+        /* Hero com Video Background Cinematográfico e Nítido */
         .hero {
             position: relative;
-            padding: 85px 20px 65px;
+            padding: 90px 20px 70px;
             max-width: 100%;
             margin: 0 auto;
             text-align: center;
@@ -224,7 +224,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 380px;
+            min-height: 400px;
         }
 
         .hero-video-wrap {
@@ -240,16 +240,16 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.32;
-            filter: brightness(0.65) contrast(1.15);
+            opacity: 0.52;
+            filter: brightness(0.85) contrast(1.2) saturate(1.1);
         }
 
         .hero-overlay {
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(ellipse at center, rgba(12, 10, 8, 0.45) 0%, rgba(12, 10, 8, 0.94) 85%),
-                linear-gradient(to bottom, rgba(12, 10, 8, 0.3) 0%, var(--ink) 100%);
+                radial-gradient(ellipse at center, rgba(12, 10, 8, 0.22) 0%, rgba(12, 10, 8, 0.82) 80%),
+                linear-gradient(to bottom, rgba(12, 10, 8, 0.2) 0%, var(--ink) 98%);
             pointer-events: none;
         }
 
@@ -267,7 +267,7 @@
             line-height: 1.1;
             margin: 12px 0 14px;
             letter-spacing: -.02em;
-            text-shadow: 0 2px 14px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 18px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.9);
         }
 
         .hero h1 em {
@@ -277,12 +277,12 @@
         }
 
         .hero p {
-            color: var(--cream);
+            color: #ffffff;
             font-size: 16px;
             max-width: 500px;
             margin: 0 auto 26px;
             line-height: 1.55;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 12px rgba(0,0,0,0.95), 0 0 20px rgba(0,0,0,0.9);
         }
 
         .hero-cta {
@@ -714,8 +714,18 @@
             .topnav { padding: 10px 16px; }
             .brand-name { font-size: 17px; }
             .brand-logo { width: 38px; height: 38px; }
-            .hero { padding: 50px 14px 34px; min-height: 320px; }
-            .hero p { font-size: 14.5px; margin-bottom: 20px; }
+            .hero { padding: 65px 16px 40px; min-height: 350px; }
+            .hero-video {
+                opacity: 0.65;
+                filter: brightness(0.92) contrast(1.25) saturate(1.15);
+            }
+            .hero-overlay {
+                background:
+                    radial-gradient(ellipse at center, rgba(12, 10, 8, 0.15) 0%, rgba(12, 10, 8, 0.78) 85%),
+                    linear-gradient(to bottom, rgba(12, 10, 8, 0.15) 0%, var(--ink) 98%);
+            }
+            .hero h1 { font-size: clamp(30px, 8.5vw, 42px); }
+            .hero p { font-size: 15px; margin-bottom: 22px; color: #ffffff; }
             .section { padding: 36px 14px; }
             .section-head h2 { font-size: 22px; }
             
