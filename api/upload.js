@@ -3,6 +3,7 @@
 import { put } from '@vercel/blob';
 import dotenv from 'dotenv';
 
+dotenv.config({ path: '.env.local' });
 dotenv.config();
 
 export const config = {

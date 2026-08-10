@@ -1,8 +1,7 @@
 // api/db.js
 // Conexão com Neon PostgreSQL Serverless
 import { neon, neonConfig } from '@neondatabase/serverless';
-import dotenv from 'dotenv';
-
+dotenv.config({ path: '.env.local' });
 dotenv.config();
 
 // Permite conexões otimizadas em ambientes serverless
