@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Apolo Barbearia — Painel Administrativo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -1142,10 +1145,15 @@
         }
 
         async function apiFetch(endpoint, method = 'GET', data = null) {
-            const options = { method, headers: { 'Content-Type': 'application/json' } };
+            const url = endpoint.includes('?') ? `${endpoint}&_t=${Date.now()}` : `${endpoint}?_t=${Date.now()}`;
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+                cache: 'no-store'
+            };
             if (data && method !== 'GET') options.body = JSON.stringify(data);
             try {
-                const res = await fetch(endpoint, options);
+                const res = await fetch(url, options);
                 if (!res.ok) {
                     const errJson = await res.json().catch(() => ({}));
                     throw new Error(errJson.error || `Erro HTTP ${res.status}`);
@@ -1711,6 +1719,21 @@
         if (sessionStorage.getItem('apolo_admin_auth') === 'true') {
             loadState();
         }
+
+        // Atualizar dados frescos sempre que o administrador voltar à aba
+        window.addEventListener('pageshow', () => {
+            if (sessionStorage.getItem('apolo_admin_auth') === 'true') loadState();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && sessionStorage.getItem('apolo_admin_auth') === 'true') {
+                loadState();
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            if (sessionStorage.getItem('apolo_admin_auth') === 'true') loadState();
+        });
     </script>
 </body>
 

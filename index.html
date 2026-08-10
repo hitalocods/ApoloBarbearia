@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Apolo Barbearia — Agendamento Online</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -921,10 +924,15 @@
         }
 
         async function apiFetch(endpoint, method = 'GET', data = null) {
-            const options = { method, headers: { 'Content-Type': 'application/json' } };
+            const url = endpoint.includes('?') ? `${endpoint}&_t=${Date.now()}` : `${endpoint}?_t=${Date.now()}`;
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+                cache: 'no-store'
+            };
             if (data && method !== 'GET') options.body = JSON.stringify(data);
             try {
-                const res = await fetch(endpoint, options);
+                const res = await fetch(url, options);
                 if (!res.ok) {
                     const errJson = await res.json().catch(() => ({}));
                     throw new Error(errJson.error || `Erro HTTP ${res.status}`);
@@ -1219,6 +1227,21 @@
         }
 
         loadState();
+
+        // Atualizar dados sempre que o usuário retornar à página/aba no celular ou computador
+        window.addEventListener('pageshow', (e) => {
+            loadState();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                loadState();
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            loadState();
+        });
     </script>
 </body>
 
