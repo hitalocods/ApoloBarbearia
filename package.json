@@ -1,0 +1,26 @@
+{
+  "name": "apolo-barbearia",
+  "version": "1.0.0",
+  "description": "Sistema de Agendamento e Gestão para Apolo Barbearia com Neon PostgreSQL e Vercel Blob",
+  "main": "api/data.js",
+  "type": "module",
+  "scripts": {
+    "init-db": "node scripts/init-db.js",
+    "dev": "vercel dev",
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "barbearia",
+    "neon",
+    "postgresql",
+    "vercel",
+    "blob"
+  ],
+  "author": "Apolo Barbearia",
+  "license": "ISC",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "@vercel/blob": "^0.27.1",
+    "dotenv": "^16.4.7"
+  }
+}
