@@ -1,11 +1,19 @@
 // api/db.js
 // Conexão com Neon PostgreSQL Serverless
-import { neon, neonConfig } from '@neondatabase/serverless';
-dotenv.config({ path: '.env.local' });
-dotenv.config();
+import { neon } from '@neondatabase/serverless';
+import dotenv from 'dotenv';
+
+try {
+    dotenv.config({ path: '.env.local' });
+    dotenv.config();
+} catch (e) {}
 
 // Permite conexões otimizadas em ambientes serverless
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+const connectionString = 
+    process.env.DATABASE_URL || 
+    process.env.POSTGRES_URL || 
+    process.env.DATABASE_URL_UNPOOLED || 
+    process.env.POSTGRES_URL_NON_POOLING;
 
 export const isDbConfigured = Boolean(connectionString && !connectionString.includes('seu-host-neon.tech'));
 
@@ -30,10 +38,8 @@ export async function query(queryTextOrStrings, ...values) {
     }
     
     if (typeof queryTextOrStrings === 'string') {
-        // Execução tradicional com texto e parâmetros
         return await sqlClient(queryTextOrStrings, values);
     }
-    // Tagged template literal
     return await sqlClient(queryTextOrStrings, ...values);
 }
 
