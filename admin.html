@@ -1098,6 +1098,18 @@
             { key: 'qua', label: 'Quarta' }, { key: 'qui', label: 'Quinta' }, { key: 'sex', label: 'Sexta' }, { key: 'sab', label: 'Sábado' }
         ];
         const STORAGE_KEY = 'apolo-barbearia:data';
+        const APP_BUILD_VERSION = '2026.08.10.v4';
+        const savedVersion = localStorage.getItem('apolo_admin_build_version');
+        if (savedVersion !== APP_BUILD_VERSION) {
+            localStorage.setItem('apolo_admin_build_version', APP_BUILD_VERSION);
+            try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                for (let reg of regs) reg.unregister();
+            });
+        }
 
         let state = {
             barbeiros: [],
