@@ -173,17 +173,6 @@
             gap: 10px;
         }
 
-        .nav-link {
-            font-size: 13px;
-            color: var(--cream-dim);
-            transition: .2s;
-            padding: 6px 10px;
-        }
-
-        .nav-link:hover {
-            color: var(--brass-2);
-        }
-
         .btn {
             background: var(--brass);
             color: var(--ink);
@@ -224,13 +213,51 @@
             font-size: 12.5px;
         }
 
-        /* Hero */
+        /* Hero com Video Background Cinematográfico */
         .hero {
             position: relative;
-            padding: 60px 20px 40px;
-            max-width: 800px;
+            padding: 85px 20px 65px;
+            max-width: 100%;
             margin: 0 auto;
             text-align: center;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 380px;
+        }
+
+        .hero-video-wrap {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .hero-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.32;
+            filter: brightness(0.65) contrast(1.15);
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at center, rgba(12, 10, 8, 0.45) 0%, rgba(12, 10, 8, 0.94) 85%),
+                linear-gradient(to bottom, rgba(12, 10, 8, 0.3) 0%, var(--ink) 100%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 700px;
+            margin: 0 auto;
         }
 
         .hero h1 {
@@ -240,6 +267,7 @@
             line-height: 1.1;
             margin: 12px 0 14px;
             letter-spacing: -.02em;
+            text-shadow: 0 2px 14px rgba(0,0,0,0.8);
         }
 
         .hero h1 em {
@@ -249,11 +277,12 @@
         }
 
         .hero p {
-            color: var(--cream-dim);
-            font-size: 15.5px;
-            max-width: 480px;
+            color: var(--cream);
+            font-size: 16px;
+            max-width: 500px;
             margin: 0 auto 26px;
             line-height: 1.55;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
         }
 
         .hero-cta {
@@ -287,7 +316,7 @@
             margin-top: 4px;
         }
 
-        /* Cards dos Barbeiros Mais Compactos e Elegantes */
+        /* Cards dos Barbeiros Compactos */
         .barb-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -358,12 +387,6 @@
             color: var(--brass);
             text-transform: uppercase;
             line-height: 1.25;
-        }
-
-        .barb-card .wa {
-            font-size: 11px;
-            color: var(--cream-faint);
-            margin-top: 8px;
         }
 
         /* Booking Flow */
@@ -648,7 +671,7 @@
 
         /* Footer */
         footer {
-            padding: 40px 20px 24px;
+            padding: 44px 20px 28px;
             border-top: 1px solid var(--line);
             text-align: center;
             background: var(--panel);
@@ -666,12 +689,32 @@
             color: var(--cream-faint);
         }
 
-        /* Responsividade Mobile Extrema */
+        .dev-credits {
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: var(--cream-faint);
+            margin-top: 14px;
+            letter-spacing: .04em;
+        }
+
+        .dev-credits a {
+            color: var(--brass-2);
+            font-weight: 600;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            transition: .2s;
+        }
+
+        .dev-credits a:hover {
+            color: #ffffff;
+        }
+
+        /* Responsividade Mobile */
         @media(max-width: 600px) {
             .topnav { padding: 10px 16px; }
             .brand-name { font-size: 17px; }
             .brand-logo { width: 38px; height: 38px; }
-            .hero { padding: 40px 14px 28px; }
+            .hero { padding: 50px 14px 34px; min-height: 320px; }
             .hero p { font-size: 14.5px; margin-bottom: 20px; }
             .section { padding: 36px 14px; }
             .section-head h2 { font-size: 22px; }
@@ -734,19 +777,25 @@
             </div>
         </div>
         <div class="nav-actions">
-            <a href="#barbeiros" class="nav-link">Barbeiros</a>
-            <a href="#booking" class="btn small">Agendar</a>
+            <a href="#booking" class="btn small">Agendar Horário</a>
         </div>
     </div>
 
-    <!-- ============ CLIENT HERO ============ -->
+    <!-- ============ CLIENT HERO COM VÍDEO DE FUNDO ============ -->
     <section class="hero">
-        <div class="eyebrow">Tradição &amp; Estilo Clássico</div>
-        <h1>Apolo <em>Barbearia</em></h1>
-        <p>Escolha seu barbeiro, o serviço e o melhor horário. Confirmação instantânea direto pelo WhatsApp.</p>
-        <div class="hero-cta">
-            <a href="#booking"><button class="btn">Agendar meu horário</button></a>
-            <a href="#barbeiros"><button class="btn ghost">Nossa equipe</button></a>
+        <div class="hero-video-wrap">
+            <video class="hero-video" autoplay loop muted playsinline poster="logoapolo.png">
+                <source src="corte.mp4" type="video/mp4">
+            </video>
+            <div class="hero-overlay"></div>
+        </div>
+        <div class="hero-content">
+            <div class="eyebrow">Tradição &amp; Estilo Clássico</div>
+            <h1>Apolo <em>Barbearia</em></h1>
+            <p>Escolha seu barbeiro, o serviço e o melhor horário. Confirmação instantânea direto pelo WhatsApp.</p>
+            <div class="hero-cta">
+                <a href="#booking"><button class="btn">Agendar meu horário</button></a>
+            </div>
         </div>
     </section>
 
@@ -819,16 +868,6 @@
         </div>
     </section>
 
-    <!-- ============ SHOWCASE BARBEIROS ============ -->
-    <section class="section" id="barbeiros">
-        <div class="section-head">
-            <div class="eyebrow">Nossa Equipe</div>
-            <h2>Barbeiros da Casa</h2>
-            <p>Profissionais qualificados para entregar o melhor corte e cuidado.</p>
-        </div>
-        <div class="barb-grid" id="showcaseBarbGrid"></div>
-    </section>
-
     <!-- ============ FOOTER ============ -->
     <footer>
         <div class="brand-logo" style="margin:0 auto 12px; width:44px; height:44px;">
@@ -836,6 +875,9 @@
         </div>
         <div class="brand-name" style="font-size:17px; margin-bottom:4px;">APOLO <b>Barbearia</b></div>
         <p>TERESINA, PI · CORTE &amp; BARBA TRADICIONAL</p>
+        <div class="dev-credits">
+            Desenvolvido por <a href="https://www.instagram.com/atlassoftware_/" target="_blank" rel="noopener noreferrer">Atlas Software ↗</a>
+        </div>
     </footer>
 
     <div class="toast" id="toast"></div>
@@ -978,10 +1020,8 @@
 
         function renderClientBarbeiros() {
             const grid = document.getElementById('clientBarbGrid');
-            const showcase = document.getElementById('showcaseBarbGrid');
             if (!grid) return;
             grid.innerHTML = '';
-            if (showcase) showcase.innerHTML = '';
 
             if (!state.barbeiros.length) {
                 grid.innerHTML = '<div class="empty-state">Nenhum barbeiro cadastrado no momento.</div>';
@@ -995,15 +1035,6 @@
                     <div class="role">${b.especialidade || 'Barbeiro'}</div>
                 </div>`;
                 grid.innerHTML += card;
-
-                if (showcase) {
-                    showcase.innerHTML += `<div class="barb-card" onclick="selectBarbeiro('${b.id}'); location.href='#booking';">
-                        <div class="avatar">${avatarHTML(b)}</div>
-                        <h3>${b.nome}</h3>
-                        <div class="role">${b.especialidade || 'Barbeiro'}</div>
-                        <div class="wa">Agendar com ${b.nome.split(' ')[0]} →</div>
-                    </div>`;
-                }
             });
         }
 
