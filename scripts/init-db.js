@@ -30,9 +30,11 @@ async function init() {
                 especialidade TEXT,
                 whatsapp TEXT NOT NULL,
                 foto TEXT,
+                comissao_pct NUMERIC(5, 2) DEFAULT 40.00,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
+        await sql`ALTER TABLE barbeiros ADD COLUMN IF NOT EXISTS comissao_pct NUMERIC(5, 2) DEFAULT 40.00;`;
 
         // 2. Serviços
         await sql`
@@ -79,6 +81,39 @@ async function init() {
                 categoria TEXT NOT NULL,
                 data DATE NOT NULL,
                 valor NUMERIC(10, 2) NOT NULL,
+                observacao TEXT,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+        `;
+        await sql`ALTER TABLE despesas ADD COLUMN IF NOT EXISTS observacao TEXT;`;
+
+        // 6. Entradas (Manuais / Retroativas)
+        await sql`
+            CREATE TABLE IF NOT EXISTS entradas (
+                id TEXT PRIMARY KEY,
+                descricao TEXT NOT NULL,
+                valor NUMERIC(10, 2) NOT NULL,
+                data DATE NOT NULL,
+                barbeiro_id TEXT REFERENCES barbeiros(id) ON DELETE SET NULL,
+                servico_id TEXT REFERENCES servicos(id) ON DELETE SET NULL,
+                cliente_nome TEXT,
+                agendamento_id TEXT REFERENCES agendamentos(id) ON DELETE SET NULL,
+                observacao TEXT,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+        `;
+
+        // 7. Pagamentos de Comissão
+        await sql`
+            CREATE TABLE IF NOT EXISTS pagamentos_comissao (
+                id TEXT PRIMARY KEY,
+                barbeiro_id TEXT REFERENCES barbeiros(id) ON DELETE CASCADE,
+                valor NUMERIC(10, 2) NOT NULL,
+                data_pagamento DATE NOT NULL,
+                periodo_inicio DATE NOT NULL,
+                periodo_fim DATE NOT NULL,
+                observacao TEXT,
+                status TEXT NOT NULL DEFAULT 'pago',
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
@@ -88,8 +123,10 @@ async function init() {
         await sql`CREATE INDEX IF NOT EXISTS idx_agendamentos_barbeiro ON agendamentos(barbeiro_id);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_horarios_barbeiro ON horarios(barbeiro_id);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_despesas_data ON despesas(data);`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_entradas_data ON entradas(data);`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_pagamentos_comissao_barbeiro ON pagamentos_comissao(barbeiro_id);`;
 
-        console.log('✅ Tabelas criadas/verificadas com sucesso!');
+        console.log('✅ Tabelas e colunas criadas/verificadas com sucesso!');
 
         // Verificar se existem barbeiros
         const barbeirosExistentes = await sql`SELECT COUNT(*) as total FROM barbeiros`;

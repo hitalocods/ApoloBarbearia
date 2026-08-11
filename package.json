@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "init-db": "node scripts/init-db.js",
-    "dev": "vercel dev",
+    "dev": "npx serve .",
     "start": "npx serve ."
   },
   "keywords": [

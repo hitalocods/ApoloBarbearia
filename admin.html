@@ -1001,6 +1001,7 @@
                                 <th>Nome</th>
                                 <th>Especialidade</th>
                                 <th>WhatsApp</th>
+                                <th>% Comissão</th>
                                 <th style="text-align:right;">Ações</th>
                             </tr>
                         </thead>
@@ -1077,33 +1078,149 @@
             <!-- FINANCEIRO -->
             <div class="admin-pane" id="pane-financeiro">
                 <div class="section-head" style="margin-bottom:20px;">
-                    <div class="eyebrow">Fluxo de Caixa</div>
-                    <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Financeiro</h2>
+                    <div class="eyebrow">Gestão de Caixa & Comissões</div>
+                    <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Módulo Financeiro</h2>
                 </div>
+
+                <!-- FILTROS FINANCEIROS -->
+                <div class="panel-box" style="padding:16px; margin-bottom:20px;">
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;">
+                        <!-- Botões de Período -->
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <button class="btn small period-btn active" id="btnPeriodoHoje" onclick="setFinPeriodo('hoje')">Hoje</button>
+                            <button class="btn small period-btn ghost" id="btnPeriodoSemana" onclick="setFinPeriodo('semana')">Esta Semana</button>
+                            <button class="btn small period-btn ghost" id="btnPeriodoMes" onclick="setFinPeriodo('mes')">Este Mês</button>
+                            <button class="btn small period-btn ghost" id="btnPeriodoCustom" onclick="setFinPeriodo('custom')">Personalizado</button>
+                        </div>
+                        
+                        <!-- Seletores Adicionais -->
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                            <div id="finCustomDates" style="display:none; align-items:center; gap:6px;">
+                                <input type="date" id="finDataInicio" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:6px 10px; border-radius:var(--radius-sm); font-size:12px;">
+                                <span style="font-size:12px; color:var(--cream-dim);">até</span>
+                                <input type="date" id="finDataFim" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:6px 10px; border-radius:var(--radius-sm); font-size:12px;">
+                            </div>
+                            <select id="finFiltroBarbeiro" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:7px 10px; border-radius:var(--radius-sm); font-size:12px;"></select>
+                            <select id="finFiltroCategoria" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:7px 10px; border-radius:var(--radius-sm); font-size:12px;">
+                                <option value="">Todas as Categorias</option>
+                                <option value="Produtos">Produtos</option>
+                                <option value="Aluguel">Aluguel</option>
+                                <option value="Energia/Água">Energia/Água</option>
+                                <option value="Manutenção">Manutenção</option>
+                                <option value="Equipamentos">Equipamentos</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Salários/Comissões">Salários/Comissões</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARDS DE STATS -->
                 <div class="stat-grid" id="finStats"></div>
 
-                <div class="panel-box">
-                    <h3>Faturamento por Barbeiro</h3>
-                    <div class="bar-chart" id="finBarChart"></div>
-                </div>
-
+                <!-- SEÇÃO 1: ENTRADAS / RECEITAS -->
                 <div class="panel-box">
                     <div class="toolbar" style="margin-bottom:14px;">
-                        <h3 style="margin:0;">Despesas</h3>
+                        <div>
+                            <h3 style="margin:0;">Entradas (Receitas)</h3>
+                            <small style="color:var(--cream-dim); font-size:11.5px;">Atendimentos concluídos e lançamentos manuais/retroativos</small>
+                        </div>
+                        <button class="btn small" onclick="openEntradaModal()">+ Lançar Entrada</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição / Cliente</th>
+                                    <th>Barbeiro</th>
+                                    <th>Serviço</th>
+                                    <th>Valor</th>
+                                    <th>Origem</th>
+                                    <th style="text-align:right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblEntradas"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 2: DESPESAS / SAÍDAS -->
+                <div class="panel-box">
+                    <div class="toolbar" style="margin-bottom:14px;">
+                        <div>
+                            <h3 style="margin:0;">Despesas (Saídas)</h3>
+                            <small style="color:var(--cream-dim); font-size:11.5px;">Controle de custos operacionais e pagamentos</small>
+                        </div>
                         <button class="btn small" onclick="openDespesaModal()">+ Nova Despesa</button>
                     </div>
                     <div class="table-wrap">
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th>Data</th>
                                     <th>Descrição</th>
                                     <th>Categoria</th>
-                                    <th>Data</th>
+                                    <th>Observação</th>
                                     <th>Valor</th>
                                     <th style="text-align:right;">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tblDespesas"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 3: COMISSÕES E DESEMPENHO DOS BARBEIROS -->
+                <div class="panel-box">
+                    <div class="toolbar" style="margin-bottom:14px;">
+                        <div>
+                            <h3 style="margin:0;">Produção & Comissões por Barbeiro</h3>
+                            <small style="color:var(--cream-dim); font-size:11.5px;">Valores calculados automaticamente com base no percentual de comissão</small>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Barbeiro</th>
+                                    <th>% Comissão</th>
+                                    <th>Atendimentos</th>
+                                    <th>Faturamento</th>
+                                    <th>Comissão Gerada</th>
+                                    <th>Paga no Período</th>
+                                    <th>Saldo Pendente</th>
+                                    <th style="text-align:right;">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblComissoesBarbeiros"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 4: HISTÓRICO DE PAGAMENTOS DE COMISSÃO -->
+                <div class="panel-box">
+                    <div class="toolbar" style="margin-bottom:14px;">
+                        <div>
+                            <h3 style="margin:0;">Histórico de Comissões Pagas</h3>
+                            <small style="color:var(--cream-dim); font-size:11.5px;">Registro de acertos e repasses efetuados aos barbeiros</small>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Barbeiro</th>
+                                    <th>Período de Referência</th>
+                                    <th>Data do Pagamento</th>
+                                    <th>Valor Pago</th>
+                                    <th>Observação</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblHistoricoComissoes"></tbody>
                         </table>
                     </div>
                 </div>
@@ -1132,6 +1249,7 @@
             <div class="field"><label>Nome</label><input id="barbNome" placeholder="Ex: Marcus Ferreira"></div>
             <div class="field"><label>Especialidade</label><input id="barbEspec" placeholder="Ex: Degradê e barba na navalha"></div>
             <div class="field"><label>WhatsApp (com DDD)</label><input id="barbWhats" placeholder="86999999999"></div>
+            <div class="field"><label>Comissão (%)</label><input id="barbComissao" type="number" step="0.5" min="0" max="100" placeholder="40"></div>
             <div class="modal-actions">
                 <button class="btn ghost small" onclick="closeModal('modalBarbeiro')">Cancelar</button>
                 <button class="btn small" onclick="saveBarbeiro()">Salvar</button>
@@ -1155,23 +1273,66 @@
 
     <div class="modal-overlay" id="modalDespesa">
         <div class="modal">
-            <h3>Nova Despesa</h3>
+            <h3 id="modalDespesaTitle">Nova Despesa</h3>
+            <input type="hidden" id="despId">
             <div class="field"><label>Descrição</label><input id="despDesc" placeholder="Ex: Conta de energia"></div>
             <div class="field"><label>Categoria</label>
                 <select id="despCat">
-                    <option>Aluguel</option>
                     <option>Produtos</option>
+                    <option>Aluguel</option>
                     <option>Energia/Água</option>
                     <option>Manutenção</option>
+                    <option>Equipamentos</option>
                     <option>Marketing</option>
+                    <option>Salários/Comissões</option>
                     <option>Outros</option>
                 </select>
             </div>
-            <div class="field"><label>Data</label><input id="despData" type="date"></div>
+            <div class="field"><label>Data (Retroativa se necessário)</label><input id="despData" type="date"></div>
             <div class="field"><label>Valor (R$)</label><input id="despValor" type="number" step="0.01" placeholder="0.00"></div>
+            <div class="field"><label>Observação (Opcional)</label><input id="despObs" placeholder="Ex: Pago via PIX"></div>
             <div class="modal-actions">
                 <button class="btn ghost small" onclick="closeModal('modalDespesa')">Cancelar</button>
                 <button class="btn small" onclick="saveDespesa()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalEntrada">
+        <div class="modal">
+            <h3 id="modalEntradaTitle">Lançar Entrada (Receita)</h3>
+            <input type="hidden" id="entId">
+            <div class="field"><label>Descrição</label><input id="entDesc" placeholder="Ex: Atendimento avulso / Venda produto"></div>
+            <div class="field"><label>Data (Lançamento Retroativo)</label><input id="entData" type="date"></div>
+            <div class="field"><label>Valor (R$)</label><input id="entValor" type="number" step="0.01" placeholder="0.00"></div>
+            <div class="field"><label>Barbeiro Responsável (Opcional)</label><select id="entBarbeiro"></select></div>
+            <div class="field"><label>Serviço (Opcional)</label><select id="entServico"></select></div>
+            <div class="field"><label>Nome do Cliente (Opcional)</label><input id="entCliente" placeholder="Ex: João Silva"></div>
+            <div class="field"><label>Observação (Opcional)</label><input id="entObs" placeholder="Ex: Pago no dinheiro"></div>
+            <div class="modal-actions">
+                <button class="btn ghost small" onclick="closeModal('modalEntrada')">Cancelar</button>
+                <button class="btn small" onclick="saveEntrada()">Salvar Entrada</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalPagarComissao">
+        <div class="modal">
+            <h3>Pagar Comissão de Barbeiro</h3>
+            <input type="hidden" id="pgBarbeiroId">
+            <div class="field"><label>Barbeiro</label><input id="pgBarbeiroNome" readonly style="opacity:0.8;"></div>
+            <div style="display:flex; gap:10px;">
+                <div class="field" style="flex:1;"><label>Período Início</label><input id="pgInicio" type="date"></div>
+                <div class="field" style="flex:1;"><label>Período Fim</label><input id="pgFim" type="date"></div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <div class="field" style="flex:1;"><label>Data do Pagamento</label><input id="pgData" type="date"></div>
+                <div class="field" style="flex:1;"><label>Valor a Pagar (R$)</label><input id="pgValor" type="number" step="0.01"></div>
+            </div>
+            <div class="field"><label>Observação / Comprovante</label><input id="pgObs" placeholder="Ex: Transferência efetuada via PIX"></div>
+            <div class="modal-actions">
+                <button class="btn ghost small" onclick="closeModal('modalPagarComissao')">Cancelar</button>
+                <button class="btn small" onclick="confirmPagarComissao()">Confirmar Pagamento</button>
             </div>
         </div>
     </div>
@@ -1202,7 +1363,17 @@
             servicos: [],
             horarios: {},
             agendamentos: [],
-            despesas: []
+            despesas: [],
+            entradas: [],
+            pagamentosComissao: []
+        };
+
+        let finFilter = {
+            periodo: 'mes', // 'hoje' | 'semana' | 'mes' | 'custom'
+            dataInicio: '',
+            dataFim: '',
+            barbeiroId: '',
+            categoria: ''
         };
 
         let cloudConfig = {
@@ -1296,7 +1467,9 @@
                         servicos: apiRes.servicos || [],
                         horarios: apiRes.horarios || {},
                         agendamentos: apiRes.agendamentos || [],
-                        despesas: apiRes.despesas || []
+                        despesas: apiRes.despesas || [],
+                        entradas: apiRes.entradas || [],
+                        pagamentosComissao: apiRes.pagamentosComissao || []
                     };
                     cloudConfig.isNeonConnected = true;
                     loadedFromDb = true;
@@ -1309,7 +1482,7 @@
                 try {
                     const localRaw = localStorage.getItem(STORAGE_KEY);
                     if (localRaw) {
-                        state = Object.assign({ barbeiros: [], servicos: [], horarios: {}, agendamentos: [], despesas: [] }, JSON.parse(localRaw));
+                        state = Object.assign({ barbeiros: [], servicos: [], horarios: {}, agendamentos: [], despesas: [], entradas: [], pagamentosComissao: [] }, JSON.parse(localRaw));
                     }
                 } catch (e) {}
             }
@@ -1379,6 +1552,7 @@
                 document.getElementById('barbNome').value = b.nome;
                 document.getElementById('barbEspec').value = b.especialidade || '';
                 document.getElementById('barbWhats').value = b.whatsapp;
+                document.getElementById('barbComissao').value = b.comissaoPct !== undefined ? b.comissaoPct : 40;
                 document.getElementById('barbFotoData').value = b.foto || '';
                 document.getElementById('barbFotoPreview').innerHTML = b.foto ? `<img src="${b.foto}">` : 'Sem foto';
             } else {
@@ -1386,6 +1560,7 @@
                 document.getElementById('barbNome').value = '';
                 document.getElementById('barbEspec').value = '';
                 document.getElementById('barbWhats').value = '';
+                document.getElementById('barbComissao').value = 40;
                 document.getElementById('barbFotoData').value = '';
                 document.getElementById('barbFotoPreview').innerHTML = 'Sem foto';
             }
@@ -1439,10 +1614,11 @@
             const nome = document.getElementById('barbNome').value.trim();
             const especialidade = document.getElementById('barbEspec').value.trim();
             const whatsapp = document.getElementById('barbWhats').value.trim().replace(/\D/g, '');
+            const comissaoPct = parseFloat(document.getElementById('barbComissao').value) || 40;
             const foto = document.getElementById('barbFotoData').value;
             if (!nome || !whatsapp) { toast('Preencha nome e WhatsApp'); return; }
 
-            const payload = { id: id || undefined, nome, especialidade, whatsapp, foto };
+            const payload = { id: id || undefined, nome, especialidade, whatsapp, foto, comissaoPct };
 
             if (cloudConfig.isNeonConnected) {
                 try {
@@ -1464,7 +1640,7 @@
 
             await persist();
             closeModal('modalBarbeiro');
-            renderBarbeirosTable(); renderHorarios(); renderAgendamentosFilters();
+            renderBarbeirosTable(); renderHorarios(); renderAgendamentosFilters(); renderFinanceiro();
             toast('Barbeiro salvo');
         }
 
@@ -1482,18 +1658,19 @@
             state.barbeiros = state.barbeiros.filter(b => b.id !== id);
             delete state.horarios[id];
             await persist();
-            renderBarbeirosTable(); renderHorarios(); renderAgendamentosFilters();
+            renderBarbeirosTable(); renderHorarios(); renderAgendamentosFilters(); renderFinanceiro();
             toast('Barbeiro removido');
         }
 
         function renderBarbeirosTable() {
             const tb = document.getElementById('tblBarbeiros');
-            if (!state.barbeiros.length) { tb.innerHTML = '<tr><td colspan="4" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum barbeiro cadastrado</td></tr>'; return; }
+            if (!state.barbeiros.length) { tb.innerHTML = '<tr><td colspan="5" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum barbeiro cadastrado</td></tr>'; return; }
             tb.innerHTML = state.barbeiros.map(b => `
                 <tr>
                     <td><div style="display:flex; align-items:center; gap:10px;"><div class="avatar">${avatarHTML(b)}</div><b>${b.nome}</b></div></td>
                     <td>${b.especialidade || '—'}</td>
                     <td style="font-family:var(--font-mono);">${b.whatsapp}</td>
+                    <td style="font-family:var(--font-mono); color:var(--brass-2); font-weight:600;">${b.comissaoPct !== undefined ? b.comissaoPct : 40}%</td>
                     <td style="text-align:right;"><div class="row-actions">
                         <button class="icon-btn" onclick="openBarbeiroModal('${b.id}')" title="Editar">✎</button>
                         <button class="icon-btn del" onclick="deleteBarbeiro('${b.id}')" title="Remover">✕</button>
@@ -1762,21 +1939,183 @@
         }
 
         /* Financeiro */
-        function openDespesaModal() {
-            document.getElementById('despDesc').value = '';
-            document.getElementById('despData').value = new Date().toISOString().slice(0, 10);
-            document.getElementById('despValor').value = '';
+        function setFinPeriodo(p) {
+            finFilter.periodo = p;
+            document.querySelectorAll('.period-btn').forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('ghost');
+            });
+            const activeMap = { hoje: 'btnPeriodoHoje', semana: 'btnPeriodoSemana', mes: 'btnPeriodoMes', custom: 'btnPeriodoCustom' };
+            const activeBtn = document.getElementById(activeMap[p]);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.classList.remove('ghost');
+            }
+            const customBox = document.getElementById('finCustomDates');
+            if (p === 'custom') {
+                customBox.style.display = 'inline-flex';
+                if (!document.getElementById('finDataInicio').value) {
+                    const now = new Date();
+                    const dInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+                    const dFim = now.toISOString().slice(0, 10);
+                    document.getElementById('finDataInicio').value = dInicio;
+                    document.getElementById('finDataFim').value = dFim;
+                }
+            } else {
+                customBox.style.display = 'none';
+            }
+            renderFinanceiro();
+        }
+
+        function getPeriodoRange() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            if (finFilter.periodo === 'hoje') {
+                return { start: todayStr, end: todayStr };
+            }
+            if (finFilter.periodo === 'semana') {
+                const day = today.getDay();
+                const diffSeg = today.getDate() - day + (day === 0 ? -6 : 1);
+                const seg = new Date(today.setDate(diffSeg));
+                const dom = new Date(seg);
+                dom.setDate(seg.getDate() + 6);
+                const start = seg.toISOString().slice(0, 10);
+                const end = dom.toISOString().slice(0, 10);
+                return { start, end };
+            }
+            if (finFilter.periodo === 'mes') {
+                const start = `${yyyy}-${mm}-01`;
+                const lastDay = new Date(yyyy, today.getMonth() + 1, 0).getDate();
+                const end = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
+                return { start, end };
+            }
+            if (finFilter.periodo === 'custom') {
+                const start = document.getElementById('finDataInicio').value || '2000-01-01';
+                const end = document.getElementById('finDataFim').value || '2099-12-31';
+                return { start, end };
+            }
+            return { start: '2000-01-01', end: '2099-12-31' };
+        }
+
+        /* Entradas CRUD */
+        function openEntradaModal(id) {
+            document.getElementById('entId').value = id || '';
+            const bSel = document.getElementById('entBarbeiro');
+            bSel.innerHTML = '<option value="">Sem barbeiro específico</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            const sSel = document.getElementById('entServico');
+            sSel.innerHTML = '<option value="">Sem serviço específico</option>' + state.servicos.map(s => `<option value="${s.id}">${s.nome} (${brl(s.preco)})</option>`).join('');
+
+            if (id) {
+                const e = state.entradas.find(x => x.id === id);
+                document.getElementById('modalEntradaTitle').textContent = 'Editar Entrada';
+                document.getElementById('entDesc').value = e.desc;
+                document.getElementById('entData').value = e.data;
+                document.getElementById('entValor').value = e.valor;
+                document.getElementById('entBarbeiro').value = e.barbeiroId || '';
+                document.getElementById('entServico').value = e.servicoId || '';
+                document.getElementById('entCliente').value = e.clienteNome || '';
+                document.getElementById('entObs').value = e.obs || '';
+            } else {
+                document.getElementById('modalEntradaTitle').textContent = 'Lançar Entrada (Receita)';
+                document.getElementById('entDesc').value = '';
+                document.getElementById('entData').value = new Date().toISOString().slice(0, 10);
+                document.getElementById('entValor').value = '';
+                document.getElementById('entBarbeiro').value = '';
+                document.getElementById('entServico').value = '';
+                document.getElementById('entCliente').value = '';
+                document.getElementById('entObs').value = '';
+            }
+            openModal('modalEntrada');
+        }
+
+        async function saveEntrada() {
+            const id = document.getElementById('entId').value;
+            const desc = document.getElementById('entDesc').value.trim();
+            const data = document.getElementById('entData').value;
+            const valor = Number(document.getElementById('entValor').value);
+            const barbeiroId = document.getElementById('entBarbeiro').value || null;
+            const servicoId = document.getElementById('entServico').value || null;
+            const clienteNome = document.getElementById('entCliente').value.trim() || null;
+            const obs = document.getElementById('entObs').value.trim() || null;
+
+            if (!desc || !data || !valor) { toast('Preencha descrição, data e valor'); return; }
+
+            const payload = { id: id || undefined, desc, data, valor, barbeiroId, servicoId, clienteNome, obs };
+
+            if (cloudConfig.isNeonConnected) {
+                try {
+                    const res = await apiFetch('/api/entradas', 'POST', payload);
+                    if (res && res.entrada) payload.id = res.entrada.id;
+                } catch (err) {
+                    toast('Erro no banco: ' + err.message);
+                    return;
+                }
+            }
+
+            if (id) {
+                Object.assign(state.entradas.find(x => x.id === id), payload);
+            } else {
+                payload.id = payload.id || ('e_' + uid());
+                state.entradas.push(payload);
+            }
+
+            await persist();
+            closeModal('modalEntrada');
+            renderFinanceiro();
+            toast('Entrada registrada');
+        }
+
+        async function deleteEntrada(id) {
+            if (!confirm('Excluir esta entrada?')) return;
+            if (cloudConfig.isNeonConnected) {
+                try { await apiFetch('/api/entradas', 'DELETE', { id }); } catch (err) {
+                    toast('Erro ao deletar: ' + err.message);
+                    return;
+                }
+            }
+            state.entradas = state.entradas.filter(e => e.id !== id);
+            await persist();
+            renderFinanceiro();
+            toast('Entrada excluída');
+        }
+
+        /* Despesas CRUD */
+        function openDespesaModal(id) {
+            document.getElementById('despId').value = id || '';
+            if (id) {
+                const d = state.despesas.find(x => x.id === id);
+                document.getElementById('modalDespesaTitle').textContent = 'Editar Despesa';
+                document.getElementById('despDesc').value = d.desc;
+                document.getElementById('despCat').value = d.cat || 'Produtos';
+                document.getElementById('despData').value = d.data;
+                document.getElementById('despValor').value = d.valor;
+                document.getElementById('despObs').value = d.obs || '';
+            } else {
+                document.getElementById('modalDespesaTitle').textContent = 'Nova Despesa';
+                document.getElementById('despDesc').value = '';
+                document.getElementById('despCat').value = 'Produtos';
+                document.getElementById('despData').value = new Date().toISOString().slice(0, 10);
+                document.getElementById('despValor').value = '';
+                document.getElementById('despObs').value = '';
+            }
             openModal('modalDespesa');
         }
 
         async function saveDespesa() {
+            const id = document.getElementById('despId').value;
             const desc = document.getElementById('despDesc').value.trim();
             const cat = document.getElementById('despCat').value;
             const data = document.getElementById('despData').value;
             const valor = Number(document.getElementById('despValor').value);
-            if (!desc || !data || !valor) { toast('Preencha todos os campos'); return; }
+            const obs = document.getElementById('despObs').value.trim() || null;
 
-            const payload = { desc, cat, data, valor };
+            if (!desc || !data || !valor) { toast('Preencha os campos obrigatórios'); return; }
+
+            const payload = { id: id || undefined, desc, cat, data, valor, obs };
 
             if (cloudConfig.isNeonConnected) {
                 try {
@@ -1788,12 +2127,17 @@
                 }
             }
 
-            payload.id = payload.id || ('d_' + uid());
-            state.despesas.push(payload);
+            if (id) {
+                Object.assign(state.despesas.find(x => x.id === id), payload);
+            } else {
+                payload.id = payload.id || ('d_' + uid());
+                state.despesas.push(payload);
+            }
+
             await persist();
             closeModal('modalDespesa');
             renderFinanceiro();
-            toast('Despesa registrada');
+            toast('Despesa salva');
         }
 
         async function deleteDespesa(id) {
@@ -1812,48 +2156,291 @@
             toast('Despesa removida');
         }
 
+        /* Pagamentos de Comissão */
+        function openPagarComissaoModal(barbeiroId, valorSugerido, pInicio, pFim) {
+            const b = state.barbeiros.find(x => x.id === barbeiroId);
+            if (!b) return;
+            document.getElementById('pgBarbeiroId').value = barbeiroId;
+            document.getElementById('pgBarbeiroNome').value = b.nome;
+            document.getElementById('pgInicio').value = pInicio;
+            document.getElementById('pgFim').value = pFim;
+            document.getElementById('pgData').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('pgValor').value = Math.max(0, valorSugerido).toFixed(2);
+            document.getElementById('pgObs').value = `Acerto de comissão de ${b.nome}`;
+            openModal('modalPagarComissao');
+        }
+
+        async function confirmPagarComissao() {
+            const barbeiroId = document.getElementById('pgBarbeiroId').value;
+            const periodoInicio = document.getElementById('pgInicio').value;
+            const periodoFim = document.getElementById('pgFim').value;
+            const dataPagamento = document.getElementById('pgData').value;
+            const valor = Number(document.getElementById('pgValor').value);
+            const obs = document.getElementById('pgObs').value.trim() || null;
+
+            if (!barbeiroId || !periodoInicio || !periodoFim || !dataPagamento || !valor) {
+                toast('Preencha os campos obrigatórios do pagamento');
+                return;
+            }
+
+            const payload = { barbeiroId, periodoInicio, periodoFim, dataPagamento, valor, obs, status: 'pago' };
+
+            if (cloudConfig.isNeonConnected) {
+                try {
+                    const res = await apiFetch('/api/comissoes', 'POST', payload);
+                    if (res && res.pagamento) payload.id = res.pagamento.id;
+                } catch (err) {
+                    toast('Erro no banco: ' + err.message);
+                    return;
+                }
+            }
+
+            payload.id = payload.id || ('pg_' + uid());
+            state.pagamentosComissao.push(payload);
+            await persist();
+            closeModal('modalPagarComissao');
+            renderFinanceiro();
+            toast('Pagamento de comissão registrado');
+        }
+
+        async function deletePagamentoComissao(id) {
+            if (!confirm('Excluir este registro de pagamento de comissão?')) return;
+            if (cloudConfig.isNeonConnected) {
+                try { await apiFetch('/api/comissoes', 'DELETE', { id }); } catch (err) {
+                    toast('Erro ao deletar: ' + err.message);
+                    return;
+                }
+            }
+            state.pagamentosComissao = state.pagamentosComissao.filter(pg => pg.id !== id);
+            await persist();
+            renderFinanceiro();
+            toast('Registro de pagamento excluído');
+        }
+
         function renderFinanceiro() {
-            const receita = state.agendamentos.filter(a => a.status === 'concluido').reduce((sum, a) => {
+            const barbFilterSel = document.getElementById('finFiltroBarbeiro');
+            if (barbFilterSel) {
+                const curVal = barbFilterSel.value;
+                barbFilterSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                barbFilterSel.value = curVal;
+            }
+
+            const { start, end } = getPeriodoRange();
+            const bFiltro = document.getElementById('finFiltroBarbeiro')?.value || '';
+            const cFiltro = document.getElementById('finFiltroCategoria')?.value || '';
+
+            // 1. Receitas de Agendamentos Concluídos no período
+            const agsConcluidos = state.agendamentos.filter(a => {
+                if (a.status !== 'concluido') return false;
+                if (a.data < start || a.data > end) return false;
+                if (bFiltro && a.barbeiroId !== bFiltro) return false;
+                return true;
+            });
+
+            const receitaAgendamentos = agsConcluidos.reduce((sum, a) => {
                 const svc = state.servicos.find(s => s.id === a.servicoId);
                 return sum + (svc ? Number(svc.preco) : 0);
             }, 0);
-            const totalDespesas = state.despesas.reduce((sum, d) => sum + Number(d.valor), 0);
-            const saldo = receita - totalDespesas;
 
-            document.getElementById('finStats').innerHTML = `
-                <div class="stat-card"><div class="label">Receita Realizada</div><div class="value small" style="color:#9cd488;">${brl(receita)}</div></div>
-                <div class="stat-card"><div class="label">Total Despesas</div><div class="value small" style="color:var(--danger);">${brl(totalDespesas)}</div></div>
-                <div class="stat-card"><div class="label">Saldo Líquido</div><div class="value small" style="color:${saldo >= 0 ? 'var(--brass-2)' : 'var(--danger)'};">${brl(saldo)}</div></div>
-            `;
+            // 2. Entradas Manuais/Retroativas no período
+            const entradasFiltradas = state.entradas.filter(e => {
+                if (e.data < start || e.data > end) return false;
+                if (bFiltro && e.barbeiroId !== bFiltro) return false;
+                return true;
+            });
 
-            const porBarbeiro = state.barbeiros.map(b => {
-                const total = state.agendamentos.filter(a => a.barbeiroId === b.id && a.status === 'concluido').reduce((sum, a) => {
+            const receitaEntradas = entradasFiltradas.reduce((sum, e) => sum + Number(e.valor), 0);
+            const totalReceita = receitaAgendamentos + receitaEntradas;
+
+            // 3. Despesas no período
+            const despesasFiltradas = state.despesas.filter(d => {
+                if (d.data < start || d.data > end) return false;
+                if (cFiltro && d.cat !== cFiltro) return false;
+                return true;
+            });
+
+            const totalDespesas = despesasFiltradas.reduce((sum, d) => sum + Number(d.valor), 0);
+
+            // 4. Comissões calculadas no período por barbeiro
+            let totalComissoesGeradas = 0;
+            const producaoBarbeiros = state.barbeiros.map(b => {
+                const agsB = agsConcluidos.filter(a => a.barbeiroId === b.id);
+                const numAtendimentos = agsB.length;
+                const fatGerado = agsB.reduce((sum, a) => {
                     const svc = state.servicos.find(s => s.id === a.servicoId);
                     return sum + (svc ? Number(svc.preco) : 0);
                 }, 0);
-                return { nome: b.nome, total };
+
+                const pct = b.comissaoPct !== undefined ? b.comissaoPct : 40;
+                const comissaoGerada = fatGerado * (pct / 100);
+
+                const pagamentosB = state.pagamentosComissao.filter(pg => {
+                    if (pg.barbeiroId !== b.id) return false;
+                    return pg.dataPagamento >= start && pg.dataPagamento <= end;
+                });
+                const pagoNoPeriodo = pagamentosB.reduce((sum, pg) => sum + Number(pg.valor), 0);
+                const saldoPendente = comissaoGerada - pagoNoPeriodo;
+
+                totalComissoesGeradas += comissaoGerada;
+
+                return {
+                    id: b.id,
+                    nome: b.nome,
+                    foto: b.foto,
+                    pct,
+                    numAtendimentos,
+                    fatGerado,
+                    comissaoGerada,
+                    pagoNoPeriodo,
+                    saldoPendente
+                };
             });
 
-            const max = Math.max(...porBarbeiro.map(p => p.total), 1);
-            const chart = document.getElementById('finBarChart');
-            if (!porBarbeiro.length || porBarbeiro.every(p => p.total === 0)) chart.innerHTML = '<div style="color:var(--cream-faint); padding:16px;">Sem faturamento concluído ainda.</div>';
-            else {
-                chart.innerHTML = porBarbeiro.map(p => `
-                    <div class="bar-row">
-                        <div class="name">${p.nome}</div>
-                        <div class="bar-track"><div class="bar-fill" style="width:${(p.total / max * 100)}%"></div></div>
-                        <div class="val">${brl(p.total)}</div>
-                    </div>`).join('');
+            const saldoLiquido = totalReceita - totalDespesas - totalComissoesGeradas;
+
+            // Render Stats
+            document.getElementById('finStats').innerHTML = `
+                <div class="stat-card"><div class="label">Total Entradas (Receitas)</div><div class="value small" style="color:#9cd488;">${brl(totalReceita)}</div></div>
+                <div class="stat-card"><div class="label">Total Despesas</div><div class="value small" style="color:var(--danger);">${brl(totalDespesas)}</div></div>
+                <div class="stat-card"><div class="label">Comissões Barbeiros</div><div class="value small" style="color:var(--brass-2);">${brl(totalComissoesGeradas)}</div></div>
+                <div class="stat-card"><div class="label">Resultado Líquido</div><div class="value small" style="color:${saldoLiquido >= 0 ? '#9cd488' : 'var(--danger)'};">${brl(saldoLiquido)}</div></div>
+                <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${agsConcluidos.length}</div></div>
+            `;
+
+            // Tabela 1: Entradas
+            const tbEntradas = document.getElementById('tblEntradas');
+            const listaEntradas = [
+                ...entradasFiltradas.map(e => {
+                    const b = state.barbeiros.find(x => x.id === e.barbeiroId);
+                    const s = state.servicos.find(x => x.id === e.servicoId);
+                    return {
+                        id: e.id,
+                        data: e.data,
+                        desc: e.desc + (e.obs ? ` (${e.obs})` : ''),
+                        cliente: e.clienteNome || '—',
+                        barbeiro: b ? b.nome : '—',
+                        servico: s ? s.nome : '—',
+                        valor: e.valor,
+                        tipo: 'manual',
+                        raw: e
+                    };
+                }),
+                ...agsConcluidos.map(a => {
+                    const b = state.barbeiros.find(x => x.id === a.barbeiroId);
+                    const s = state.servicos.find(x => x.id === a.servicoId);
+                    const val = s ? Number(s.preco) : 0;
+                    return {
+                        id: a.id,
+                        data: a.data,
+                        desc: `Agendamento: ${a.nome}`,
+                        cliente: a.nome,
+                        barbeiro: b ? b.nome : '—',
+                        servico: s ? s.nome : '—',
+                        valor: val,
+                        tipo: 'agendamento'
+                    };
+                })
+            ].sort((a, b) => b.data.localeCompare(a.data));
+
+            if (!listaEntradas.length) {
+                tbEntradas.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhuma entrada registrada neste período</td></tr>';
+            } else {
+                tbEntradas.innerHTML = listaEntradas.map(item => {
+                    const dataFmt = new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                    const badge = item.tipo === 'agendamento' 
+                        ? '<span class="badge ok">Agendamento</span>' 
+                        : '<span class="badge pending">Manual/Retroativo</span>';
+                    const acoes = item.tipo === 'manual' 
+                        ? `<div class="row-actions">
+                             <button class="icon-btn" onclick="openEntradaModal('${item.id}')" title="Editar">✎</button>
+                             <button class="icon-btn del" onclick="deleteEntrada('${item.id}')" title="Excluir">✕</button>
+                           </div>` 
+                        : '—';
+                    return `<tr>
+                        <td style="font-family:var(--font-mono);">${dataFmt}</td>
+                        <td><b>${item.desc}</b></td>
+                        <td>${item.barbeiro}</td>
+                        <td>${item.servico}</td>
+                        <td style="font-family:var(--font-mono); color:#9cd488; font-weight:600;">${brl(item.valor)}</td>
+                        <td>${badge}</td>
+                        <td style="text-align:right;">${acoes}</td>
+                    </tr>`;
+                }).join('');
             }
 
-            const tb = document.getElementById('tblDespesas');
-            if (!state.despesas.length) { tb.innerHTML = '<tr><td colspan="5" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhuma despesa registrada</td></tr>'; return; }
-            tb.innerHTML = [...state.despesas].sort((a, b) => b.data.localeCompare(a.data)).map(d => `
-                <tr>
-                    <td><b>${d.desc}</b></td><td>${d.cat}</td><td>${new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-                    <td style="font-family:var(--font-mono); color:var(--danger); font-weight:600;">${brl(d.valor)}</td>
-                    <td style="text-align:right;"><button class="icon-btn del" onclick="deleteDespesa('${d.id}')" title="Remover">✕</button></td>
-                </tr>`).join('');
+            // Tabela 2: Despesas
+            const tbDespesas = document.getElementById('tblDespesas');
+            if (!despesasFiltradas.length) {
+                tbDespesas.innerHTML = '<tr><td colspan="6" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhuma despesa registrada neste período</td></tr>';
+            } else {
+                tbDespesas.innerHTML = despesasFiltradas.sort((a, b) => b.data.localeCompare(a.data)).map(d => {
+                    const dataFmt = new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                    return `<tr>
+                        <td style="font-family:var(--font-mono);">${dataFmt}</td>
+                        <td><b>${d.desc}</b></td>
+                        <td><span class="badge" style="background:var(--panel-2); border:1px solid var(--line);">${d.cat}</span></td>
+                        <td style="color:var(--cream-dim);">${d.obs || '—'}</td>
+                        <td style="font-family:var(--font-mono); color:var(--danger); font-weight:600;">${brl(d.valor)}</td>
+                        <td style="text-align:right;">
+                            <div class="row-actions">
+                                <button class="icon-btn" onclick="openDespesaModal('${d.id}')" title="Editar">✎</button>
+                                <button class="icon-btn del" onclick="deleteDespesa('${d.id}')" title="Excluir">✕</button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // Tabela 3: Comissões por Barbeiro
+            const tbComiss = document.getElementById('tblComissoesBarbeiros');
+            const barbeirosExibir = bFiltro ? producaoBarbeiros.filter(p => p.id === bFiltro) : producaoBarbeiros;
+            if (!barbeirosExibir.length) {
+                tbComiss.innerHTML = '<tr><td colspan="8" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhum barbeiro cadastrado</td></tr>';
+            } else {
+                tbComiss.innerHTML = barbeirosExibir.map(p => `
+                    <tr>
+                        <td><b>${p.nome}</b></td>
+                        <td style="font-family:var(--font-mono);">${p.pct}%</td>
+                        <td style="font-family:var(--font-mono);">${p.numAtendimentos}</td>
+                        <td style="font-family:var(--font-mono);">${brl(p.fatGerado)}</td>
+                        <td style="font-family:var(--font-mono); color:var(--brass-2); font-weight:600;">${brl(p.comissaoGerada)}</td>
+                        <td style="font-family:var(--font-mono); color:#9cd488;">${brl(p.pagoNoPeriodo)}</td>
+                        <td style="font-family:var(--font-mono); color:${p.saldoPendente > 0 ? 'var(--danger)' : 'var(--cream-dim)'}; font-weight:600;">${brl(p.saldoPendente)}</td>
+                        <td style="text-align:right;">
+                            <button class="btn small" onclick="openPagarComissaoModal('${p.id}', ${p.saldoPendente}, '${start}', '${end}')">Marcar como Pago</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Tabela 4: Histórico de Pagamentos de Comissão
+            const tbHist = document.getElementById('tblHistoricoComissoes');
+            const histFiltrado = state.pagamentosComissao.filter(pg => {
+                if (bFiltro && pg.barbeiroId !== bFiltro) return false;
+                return true;
+            }).sort((a, b) => b.dataPagamento.localeCompare(a.dataPagamento));
+
+            if (!histFiltrado.length) {
+                tbHist.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhum pagamento de comissão registrado</td></tr>';
+            } else {
+                tbHist.innerHTML = histFiltrado.map(pg => {
+                    const b = state.barbeiros.find(x => x.id === pg.barbeiroId);
+                    const dtPagFmt = new Date(pg.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR');
+                    const dtIniFmt = new Date(pg.periodoInicio + 'T00:00:00').toLocaleDateString('pt-BR');
+                    const dtFimFmt = new Date(pg.periodoFim + 'T00:00:00').toLocaleDateString('pt-BR');
+                    return `<tr>
+                        <td><b>${b ? b.nome : '—'}</b></td>
+                        <td style="font-family:var(--font-mono); size:11.5px;">${dtIniFmt} a ${dtFimFmt}</td>
+                        <td style="font-family:var(--font-mono);">${dtPagFmt}</td>
+                        <td style="font-family:var(--font-mono); color:#9cd488; font-weight:600;">${brl(pg.valor)}</td>
+                        <td style="color:var(--cream-dim);">${pg.obs || '—'}</td>
+                        <td><span class="badge ok">${pg.status || 'pago'}</span></td>
+                        <td style="text-align:right;">
+                            <button class="icon-btn del" onclick="deletePagamentoComissao('${pg.id}')" title="Excluir">✕</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
         }
 
         function renderAdmin() {

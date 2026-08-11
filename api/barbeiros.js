@@ -15,32 +15,33 @@ export default async function handler(req, res) {
 
     try {
         if (req.method === 'GET') {
-            const barbeiros = await query`SELECT id, nome, especialidade, whatsapp, foto FROM barbeiros ORDER BY created_at ASC`;
+            const barbeiros = await query`SELECT id, nome, especialidade, whatsapp, foto, COALESCE(comissao_pct, 40.00)::float as "comissaoPct" FROM barbeiros ORDER BY created_at ASC`;
             return res.status(200).json({ ok: true, barbeiros });
         }
 
         if (req.method === 'POST') {
-            const { id, nome, especialidade, whatsapp, foto } = req.body || {};
+            const { id, nome, especialidade, whatsapp, foto, comissaoPct } = req.body || {};
             if (!nome || !whatsapp) {
                 return res.status(400).json({ ok: false, error: 'Nome e WhatsApp são obrigatórios.' });
             }
 
             const cleanWhats = String(whatsapp).replace(/\D/g, '');
+            const pct = comissaoPct !== undefined && comissaoPct !== null && comissaoPct !== '' ? parseFloat(comissaoPct) : 40.00;
 
             if (id) {
                 // Atualização
                 await query`
                     UPDATE barbeiros 
-                    SET nome = ${nome}, especialidade = ${especialidade || null}, whatsapp = ${cleanWhats}, foto = ${foto || null}
+                    SET nome = ${nome}, especialidade = ${especialidade || null}, whatsapp = ${cleanWhats}, foto = ${foto || null}, comissao_pct = ${pct}
                     WHERE id = ${id}
                 `;
-                return res.status(200).json({ ok: true, barbeiro: { id, nome, especialidade, whatsapp: cleanWhats, foto } });
+                return res.status(200).json({ ok: true, barbeiro: { id, nome, especialidade, whatsapp: cleanWhats, foto, comissaoPct: pct } });
             } else {
                 // Novo barbeiro
                 const newId = 'b_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 await query`
-                    INSERT INTO barbeiros (id, nome, especialidade, whatsapp, foto)
-                    VALUES (${newId}, ${nome}, ${especialidade || null}, ${cleanWhats}, ${foto || null})
+                    INSERT INTO barbeiros (id, nome, especialidade, whatsapp, foto, comissao_pct)
+                    VALUES (${newId}, ${nome}, ${especialidade || null}, ${cleanWhats}, ${foto || null}, ${pct})
                 `;
 
                 // Inicializar horários padrão para o novo barbeiro
@@ -74,7 +75,7 @@ export default async function handler(req, res) {
 
                 return res.status(201).json({
                     ok: true,
-                    barbeiro: { id: newId, nome, especialidade, whatsapp: cleanWhats, foto }
+                    barbeiro: { id: newId, nome, especialidade, whatsapp: cleanWhats, foto, comissaoPct: pct }
                 });
             }
         }

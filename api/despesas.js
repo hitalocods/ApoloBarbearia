@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     try {
         if (req.method === 'GET') {
             const despesas = await query`
-                SELECT id, descricao as desc, categoria as cat, to_char(data, 'YYYY-MM-DD') as data, valor::float as valor 
+                SELECT id, descricao as desc, categoria as cat, to_char(data, 'YYYY-MM-DD') as data, valor::float as valor, observacao as obs 
                 FROM despesas 
                 ORDER BY data DESC, created_at DESC
             `;
@@ -24,24 +24,37 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
-            const { desc, cat, data, valor } = req.body || {};
+            const { id, desc, cat, data, valor, obs } = req.body || {};
             if (!desc || !data || valor === undefined || valor === null) {
                 return res.status(400).json({ ok: false, error: 'Descrição, data e valor são obrigatórios.' });
             }
 
-            const newId = 'd_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
             const numValor = parseFloat(valor);
             const categoria = cat || 'Outros';
+            const observacao = obs || null;
 
-            await query`
-                INSERT INTO despesas (id, descricao, categoria, data, valor)
-                VALUES (${newId}, ${desc}, ${categoria}, ${data}::date, ${numValor})
-            `;
+            if (id) {
+                await query`
+                    UPDATE despesas 
+                    SET descricao = ${desc}, categoria = ${categoria}, data = ${data}::date, valor = ${numValor}, observacao = ${observacao}
+                    WHERE id = ${id}
+                `;
+                return res.status(200).json({
+                    ok: true,
+                    despesa: { id, desc, cat: categoria, data, valor: numValor, obs: observacao }
+                });
+            } else {
+                const newId = 'd_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+                await query`
+                    INSERT INTO despesas (id, descricao, categoria, data, valor, observacao)
+                    VALUES (${newId}, ${desc}, ${categoria}, ${data}::date, ${numValor}, ${observacao})
+                `;
 
-            return res.status(201).json({
-                ok: true,
-                despesa: { id: newId, desc, cat: categoria, data, valor: numValor }
-            });
+                return res.status(201).json({
+                    ok: true,
+                    despesa: { id: newId, desc, cat: categoria, data, valor: numValor, obs: observacao }
+                });
+            }
         }
 
         if (req.method === 'DELETE') {

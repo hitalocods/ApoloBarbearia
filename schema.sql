@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS barbeiros (
     especialidade TEXT,
     whatsapp TEXT NOT NULL,
     foto TEXT,
+    comissao_pct NUMERIC(5, 2) DEFAULT 40.00,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -51,6 +52,34 @@ CREATE TABLE IF NOT EXISTS despesas (
     categoria TEXT NOT NULL,
     data DATE NOT NULL,
     valor NUMERIC(10, 2) NOT NULL,
+    observacao TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. ENTRADAS MANUAIS / RETROATIVAS
+CREATE TABLE IF NOT EXISTS entradas (
+    id TEXT PRIMARY KEY,
+    descricao TEXT NOT NULL,
+    valor NUMERIC(10, 2) NOT NULL,
+    data DATE NOT NULL,
+    barbeiro_id TEXT REFERENCES barbeiros(id) ON DELETE SET NULL,
+    servico_id TEXT REFERENCES servicos(id) ON DELETE SET NULL,
+    cliente_nome TEXT,
+    agendamento_id TEXT REFERENCES agendamentos(id) ON DELETE SET NULL,
+    observacao TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. PAGAMENTOS DE COMISSÃO
+CREATE TABLE IF NOT EXISTS pagamentos_comissao (
+    id TEXT PRIMARY KEY,
+    barbeiro_id TEXT REFERENCES barbeiros(id) ON DELETE CASCADE,
+    valor NUMERIC(10, 2) NOT NULL,
+    data_pagamento DATE NOT NULL,
+    periodo_inicio DATE NOT NULL,
+    periodo_fim DATE NOT NULL,
+    observacao TEXT,
+    status TEXT NOT NULL DEFAULT 'pago',
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -59,3 +88,6 @@ CREATE INDEX IF NOT EXISTS idx_agendamentos_data_hora ON agendamentos(data, hora
 CREATE INDEX IF NOT EXISTS idx_agendamentos_barbeiro ON agendamentos(barbeiro_id);
 CREATE INDEX IF NOT EXISTS idx_horarios_barbeiro ON horarios(barbeiro_id);
 CREATE INDEX IF NOT EXISTS idx_despesas_data ON despesas(data);
+CREATE INDEX IF NOT EXISTS idx_entradas_data ON entradas(data);
+CREATE INDEX IF NOT EXISTS idx_pagamentos_comissao_barbeiro ON pagamentos_comissao(barbeiro_id);
+
