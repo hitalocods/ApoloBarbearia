@@ -3,8 +3,10 @@
 import { put } from '@vercel/blob';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: '.env.local' });
-dotenv.config();
+try {
+    dotenv.config({ path: '.env.local' });
+    dotenv.config();
+} catch (e) {}
 
 export const config = {
     api: {
@@ -15,17 +17,38 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    const isBlobConfigured = Boolean(token && !token.includes('vercel_blob_rw_xxx'));
+
+    // Verificação de status do Blob (GET ou POST com { test: true })
+    if (req.method === 'GET' || req.body?.test) {
+        return res.status(200).json({
+            ok: true,
+            configured: isBlobConfigured,
+            message: isBlobConfigured 
+                ? 'Vercel Blob conectado e pronto para uploads.' 
+                : 'BLOB_READ_WRITE_TOKEN não configurada na Vercel.'
+        });
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método não permitido. Use POST.' });
     }
 
-    const token = process.env.BLOB_READ_WRITE_TOKEN;
-    if (!token || token.includes('vercel_blob_rw_xxx')) {
+    if (!isBlobConfigured) {
         return res.status(200).json({
             ok: false,
             configured: false,
-            message: 'BLOB_READ_WRITE_TOKEN não configurada na Vercel. Armazenamento em Blob desativado.',
-            // Retorna a própria imagem recebida para permitir visualização temporária em desenvolvimento
+            message: 'BLOB_READ_WRITE_TOKEN não configurada na Vercel.',
+            // Retorna a imagem base64 diretamente para permitir pré-visualização local
             url: req.body?.dataUrl || null
         });
     }
@@ -48,17 +71,16 @@ export default async function handler(req, res) {
         }
 
         if (!imageBuffer) {
-            return res.status(400).json({ error: 'Nenhum arquivo ou imagem válida enviada (esperado dataUrl ou base64).' });
+            return res.status(400).json({ error: 'Nenhuma imagem enviada.' });
         }
 
-        // Definir extensão com base no mimeType
         const ext = mimeType.split('/')[1] || 'jpg';
         if (!safeFilename.includes('.')) {
             safeFilename += `.${ext}`;
         }
         const blobPath = `barbeiros/${Date.now()}-${safeFilename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 
-        // Upload para o Vercel Blob
+        // Upload direto para o Vercel Blob
         const blob = await put(blobPath, imageBuffer, {
             access: 'public',
             contentType: mimeType,
