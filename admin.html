@@ -1760,18 +1760,24 @@
         }
 
         /* Horários */
-        function renderHorarioSelect() {
+        function renderHorarioSelect(selectedId) {
             const sel = document.getElementById('horarioBarbeiroSelect');
+            if (!sel) return;
+            const targetVal = selectedId || sel.value;
             sel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            if (targetVal && state.barbeiros.some(b => b.id === targetVal)) {
+                sel.value = targetVal;
+            }
         }
 
         function renderHorarios() {
-            renderHorarioSelect();
             const sel = document.getElementById('horarioBarbeiroSelect');
-            const id = sel.value || (state.barbeiros[0] && state.barbeiros[0].id);
+            const currentSelected = sel ? sel.value : null;
+            renderHorarioSelect(currentSelected);
+            const id = (sel && sel.value) || (state.barbeiros[0] && state.barbeiros[0].id);
             const box = document.getElementById('horariosBox');
             if (!id) { box.innerHTML = '<div style="color:var(--cream-faint); padding:20px;">Cadastre um barbeiro primeiro.</div>'; return; }
-            sel.value = id;
+            if (sel) sel.value = id;
             if (!state.horarios[id]) state.horarios[id] = defaultHorario();
             const h = state.horarios[id];
             box.innerHTML = WEEKDAYS.map(d => {
