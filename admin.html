@@ -2374,17 +2374,22 @@
 
             const totalDespesas = despesasFiltradas.reduce((sum, d) => sum + Number(d.valor), 0);
 
-            // 4. Comissões calculadas no período por barbeiro
+            // 4. Comissões calculadas no período por barbeiro (Agendamentos + Entradas Retroativas do barbeiro)
             let totalComissoesGeradas = 0;
             const producaoBarbeiros = state.barbeiros.map(b => {
                 const agsB = agsConcluidos.filter(a => a.barbeiroId === b.id);
-                const numAtendimentos = agsB.length;
-                const fatGerado = agsB.reduce((sum, a) => {
+                const entradasB = entradasFiltradas.filter(e => e.barbeiroId === b.id);
+
+                const fatAgendamentos = agsB.reduce((sum, a) => {
                     const svc = state.servicos.find(s => s.id === a.servicoId);
                     return sum + (svc ? Number(svc.preco) : 0);
                 }, 0);
 
-                const pct = b.comissaoPct !== undefined ? b.comissaoPct : 40;
+                const fatEntradas = entradasB.reduce((sum, e) => sum + Number(e.valor), 0);
+                const fatGerado = fatAgendamentos + fatEntradas;
+                const numAtendimentos = agsB.length + entradasB.length;
+
+                const pct = b.comissaoPct !== undefined ? Number(b.comissaoPct) : 40;
                 const comissaoGerada = fatGerado * (pct / 100);
 
                 const pagamentosB = state.pagamentosComissao.filter(pg => {
