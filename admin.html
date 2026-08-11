@@ -1151,10 +1151,13 @@
                 <div class="toolbar">
                     <div>
                         <div class="eyebrow">Fila de Atendimento</div>
-                        <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Agendamentos</h2>
+                        <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Agendamentos & Cortes</h2>
                     </div>
-                    <select id="agFiltroBarbeiro" onchange="renderAgendamentos()"
-                        style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:8px 12px; border-radius:var(--radius-sm); font-size:13px;"></select>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <select id="agFiltroBarbeiro" onchange="renderAgendamentos()"
+                            style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:8px 12px; border-radius:var(--radius-sm); font-size:13px;"></select>
+                        <button class="btn" onclick="openEntradaModal()">+ Registrar Atendimento / Corte</button>
+                    </div>
                 </div>
                 <div class="table-wrap">
                     <table class="data-table">
@@ -1399,18 +1402,43 @@
 
     <div class="modal-overlay" id="modalEntrada">
         <div class="modal">
-            <h3 id="modalEntradaTitle">Lançar Entrada (Receita)</h3>
+            <h3 id="modalEntradaTitle">Registrar Atendimento / Corte Retroativo</h3>
             <input type="hidden" id="entId">
-            <div class="field"><label>Descrição</label><input id="entDesc" placeholder="Ex: Atendimento avulso / Venda produto"></div>
-            <div class="field"><label>Data (Lançamento Retroativo)</label><input id="entData" type="date"></div>
-            <div class="field"><label>Valor (R$)</label><input id="entValor" type="number" step="0.01" placeholder="0.00"></div>
-            <div class="field"><label>Barbeiro Responsável (Opcional)</label><select id="entBarbeiro"></select></div>
-            <div class="field"><label>Serviço (Opcional)</label><select id="entServico"></select></div>
-            <div class="field"><label>Nome do Cliente (Opcional)</label><input id="entCliente" placeholder="Ex: João Silva"></div>
-            <div class="field"><label>Observação (Opcional)</label><input id="entObs" placeholder="Ex: Pago no dinheiro"></div>
+            <div class="field">
+                <label>Data do Atendimento / Corte</label>
+                <input id="entData" type="date">
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>Barbeiro Responsável</label>
+                    <select id="entBarbeiro"></select>
+                </div>
+                <div class="field">
+                    <label>Serviço Realizado</label>
+                    <select id="entServico" onchange="onSelectEntradaServico()"></select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>Valor (R$)</label>
+                    <input id="entValor" type="number" step="0.01" placeholder="0.00">
+                </div>
+                <div class="field">
+                    <label>Nome do Cliente</label>
+                    <input id="entCliente" placeholder="Ex: João Silva (ou avulso)">
+                </div>
+            </div>
+            <div class="field">
+                <label>Descrição / Detalhe</label>
+                <input id="entDesc" placeholder="Ex: Corte de Cabelo / Barba">
+            </div>
+            <div class="field">
+                <label>Observação / Forma de Pagamento (Opcional)</label>
+                <input id="entObs" placeholder="Ex: Pago via PIX / Dinheiro">
+            </div>
             <div class="modal-actions">
                 <button class="btn ghost small" onclick="closeModal('modalEntrada')">Cancelar</button>
-                <button class="btn small" onclick="saveEntrada()">Salvar Entrada</button>
+                <button class="btn small" onclick="saveEntrada()">Salvar Atendimento</button>
             </div>
         </div>
     </div>
@@ -1961,29 +1989,74 @@
             renderAgendamentosFilters(currentSelected);
             const filtro = sel ? sel.value : '';
             const tb = document.getElementById('tblAgendamentos');
-            let list = [...state.agendamentos];
-            if (filtro) list = list.filter(a => a.barbeiroId === filtro);
-            list.sort((a, b) => (b.data + b.hora).localeCompare(a.data + a.hora));
 
-            if (!list.length) { tb.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum agendamento encontrado</td></tr>'; return; }
+            // Combinar agendamentos online + entradas manuais/retroativas de atendimentos
+            const todosAgendamentos = [
+                ...state.agendamentos.map(a => ({
+                    id: a.id,
+                    nome: a.nome,
+                    tel: a.tel || '—',
+                    barbeiroId: a.barbeiroId,
+                    servicoId: a.servicoId,
+                    data: a.data,
+                    hora: a.hora || '—',
+                    status: a.status,
+                    origem: 'online'
+                })),
+                ...state.entradas.map(e => ({
+                    id: e.id,
+                    nome: e.clienteNome || e.desc || 'Cliente Avulso',
+                    tel: e.obs || '—',
+                    barbeiroId: e.barbeiroId,
+                    servicoId: e.servicoId,
+                    data: e.data,
+                    hora: 'Retroativo',
+                    status: 'concluido',
+                    origem: 'manual',
+                    rawEntrada: e
+                }))
+            ];
+
+            let list = todosAgendamentos;
+            if (filtro) list = list.filter(a => a.barbeiroId === filtro);
+            list.sort((a, b) => (b.data + (b.hora || '')).localeCompare(a.data + (a.hora || '')));
+
+            if (!list.length) {
+                tb.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum atendimento ou agendamento encontrado</td></tr>';
+                return;
+            }
 
             tb.innerHTML = list.map(a => {
                 const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
                 const svc = state.servicos.find(s => s.id === a.servicoId);
                 const badgeClass = a.status === 'concluido' ? 'ok' : (a.status === 'cancelado' ? 'cancel' : 'pending');
                 const dataFmt = new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                return `<tr>
-                    <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
-                    <td>${barb ? barb.nome : '—'}</td>
-                    <td>${svc ? svc.nome : '—'}</td>
-                    <td>${dataFmt}</td>
-                    <td style="font-family:var(--font-mono); font-weight:600;">${a.hora}</td>
-                    <td><span class="badge ${badgeClass}">${a.status}</span></td>
-                    <td style="text-align:right;"><div class="row-actions">
+                
+                let acoes = '';
+                if (a.origem === 'manual') {
+                    acoes = `<div class="row-actions">
+                        <button class="icon-btn" onclick="openEntradaModal('${a.id}')" title="Editar Atendimento">✎</button>
+                        <button class="icon-btn del" onclick="deleteEntrada('${a.id}')" title="Excluir">🗑</button>
+                    </div>`;
+                } else {
+                    acoes = `<div class="row-actions">
                         ${a.status !== 'concluido' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','concluido')" title="Marcar como concluído">✓</button>` : ''}
                         ${a.status !== 'cancelado' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','cancelado')" title="Cancelar">✕</button>` : ''}
                         <button class="icon-btn del" onclick="deleteAgendamento('${a.id}')" title="Excluir">🗑</button>
-                    </div></td>
+                    </div>`;
+                }
+
+                const nomeServico = svc ? svc.nome : (a.rawEntrada ? a.rawEntrada.desc : '—');
+                const badgeText = a.status === 'concluido' ? (a.origem === 'manual' ? 'Concluído (Retroativo)' : 'Concluído') : a.status;
+
+                return `<tr>
+                    <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
+                    <td>${barb ? barb.nome : '—'}</td>
+                    <td>${nomeServico}</td>
+                    <td>${dataFmt}</td>
+                    <td style="font-family:var(--font-mono); font-weight:600;">${a.hora}</td>
+                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td style="text-align:right;">${acoes}</td>
                 </tr>`;
             }).join('');
         }
@@ -2020,19 +2093,22 @@
         /* Dashboard */
         function renderDashboard() {
             const stats = document.getElementById('dashStats');
-            const totalAg = state.agendamentos.length;
+            const totalAg = state.agendamentos.length + state.entradas.length;
             const pendentes = state.agendamentos.filter(a => a.status === 'pendente').length;
-            const concluidos = state.agendamentos.filter(a => a.status === 'concluido').length;
-            const totalFaturado = state.agendamentos.filter(a => a.status === 'concluido').reduce((sum, a) => {
+            const concluidos = state.agendamentos.filter(a => a.status === 'concluido').length + state.entradas.length;
+            
+            const totalFaturadoAg = state.agendamentos.filter(a => a.status === 'concluido').reduce((sum, a) => {
                 const svc = state.servicos.find(s => s.id === a.servicoId);
                 return sum + (svc ? Number(svc.preco) : 0);
             }, 0);
+            const totalFaturadoEnt = state.entradas.reduce((sum, e) => sum + Number(e.valor), 0);
+            const totalFaturado = totalFaturadoAg + totalFaturadoEnt;
 
             stats.innerHTML = `
-                <div class="stat-card"><div class="label">Total Agendamentos</div><div class="value">${totalAg}</div></div>
+                <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${totalAg}</div></div>
                 <div class="stat-card"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
                 <div class="stat-card"><div class="label">Concluídos</div><div class="value">${concluidos}</div></div>
-                <div class="stat-card"><div class="label">Faturamento Concluído</div><div class="value small">${brl(totalFaturado)}</div></div>
+                <div class="stat-card"><div class="label">Faturamento Total</div><div class="value small">${brl(totalFaturado)}</div></div>
             `;
 
             const upcoming = document.getElementById('dashUpcoming');
@@ -2052,6 +2128,14 @@
         }
 
         /* Financeiro */
+        function getLocalDateStr(d) {
+            const dateObj = d || new Date();
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function setFinPeriodo(p) {
             finFilter.periodo = p;
             document.querySelectorAll('.period-btn').forEach(b => {
@@ -2069,10 +2153,9 @@
                 customBox.style.display = 'inline-flex';
                 if (!document.getElementById('finDataInicio').value) {
                     const now = new Date();
-                    const dInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-                    const dFim = now.toISOString().slice(0, 10);
-                    document.getElementById('finDataInicio').value = dInicio;
-                    document.getElementById('finDataFim').value = dFim;
+                    const dInicio = new Date(now.getFullYear(), now.getMonth(), 1);
+                    document.getElementById('finDataInicio').value = getLocalDateStr(dInicio);
+                    document.getElementById('finDataFim').value = getLocalDateStr(now);
                 }
             } else {
                 customBox.style.display = 'none';
@@ -2081,29 +2164,23 @@
         }
 
         function getPeriodoRange() {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            const todayStr = `${yyyy}-${mm}-${dd}`;
+            const now = new Date();
+            const todayStr = getLocalDateStr(now);
 
             if (finFilter.periodo === 'hoje') {
                 return { start: todayStr, end: todayStr };
             }
             if (finFilter.periodo === 'semana') {
-                const day = today.getDay();
-                const diffSeg = today.getDate() - day + (day === 0 ? -6 : 1);
-                const seg = new Date(today.setDate(diffSeg));
-                const dom = new Date(seg);
-                dom.setDate(seg.getDate() + 6);
-                const start = seg.toISOString().slice(0, 10);
-                const end = dom.toISOString().slice(0, 10);
-                return { start, end };
+                const day = now.getDay();
+                const diffSeg = now.getDate() - day + (day === 0 ? -6 : 1);
+                const seg = new Date(now.getFullYear(), now.getMonth(), diffSeg);
+                const dom = new Date(now.getFullYear(), now.getMonth(), diffSeg + 6);
+                return { start: getLocalDateStr(seg), end: getLocalDateStr(dom) };
             }
             if (finFilter.periodo === 'mes') {
-                const start = `${yyyy}-${mm}-01`;
-                const lastDay = new Date(yyyy, today.getMonth() + 1, 0).getDate();
-                const end = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
+                const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const end = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
                 return { start, end };
             }
             if (finFilter.periodo === 'custom') {
@@ -2114,7 +2191,22 @@
             return { start: '2000-01-01', end: '2099-12-31' };
         }
 
-        /* Entradas CRUD */
+        /* Entradas / Cortes CRUD */
+        function onSelectEntradaServico() {
+            const sId = document.getElementById('entServico').value;
+            const svc = state.servicos.find(s => s.id === sId);
+            if (svc) {
+                const vInput = document.getElementById('entValor');
+                if (!vInput.value || Number(vInput.value) === 0) {
+                    vInput.value = svc.preco;
+                }
+                const dInput = document.getElementById('entDesc');
+                if (!dInput.value) {
+                    dInput.value = svc.nome;
+                }
+            }
+        }
+
         function openEntradaModal(id) {
             document.getElementById('entId').value = id || '';
             const bSel = document.getElementById('entBarbeiro');
@@ -2124,21 +2216,25 @@
 
             if (id) {
                 const e = state.entradas.find(x => x.id === id);
-                document.getElementById('modalEntradaTitle').textContent = 'Editar Entrada';
-                document.getElementById('entDesc').value = e.desc;
-                document.getElementById('entData').value = e.data;
-                document.getElementById('entValor').value = e.valor;
+                document.getElementById('modalEntradaTitle').textContent = 'Editar Atendimento / Entrada';
+                document.getElementById('entDesc').value = e.desc || '';
+                document.getElementById('entData').value = e.data || getLocalDateStr();
+                document.getElementById('entValor').value = e.valor || '';
                 document.getElementById('entBarbeiro').value = e.barbeiroId || '';
                 document.getElementById('entServico').value = e.servicoId || '';
                 document.getElementById('entCliente').value = e.clienteNome || '';
                 document.getElementById('entObs').value = e.obs || '';
             } else {
-                document.getElementById('modalEntradaTitle').textContent = 'Lançar Entrada (Receita)';
+                document.getElementById('modalEntradaTitle').textContent = 'Registrar Atendimento / Corte Retroativo';
                 document.getElementById('entDesc').value = '';
-                document.getElementById('entData').value = new Date().toISOString().slice(0, 10);
+                document.getElementById('entData').value = getLocalDateStr();
                 document.getElementById('entValor').value = '';
-                document.getElementById('entBarbeiro').value = '';
-                document.getElementById('entServico').value = '';
+                document.getElementById('entBarbeiro').value = state.barbeiros[0] ? state.barbeiros[0].id : '';
+                document.getElementById('entServico').value = state.servicos[0] ? state.servicos[0].id : '';
+                if (state.servicos[0]) {
+                    document.getElementById('entValor').value = state.servicos[0].preco;
+                    document.getElementById('entDesc').value = state.servicos[0].nome;
+                }
                 document.getElementById('entCliente').value = '';
                 document.getElementById('entObs').value = '';
             }
@@ -2147,15 +2243,31 @@
 
         async function saveEntrada() {
             const id = document.getElementById('entId').value;
-            const desc = document.getElementById('entDesc').value.trim();
+            let desc = document.getElementById('entDesc').value.trim();
             const data = document.getElementById('entData').value;
-            const valor = Number(document.getElementById('entValor').value);
+            let valor = Number(document.getElementById('entValor').value);
             const barbeiroId = document.getElementById('entBarbeiro').value || null;
             const servicoId = document.getElementById('entServico').value || null;
             const clienteNome = document.getElementById('entCliente').value.trim() || null;
             const obs = document.getElementById('entObs').value.trim() || null;
 
-            if (!desc || !data || !valor) { toast('Preencha descrição, data e valor'); return; }
+            if (!data) { toast('Selecione a data do atendimento'); return; }
+
+            const svc = state.servicos.find(s => s.id === servicoId);
+
+            if ((!valor || isNaN(valor) || valor <= 0) && svc) {
+                valor = Number(svc.preco);
+            }
+            if (!valor || isNaN(valor) || valor <= 0) {
+                toast('Informe o valor do atendimento');
+                return;
+            }
+
+            if (!desc) {
+                if (svc) desc = svc.nome;
+                else if (clienteNome) desc = `Atendimento: ${clienteNome}`;
+                else desc = 'Corte / Atendimento Avulso';
+            }
 
             const payload = { id: id || undefined, desc, data, valor, barbeiroId, servicoId, clienteNome, obs };
 
@@ -2178,12 +2290,30 @@
 
             await persist();
             closeModal('modalEntrada');
-            renderFinanceiro();
-            toast('Entrada registrada');
+
+            // Garantir que a data cadastrada fique visível no período
+            const { start, end } = getPeriodoRange();
+            if (data < start || data > end) {
+                const now = new Date();
+                const dObj = new Date(data + 'T00:00:00');
+                if (dObj.getMonth() === now.getMonth() && dObj.getFullYear() === now.getFullYear()) {
+                    setFinPeriodo('mes');
+                } else {
+                    document.getElementById('finDataInicio').value = data;
+                    document.getElementById('finDataFim').value = getLocalDateStr(now);
+                    setFinPeriodo('custom');
+                }
+            } else {
+                renderFinanceiro();
+            }
+
+            renderAgendamentos();
+            renderDashboard();
+            toast('Atendimento / Entrada registrada com sucesso!');
         }
 
         async function deleteEntrada(id) {
-            if (!confirm('Excluir esta entrada?')) return;
+            if (!confirm('Excluir este lançamento de atendimento/entrada?')) return;
             if (cloudConfig.isNeonConnected) {
                 try { await apiFetch('/api/entradas', 'DELETE', { id }); } catch (err) {
                     toast('Erro ao deletar: ' + err.message);
@@ -2193,7 +2323,9 @@
             state.entradas = state.entradas.filter(e => e.id !== id);
             await persist();
             renderFinanceiro();
-            toast('Entrada excluída');
+            renderAgendamentos();
+            renderDashboard();
+            toast('Lançamento excluído');
         }
 
         /* Despesas CRUD */
@@ -2422,7 +2554,7 @@
                 <div class="stat-card"><div class="label">Total Despesas</div><div class="value small" style="color:var(--danger);">${brl(totalDespesas)}</div></div>
                 <div class="stat-card"><div class="label">Comissões Barbeiros</div><div class="value small" style="color:var(--brass-2);">${brl(totalComissoesGeradas)}</div></div>
                 <div class="stat-card"><div class="label">Resultado Líquido</div><div class="value small" style="color:${saldoLiquido >= 0 ? '#9cd488' : 'var(--danger)'};">${brl(saldoLiquido)}</div></div>
-                <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${agsConcluidos.length}</div></div>
+                <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${agsConcluidos.length + entradasFiltradas.length}</div></div>
             `;
 
             // Tabela 1: Entradas
