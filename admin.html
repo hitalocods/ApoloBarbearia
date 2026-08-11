@@ -881,44 +881,175 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            width: 38px;
+            height: 38px;
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 0;
+            margin-right: 10px;
+            transition: .2s;
+            flex-shrink: 0;
+        }
+
+        .mobile-menu-btn:hover {
+            border-color: var(--brass-dim);
+            background: var(--panel-3);
+        }
+
+        .mobile-menu-btn span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            background: var(--brass-2);
+            border-radius: 2px;
+            transition: .25s ease;
+        }
+
+        .mobile-menu-btn.open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .mobile-menu-btn.open span:nth-child(2) {
+            opacity: 0;
+            transform: scale(0);
+        }
+        .mobile-menu-btn.open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* Mobile Drawer & Backdrop */
+        .mobile-nav-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 7, 5, 0.75);
+            backdrop-filter: blur(5px);
+            z-index: 95;
+            opacity: 0;
+            transition: opacity .25s ease;
+        }
+
+        .mobile-nav-backdrop.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-nav-drawer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 290px;
+            max-width: 84vw;
+            background: rgba(16, 13, 9, 0.98);
+            border-right: 1px solid var(--brass-dim);
+            z-index: 99;
+            flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform .28s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 10px 0 32px rgba(0,0,0,0.75);
+            padding: 18px;
+        }
+
+        .mobile-nav-drawer.open {
+            transform: translateX(0);
+        }
+
+        .mobile-drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 14px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .drawer-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--brass-2);
+        }
+
+        .drawer-close-btn {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            color: var(--cream-dim);
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .mobile-tabs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .mobile-tab {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            color: var(--cream-dim);
+            cursor: pointer;
+            transition: .15s;
+            font-size: 14px;
+        }
+
+        .mobile-tab .m-icon {
+            font-size: 17px;
+        }
+
+        .mobile-tab:hover {
+            background: var(--panel-2);
+            color: var(--cream);
+            border-color: var(--line);
+        }
+
+        .mobile-tab.active {
+            background: var(--panel-2);
+            border-color: var(--brass-dim);
+            color: var(--brass-2);
+            font-weight: 600;
+        }
+
+        .mobile-drawer-footer {
+            padding-top: 14px;
+            margin-top: 10px;
+            border-top: 1px solid var(--line);
+        }
+
         /* Responsividade Mobile Extrema (100% Adaptativo) */
         @media(max-width: 860px) {
+            .mobile-menu-btn { display: inline-flex; }
+            .mobile-nav-drawer { display: flex; }
+            .admin-side { display: none !important; }
+            
             .topnav { padding: 10px 14px; }
             .brand-name { font-size: 16px; }
             .brand-logo { width: 36px; height: 36px; }
             .admin-shell { flex-direction: column; }
             
-            .admin-side {
-                width: 100%;
-                display: flex;
-                flex-direction: row;
-                overflow-x: auto;
-                padding: 8px 10px;
-                border-right: none;
-                border-bottom: 1px solid var(--line);
-                gap: 6px;
-                background: rgba(12, 10, 8, 0.98);
-                -webkit-overflow-scrolling: touch;
-                position: sticky;
-                top: 57px;
-                z-index: 30;
-            }
-            .admin-side .tab {
-                border-left: none;
-                border-bottom: 2px solid transparent;
-                border-radius: var(--radius-sm);
-                white-space: nowrap;
-                padding: 8px 12px;
-                font-size: 12px;
-                flex-shrink: 0;
-            }
-            .admin-side .tab.active {
-                border-left: none;
-                border-bottom-color: var(--brass);
-                background: var(--panel-2);
-            }
-            
-            .admin-cloud-status { display: none; }
             .admin-main { padding: 16px 10px; max-width: 100%; }
 
             /* Grid de Cards Inteligente no Mobile */
@@ -1022,17 +1153,63 @@
     <!-- ============ TOP NAV ============ -->
     <div class="topnav">
         <div class="brand">
+            <button class="mobile-menu-btn" id="btnMobileNav" onclick="toggleMobileNav()" aria-label="Abrir Menu">
+                <span></span><span></span><span></span>
+            </button>
             <div class="brand-logo">
                 <img src="logoapolo.png" alt="Apolo Barbearia Logo">
             </div>
             <div>
                 <div class="brand-name">APOLO <b>Barbearia</b></div>
-                <div class="brand-sub">Painel Administrativo</div>
+                <div class="brand-sub" id="brandSubTitle">Painel Administrativo</div>
             </div>
         </div>
         <div class="nav-actions">
             <a href="index.html" class="btn ghost small" title="Voltar ao Agendamento">← Agendamento</a>
             <button class="btn ghost small" id="btnLogout" onclick="logout()" style="display:none;" title="Sair do painel">Sair ✕</button>
+        </div>
+    </div>
+
+    <!-- ============ MOBILE NAV DRAWER ============ -->
+    <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="closeMobileNav()"></div>
+    <div class="mobile-nav-drawer" id="mobileNavDrawer">
+        <div class="mobile-drawer-header">
+            <div class="drawer-title">Navegação do Painel</div>
+            <button class="drawer-close-btn" onclick="closeMobileNav()" aria-label="Fechar Menu">✕</button>
+        </div>
+        <div class="mobile-tabs-list">
+            <div class="mobile-tab active" data-pane="dashboard" onclick="switchPane('dashboard')">
+                <span class="m-icon">📊</span> <span class="m-label">Dashboard</span>
+            </div>
+            <div class="mobile-tab" data-pane="barbeiros" onclick="switchPane('barbeiros')">
+                <span class="m-icon">✂️</span> <span class="m-label">Barbeiros</span>
+            </div>
+            <div class="mobile-tab" data-pane="servicos" onclick="switchPane('servicos')">
+                <span class="m-icon">💇</span> <span class="m-label">Serviços</span>
+            </div>
+            <div class="mobile-tab" data-pane="horarios" onclick="switchPane('horarios')">
+                <span class="m-icon">⏰</span> <span class="m-label">Horários</span>
+            </div>
+            <div class="mobile-tab" data-pane="agendamentos" onclick="switchPane('agendamentos')">
+                <span class="m-icon">📅</span> <span class="m-label">Agendamentos & Cortes</span>
+            </div>
+            <div class="mobile-tab" data-pane="financeiro" onclick="switchPane('financeiro')">
+                <span class="m-icon">💰</span> <span class="m-label">Financeiro</span>
+            </div>
+        </div>
+        <div class="mobile-drawer-footer">
+            <div class="admin-cloud-status" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
+                <div class="cloud-pill offline" id="pillNeonMobile">
+                    <span class="dot"></span> Neon DB: Verificando...
+                </div>
+                <div class="cloud-pill offline" id="pillBlobMobile">
+                    <span class="dot"></span> Vercel Blob: Verificando...
+                </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <a href="index.html" class="btn ghost small" style="flex:1; text-align:center;">← Agendamento</a>
+                <button class="btn ghost small" onclick="logout()" style="flex:1;">Sair ✕</button>
+            </div>
         </div>
     </div>
 
@@ -1519,26 +1696,32 @@
         }
 
         function updateCloudPills() {
-            const pNeon = document.getElementById('pillNeon');
-            const pBlob = document.getElementById('pillBlob');
-            if (pNeon) {
-                if (cloudConfig.isNeonConnected) {
-                    pNeon.className = 'cloud-pill connected';
-                    pNeon.innerHTML = '<span class="dot"></span> Neon DB: Conectado';
-                } else {
-                    pNeon.className = 'cloud-pill offline';
-                    pNeon.innerHTML = '<span class="dot"></span> Neon DB: Demo/Local';
+            const pNeons = [document.getElementById('pillNeon'), document.getElementById('pillNeonMobile')];
+            const pBlobs = [document.getElementById('pillBlob'), document.getElementById('pillBlobMobile')];
+            
+            pNeons.forEach(pNeon => {
+                if (pNeon) {
+                    if (cloudConfig.isNeonConnected) {
+                        pNeon.className = 'cloud-pill connected';
+                        pNeon.innerHTML = '<span class="dot"></span> Neon DB: Conectado';
+                    } else {
+                        pNeon.className = 'cloud-pill offline';
+                        pNeon.innerHTML = '<span class="dot"></span> Neon DB: Demo/Local';
+                    }
                 }
-            }
-            if (pBlob) {
-                if (cloudConfig.isBlobConnected) {
-                    pBlob.className = 'cloud-pill connected';
-                    pBlob.innerHTML = '<span class="dot"></span> Vercel Blob: Ativo';
-                } else {
-                    pBlob.className = 'cloud-pill offline';
-                    pBlob.innerHTML = '<span class="dot"></span> Vercel Blob: Local';
+            });
+
+            pBlobs.forEach(pBlob => {
+                if (pBlob) {
+                    if (cloudConfig.isBlobConnected) {
+                        pBlob.className = 'cloud-pill connected';
+                        pBlob.innerHTML = '<span class="dot"></span> Vercel Blob: Ativo';
+                    } else {
+                        pBlob.className = 'cloud-pill offline';
+                        pBlob.innerHTML = '<span class="dot"></span> Vercel Blob: Local';
+                    }
                 }
-            }
+            });
         }
 
         async function apiFetch(endpoint, method = 'GET', data = null) {
@@ -1649,19 +1832,62 @@
             location.reload();
         }
 
-        // Tabs
-        document.querySelectorAll('.admin-side .tab').forEach(tab => {
-            tab.onclick = () => {
-                document.querySelectorAll('.admin-side .tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
-                tab.classList.add('active');
-                const target = document.getElementById('pane-' + tab.dataset.pane);
-                if (target) target.classList.add('active');
-                if (tab.dataset.pane === 'dashboard') renderDashboard();
-                if (tab.dataset.pane === 'horarios') renderHorarios();
-                if (tab.dataset.pane === 'agendamentos') renderAgendamentos();
-                if (tab.dataset.pane === 'financeiro') renderFinanceiro();
+        // Gestão Unificada de Abas (Desktop e Mobile Drawer)
+        function switchPane(paneName) {
+            document.querySelectorAll('.admin-side .tab, .mobile-tab').forEach(t => {
+                if (t.dataset.pane === paneName) t.classList.add('active');
+                else t.classList.remove('active');
+            });
+            document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('pane-' + paneName);
+            if (target) target.classList.add('active');
+
+            const titleMap = {
+                dashboard: 'Dashboard',
+                barbeiros: 'Barbeiros',
+                servicos: 'Serviços',
+                horarios: 'Horários',
+                agendamentos: 'Agendamentos & Cortes',
+                financeiro: 'Módulo Financeiro'
             };
+            const subTitle = document.getElementById('brandSubTitle');
+            if (subTitle && titleMap[paneName]) {
+                subTitle.textContent = titleMap[paneName];
+            }
+
+            if (paneName === 'dashboard') renderDashboard();
+            if (paneName === 'horarios') renderHorarios();
+            if (paneName === 'agendamentos') renderAgendamentos();
+            if (paneName === 'financeiro') renderFinanceiro();
+
+            closeMobileNav();
+        }
+
+        function toggleMobileNav() {
+            const drawer = document.getElementById('mobileNavDrawer');
+            const backdrop = document.getElementById('mobileNavBackdrop');
+            const btn = document.getElementById('btnMobileNav');
+            const isOpen = drawer && drawer.classList.contains('open');
+            if (isOpen) closeMobileNav();
+            else {
+                if (drawer) drawer.classList.add('open');
+                if (backdrop) backdrop.classList.add('open');
+                if (btn) btn.classList.add('open');
+            }
+        }
+
+        function closeMobileNav() {
+            const drawer = document.getElementById('mobileNavDrawer');
+            const backdrop = document.getElementById('mobileNavBackdrop');
+            const btn = document.getElementById('btnMobileNav');
+            if (drawer) drawer.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('open');
+            if (btn) btn.classList.remove('open');
+        }
+
+        // Tabs Desktop
+        document.querySelectorAll('.admin-side .tab').forEach(tab => {
+            tab.onclick = () => switchPane(tab.dataset.pane);
         });
 
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
