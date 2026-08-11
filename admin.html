@@ -1943,15 +1943,23 @@
         }
 
         /* Agendamentos */
-        function renderAgendamentosFilters() {
+        function renderAgendamentosFilters(selectedVal) {
             const sel = document.getElementById('agFiltroBarbeiro');
             if (!sel) return;
+            const curVal = selectedVal !== undefined ? selectedVal : sel.value;
             sel.innerHTML = '<option value="">Todos os barbeiros</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            if (curVal && state.barbeiros.some(b => b.id === curVal)) {
+                sel.value = curVal;
+            } else {
+                sel.value = '';
+            }
         }
 
         function renderAgendamentos() {
-            renderAgendamentosFilters();
-            const filtro = document.getElementById('agFiltroBarbeiro').value;
+            const sel = document.getElementById('agFiltroBarbeiro');
+            const currentSelected = sel ? sel.value : '';
+            renderAgendamentosFilters(currentSelected);
+            const filtro = sel ? sel.value : '';
             const tb = document.getElementById('tblAgendamentos');
             let list = [...state.agendamentos];
             if (filtro) list = list.filter(a => a.barbeiroId === filtro);
