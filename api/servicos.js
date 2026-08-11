@@ -5,7 +5,7 @@ import { query, isDbConfigured } from './db.js';
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -46,8 +46,14 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'DELETE') {
-            const { id } = req.query || req.body || {};
-            if (!id) return res.status(400).json({ ok: false, error: 'ID é obrigatório.' });
+            const id = req.body?.id || req.query?.id;
+            if (!id) return res.status(400).json({ ok: false, error: 'ID é obrigatório para exclusão.' });
+
+            try {
+                await query`UPDATE agendamentos SET servico_id = NULL WHERE servico_id = ${id}`;
+            } catch (e) {
+                console.warn('Aviso ao desvincular serviço de agendamentos:', e.message);
+            }
 
             await query`DELETE FROM servicos WHERE id = ${id}`;
             return res.status(200).json({ ok: true, id });

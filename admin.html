@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -28,19 +28,21 @@
             --olive-2: #465430;
             --line: rgba(243, 234, 217, 0.13);
             --danger: #b6543f;
+            --danger-bg: rgba(182, 84, 63, 0.15);
             --success: #5c7f4f;
             --font-display: 'Fraunces', serif;
             --font-body: 'Work Sans', sans-serif;
             --font-mono: 'IBM Plex Mono', monospace;
-            --radius: 18px;
-            --radius-sm: 12px;
-            --radius-lg: 28px;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-lg: 24px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html {
@@ -54,9 +56,10 @@
                 var(--ink);
             color: var(--cream);
             font-family: var(--font-body);
-            font-size: 15px;
+            font-size: 14.5px;
             line-height: 1.5;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         ::selection {
@@ -82,8 +85,8 @@
         }
 
         ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
@@ -92,13 +95,13 @@
 
         ::-webkit-scrollbar-thumb {
             background: var(--panel-3);
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
         .eyebrow {
             font-family: var(--font-mono);
             font-size: 11px;
-            letter-spacing: .18em;
+            letter-spacing: .16em;
             text-transform: uppercase;
             color: var(--brass);
         }
@@ -111,21 +114,21 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 40px;
-            background: rgba(12, 10, 8, 0.9);
-            backdrop-filter: blur(10px);
+            padding: 12px 30px;
+            background: rgba(12, 10, 8, 0.94);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--line);
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .brand-logo {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             border: 1.5px solid var(--brass);
             overflow: hidden;
@@ -148,7 +151,7 @@
 
         .brand-name {
             font-family: var(--font-display);
-            font-size: 20px;
+            font-size: 19px;
             letter-spacing: .02em;
             line-height: 1.1;
         }
@@ -161,7 +164,7 @@
 
         .brand-sub {
             font-family: var(--font-mono);
-            font-size: 10.5px;
+            font-size: 10px;
             color: var(--brass);
             letter-spacing: .1em;
             text-transform: uppercase;
@@ -170,23 +173,24 @@
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .btn {
             background: var(--brass);
             color: var(--ink);
             border: 1px solid var(--brass);
-            padding: 10px 22px;
+            padding: 8px 18px;
             border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: 13.5px;
+            font-size: 13px;
             letter-spacing: .02em;
             transition: .2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -208,21 +212,27 @@
         }
 
         .btn.small {
-            padding: 7px 14px;
-            font-size: 12.5px;
+            padding: 6px 13px;
+            font-size: 12px;
+        }
+
+        .btn.danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
         }
 
         /* Admin layout */
         .admin-shell {
             display: flex;
-            min-height: calc(100vh - 78px);
+            min-height: calc(100vh - 67px);
         }
 
         .admin-side {
-            width: 240px;
+            width: 230px;
             flex-shrink: 0;
             border-right: 1px solid var(--line);
-            padding: 24px 0;
+            padding: 20px 0;
             background: var(--panel);
             display: flex;
             flex-direction: column;
@@ -231,12 +241,12 @@
         .admin-side .tab {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 13px 28px;
+            gap: 10px;
+            padding: 12px 24px;
             font-size: 13.5px;
             color: var(--cream-dim);
             cursor: pointer;
-            border-left: 2px solid transparent;
+            border-left: 3px solid transparent;
             transition: .15s;
         }
 
@@ -248,13 +258,13 @@
         .admin-side .tab.active {
             color: var(--brass-2);
             border-left-color: var(--brass);
-            background: rgba(201, 162, 39, 0.06);
+            background: rgba(201, 162, 39, 0.08);
             font-weight: 600;
         }
 
         .admin-cloud-status {
             margin-top: auto;
-            padding: 24px 20px 10px;
+            padding: 20px 16px 8px;
             border-top: 1px solid var(--line);
             display: flex;
             flex-direction: column;
@@ -266,8 +276,8 @@
             align-items: center;
             gap: 8px;
             font-family: var(--font-mono);
-            font-size: 11px;
-            padding: 6px 12px;
+            font-size: 10.5px;
+            padding: 6px 10px;
             border-radius: 999px;
             background: var(--panel-2);
             border: 1px solid var(--line);
@@ -278,34 +288,35 @@
         }
 
         .cloud-pill .dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: #e8c868;
             flex-shrink: 0;
         }
 
         .cloud-pill.connected {
-            border-color: rgba(92, 127, 79, 0.4);
-            background: rgba(92, 127, 79, 0.12);
-            color: #8fb87e;
+            border-color: rgba(92, 127, 79, 0.5);
+            background: rgba(92, 127, 79, 0.15);
+            color: #9cd488;
         }
 
         .cloud-pill.connected .dot {
-            background: #8fb87e;
-            box-shadow: 0 0 8px rgba(92, 127, 79, 0.8);
+            background: #9cd488;
+            box-shadow: 0 0 8px rgba(92, 127, 79, 0.9);
         }
 
         .cloud-pill.offline {
-            border-color: rgba(201, 162, 39, 0.3);
+            border-color: rgba(201, 162, 39, 0.35);
             background: rgba(201, 162, 39, 0.08);
             color: var(--brass-2);
         }
 
         .admin-main {
             flex: 1;
-            padding: 34px 40px;
-            max-width: 1120px;
+            padding: 28px 34px;
+            max-width: 1100px;
+            width: 100%;
         }
 
         .admin-pane {
@@ -314,31 +325,31 @@
 
         .admin-pane.active {
             display: block;
-            animation: fadein .3s ease;
+            animation: fadein .25s ease;
         }
 
         @keyframes fadein {
-            from { opacity: 0; transform: translateY(6px); }
+            from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: none; }
         }
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 16px;
-            margin-bottom: 34px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 26px;
         }
 
         .stat-card {
             background: var(--panel);
             border: 1px solid var(--line);
-            padding: 20px;
-            border-radius: var(--radius);
+            padding: 18px 20px;
+            border-radius: var(--radius-sm);
         }
 
         .stat-card .label {
             font-family: var(--font-mono);
-            font-size: 10.5px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: .08em;
             color: var(--cream-dim);
@@ -346,41 +357,56 @@
 
         .stat-card .value {
             font-family: var(--font-display);
-            font-size: 30px;
+            font-size: 28px;
             color: var(--brass-2);
-            margin-top: 8px;
+            margin-top: 6px;
+            line-height: 1.1;
         }
 
         .stat-card .value.small {
-            font-size: 22px;
+            font-size: 20px;
+        }
+
+        /* Responsive Tables */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--line);
+            background: var(--panel);
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 18px;
         }
 
         table.data-table {
             width: 100%;
+            min-width: 520px;
             border-collapse: separate;
             border-spacing: 0;
-            font-size: 13.5px;
-            background: var(--panel);
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 1px solid var(--line);
+            font-size: 13px;
         }
 
         table.data-table th {
             text-align: left;
             font-family: var(--font-mono);
-            font-size: 10.5px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: .06em;
             color: var(--cream-dim);
-            padding: 12px 16px;
+            padding: 12px 14px;
             border-bottom: 1px solid var(--line);
+            background: rgba(22, 18, 9, 0.95);
+            white-space: nowrap;
         }
 
         table.data-table td {
-            padding: 14px 16px;
+            padding: 12px 14px;
             border-bottom: 1px solid var(--line);
             vertical-align: middle;
+        }
+
+        table.data-table tr:last-child td {
+            border-bottom: none;
         }
 
         table.data-table tr:hover td {
@@ -389,68 +415,81 @@
 
         .row-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            align-items: center;
+            justify-content: flex-end;
         }
 
         .icon-btn {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--line);
-            background: transparent;
+            background: var(--panel-2);
             color: var(--cream-dim);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             transition: .15s;
+            font-size: 13px;
         }
 
         .icon-btn:hover {
-            border-color: var(--brass-dim);
+            border-color: var(--brass);
             color: var(--brass-2);
+            background: var(--panel-3);
+        }
+
+        .icon-btn.del {
+            color: var(--danger);
         }
 
         .icon-btn.del:hover {
             border-color: var(--danger);
-            color: var(--danger);
+            background: var(--danger-bg);
+            color: #ff8b73;
         }
 
         .badge {
             font-family: var(--font-mono);
-            font-size: 10.5px;
-            padding: 3px 9px;
+            font-size: 10px;
+            padding: 3px 8px;
             border-radius: 999px;
             text-transform: uppercase;
-            letter-spacing: .05em;
+            letter-spacing: .04em;
+            white-space: nowrap;
         }
 
         .badge.ok {
-            background: rgba(92, 127, 79, .16);
-            color: #8fb87e;
+            background: rgba(92, 127, 79, .2);
+            color: #9cd488;
+            border: 1px solid rgba(92, 127, 79, .4);
         }
 
         .badge.pending {
-            background: rgba(201, 162, 39, .16);
+            background: rgba(201, 162, 39, .18);
             color: var(--brass-2);
+            border: 1px solid rgba(201, 162, 39, .35);
         }
 
         .badge.cancel {
-            background: rgba(182, 84, 63, .16);
-            color: #d3897a;
+            background: rgba(182, 84, 63, .2);
+            color: #ff8b73;
+            border: 1px solid rgba(182, 84, 63, .4);
         }
 
         .panel-box {
             background: var(--panel);
             border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 24px;
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
         .panel-box h3 {
             font-family: var(--font-display);
-            font-size: 18px;
-            margin-bottom: 18px;
+            font-size: 17px;
+            margin-bottom: 14px;
             font-weight: 500;
         }
 
@@ -458,16 +497,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
         }
 
         .weekday-row {
             display: flex;
             align-items: center;
-            gap: 14px;
-            padding: 13px 0;
+            gap: 12px;
+            padding: 12px 0;
             border-bottom: 1px solid var(--line);
             flex-wrap: wrap;
         }
@@ -477,16 +516,16 @@
         }
 
         .weekday-row .wname {
-            width: 110px;
+            width: 100px;
             font-family: var(--font-mono);
-            font-size: 12.5px;
+            font-size: 11.5px;
             text-transform: uppercase;
             letter-spacing: .05em;
         }
 
         .toggle {
             position: relative;
-            width: 38px;
+            width: 36px;
             height: 20px;
             border-radius: 20px;
             background: var(--panel-3);
@@ -512,52 +551,50 @@
         }
 
         .toggle.on .dot {
-            left: 19px;
+            left: 17px;
             background: var(--brass-2);
         }
 
         .horario-slots {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-            padding-left: 124px;
+            gap: 6px;
+            flex: 1;
+            min-width: 200px;
         }
 
         .horario-add {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 12px;
-            padding-left: 124px;
+            gap: 6px;
         }
 
         .horario-add input[type=time] {
             background: var(--panel-2);
             border: 1px solid var(--line);
             color: var(--cream);
-            padding: 8px 10px;
+            padding: 6px 8px;
             border-radius: var(--radius-sm);
             font-family: var(--font-mono);
-            font-size: 12.5px;
+            font-size: 12px;
         }
 
         .time-chip {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: var(--panel-3);
             border: 1px solid var(--brass-dim);
-            padding: 6px 8px 6px 14px;
+            padding: 4px 6px 4px 10px;
             border-radius: 999px;
             font-family: var(--font-mono);
-            font-size: 12.5px;
+            font-size: 11.5px;
             color: var(--brass-2);
         }
 
         .time-chip button {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             border: none;
             background: transparent;
@@ -565,7 +602,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .time-chip button:hover {
@@ -575,67 +612,71 @@
         .bar-chart {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
         }
 
         .bar-row {
             display: grid;
-            grid-template-columns: 120px 1fr 90px;
+            grid-template-columns: 110px 1fr 80px;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .bar-row .name {
-            font-size: 13px;
+            font-size: 12.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .bar-track {
-            height: 10px;
+            height: 8px;
             background: var(--panel-3);
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
         }
 
         .bar-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--olive-2), var(--brass));
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
         .bar-row .val {
             font-family: var(--font-mono);
-            font-size: 12.5px;
+            font-size: 11.5px;
             text-align: right;
             color: var(--brass-2);
         }
 
         /* Modals & Login */
         .login-box {
-            max-width: 380px;
-            margin: 100px auto;
+            max-width: 360px;
+            margin: 80px auto;
             background: var(--panel);
             border: 1px solid var(--brass-dim);
-            padding: 38px;
-            border-radius: var(--radius);
+            padding: 32px 24px;
+            border-radius: var(--radius-sm);
             text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
 
         .login-box .brand-logo {
-            margin: 0 auto 16px;
-            width: 60px;
-            height: 60px;
+            margin: 0 auto 14px;
+            width: 56px;
+            height: 56px;
         }
 
         .login-box h2 {
             font-family: var(--font-display);
-            font-size: 24px;
-            margin-bottom: 6px;
+            font-size: 22px;
+            margin-bottom: 4px;
         }
 
         .login-box p {
             color: var(--cream-dim);
-            font-size: 13px;
-            margin-bottom: 22px;
+            font-size: 12.5px;
+            margin-bottom: 18px;
         }
 
         .login-box input {
@@ -643,17 +684,17 @@
             background: var(--panel-2);
             border: 1px solid var(--line);
             color: var(--cream);
-            padding: 13px 14px;
+            padding: 11px 12px;
             border-radius: var(--radius-sm);
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             text-align: center;
-            letter-spacing: .2em;
+            letter-spacing: .18em;
             font-family: var(--font-mono);
         }
 
         .login-hint {
-            margin-top: 16px;
-            font-size: 11.5px;
+            margin-top: 14px;
+            font-size: 11px;
             color: var(--cream-faint);
             font-family: var(--font-mono);
         }
@@ -661,13 +702,13 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(8, 7, 5, 0.75);
-            backdrop-filter: blur(4px);
+            background: rgba(8, 7, 5, 0.82);
+            backdrop-filter: blur(5px);
             z-index: 100;
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
         .modal-overlay.open {
@@ -677,33 +718,33 @@
         .modal {
             background: var(--panel-2);
             border: 1px solid var(--brass-dim);
-            border-radius: var(--radius);
+            border-radius: var(--radius-sm);
             width: 100%;
             max-width: 440px;
-            padding: 28px;
-            max-height: 88vh;
+            padding: 22px;
+            max-height: 90vh;
             overflow-y: auto;
         }
 
         .modal h3 {
             font-family: var(--font-display);
-            font-size: 20px;
-            margin-bottom: 20px;
+            font-size: 19px;
+            margin-bottom: 16px;
             font-weight: 500;
         }
 
         .modal .field {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .field label {
             display: block;
             font-family: var(--font-mono);
-            font-size: 11px;
+            font-size: 10.5px;
             text-transform: uppercase;
-            letter-spacing: .08em;
+            letter-spacing: .06em;
             color: var(--cream-dim);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .field input,
@@ -725,20 +766,20 @@
 
         .modal-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 22px;
+            gap: 8px;
+            margin-top: 20px;
             justify-content: flex-end;
         }
 
         .photo-upload-row {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
 
         .photo-preview {
-            width: 64px;
-            height: 64px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             border: 1px solid var(--brass-dim);
             overflow: hidden;
@@ -748,7 +789,7 @@
             flex-shrink: 0;
             background: var(--panel-3);
             font-family: var(--font-mono);
-            font-size: 10px;
+            font-size: 9.5px;
             color: var(--cream-faint);
             text-align: center;
             position: relative;
@@ -768,15 +809,15 @@
             align-items: center;
             justify-content: center;
             color: var(--brass-2);
-            font-size: 10px;
+            font-size: 9.5px;
             font-family: var(--font-mono);
             text-align: center;
             padding: 2px;
         }
 
         .avatar {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: var(--panel-3);
             border: 1px solid var(--brass-dim);
@@ -784,7 +825,7 @@
             align-items: center;
             justify-content: center;
             font-family: var(--font-display);
-            font-size: 12px;
+            font-size: 11px;
             color: var(--brass-2);
             overflow: hidden;
             flex-shrink: 0;
@@ -798,21 +839,24 @@
 
         .toast {
             position: fixed;
-            bottom: 26px;
+            bottom: 22px;
             left: 50%;
             transform: translateX(-50%) translateY(20px);
             z-index: 200;
             background: var(--brass);
             color: var(--ink);
-            padding: 13px 24px;
+            padding: 11px 20px;
             border-radius: var(--radius-sm);
             font-family: var(--font-mono);
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             opacity: 0;
             transition: .3s;
             pointer-events: none;
-            letter-spacing: .03em;
+            letter-spacing: .02em;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
 
         .toast.show {
@@ -820,15 +864,55 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        @media(max-width:860px) {
-            .topnav { padding: 14px 18px; }
+        /* Responsividade Mobile Extrema */
+        @media(max-width: 860px) {
+            .topnav { padding: 10px 14px; }
+            .brand-name { font-size: 17px; }
+            .brand-logo { width: 36px; height: 36px; }
             .admin-shell { flex-direction: column; }
-            .admin-side { width: 100%; display: flex; flex-direction: row; overflow-x: auto; padding: 10px; border-right: none; border-bottom: 1px solid var(--line); }
-            .admin-side .tab { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; padding: 10px 16px; }
-            .admin-side .tab.active { border-left: none; border-bottom-color: var(--brass); }
+            
+            .admin-side {
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                padding: 8px 10px;
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+                gap: 6px;
+                background: rgba(22, 18, 9, 0.98);
+                -webkit-overflow-scrolling: touch;
+            }
+            .admin-side .tab {
+                border-left: none;
+                border-bottom: 2px solid transparent;
+                border-radius: var(--radius-sm);
+                white-space: nowrap;
+                padding: 8px 13px;
+                font-size: 12.5px;
+            }
+            .admin-side .tab.active {
+                border-left: none;
+                border-bottom-color: var(--brass);
+                background: var(--panel-2);
+            }
+            
             .admin-cloud-status { display: none; }
-            .admin-main { padding: 24px 18px; }
-            .horario-slots, .horario-add { padding-left: 0; }
+            .admin-main { padding: 16px 12px; }
+            .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-card .value { font-size: 22px; }
+            .panel-box { padding: 16px 14px; }
+            .bar-row { grid-template-columns: 85px 1fr 70px; }
+            .weekday-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .horario-slots { width: 100%; }
+            .horario-add { width: 100%; justify-content: flex-start; }
+            
+            .toolbar {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -847,19 +931,19 @@
             </div>
         </div>
         <div class="nav-actions">
-            <a href="index.html" class="btn ghost small">← Ir para Agendamento</a>
-            <button class="btn ghost small" id="btnLogout" style="display:none;" onclick="logout()">Sair</button>
+            <a href="index.html" class="btn ghost small" title="Voltar ao Agendamento">← Agendamento</a>
+            <button class="btn ghost small" id="btnLogout" onclick="logout()" style="display:none;" title="Sair do painel">Sair ✕</button>
         </div>
     </div>
 
-    <!-- ============ LOGIN GATE ============ -->
+    <!-- ============ ADMIN LOGIN ============ -->
     <div id="admin-login" class="login-box">
         <div class="brand-logo">
-            <img src="logoapolo.png" alt="Apolo Barbearia Logo">
+            <img src="logoapolo.png" alt="Apolo Barbearia">
         </div>
         <h2>Painel Admin</h2>
-        <p>Acesso restrito à equipe da Apolo Barbearia</p>
-        <input type="password" id="adminPass" placeholder="• • • • • •" maxlength="16">
+        <p>Acesso restrito à gestão da Apolo Barbearia</p>
+        <input type="password" id="adminPass" placeholder="• • • • • •" maxlength="20">
         <button class="btn" style="width:100%;" onclick="tryLogin()">Entrar no Painel</button>
         <div class="login-hint">Senha padrão: apolo123</div>
     </div>
@@ -869,18 +953,17 @@
         <div class="admin-side">
             <div class="tab active" data-pane="dashboard">📊 Dashboard</div>
             <div class="tab" data-pane="barbeiros">✂️ Barbeiros</div>
-            <div class="tab" data-pane="servicos">💈 Serviços</div>
-            <div class="tab" data-pane="horarios">🕒 Horários</div>
+            <div class="tab" data-pane="servicos">💇 Serviços</div>
+            <div class="tab" data-pane="horarios">⏰ Horários</div>
             <div class="tab" data-pane="agendamentos">📅 Agendamentos</div>
             <div class="tab" data-pane="financeiro">💰 Financeiro</div>
 
-            <div class="admin-cloud-status" id="adminCloudStatus">
-                <div style="font-family:var(--font-mono); font-size:10px; text-transform:uppercase; color:var(--cream-faint); margin-bottom:2px; letter-spacing:.08em;">Armazenamento</div>
-                <div class="cloud-pill offline" id="pillNeon" title="Status do Banco Neon PostgreSQL">
-                    <span class="dot"></span> Neon DB: Local
+            <div class="admin-cloud-status">
+                <div class="cloud-pill offline" id="pillNeon">
+                    <span class="dot"></span> Neon DB: Verificando...
                 </div>
-                <div class="cloud-pill offline" id="pillBlob" title="Status do Vercel Blob Storage">
-                    <span class="dot"></span> Vercel Blob: Local
+                <div class="cloud-pill offline" id="pillBlob">
+                    <span class="dot"></span> Vercel Blob: Verificando...
                 </div>
             </div>
         </div>
@@ -889,17 +972,16 @@
 
             <!-- DASHBOARD -->
             <div class="admin-pane active" id="pane-dashboard">
-                <div class="toolbar">
-                    <div>
-                        <div class="eyebrow">Visão geral</div>
-                        <h2 style="font-family:var(--font-display); font-size:28px; margin-top:4px;">Dashboard</h2>
-                    </div>
-                    <button class="btn ghost small" onclick="loadState()">🔄 Atualizar dados</button>
+                <div class="section-head" style="margin-bottom:20px;">
+                    <div class="eyebrow">Visão Geral</div>
+                    <h2 style="font-family:var(--font-display); font-size:24px; margin-top:4px;">Dashboard</h2>
                 </div>
                 <div class="stat-grid" id="dashStats"></div>
                 <div class="panel-box">
-                    <h3>Próximos agendamentos</h3>
-                    <table class="data-table" id="dashUpcoming"></table>
+                    <h3>Próximos Agendamentos</h3>
+                    <div class="table-wrap">
+                        <table class="data-table" id="dashUpcoming"></table>
+                    </div>
                 </div>
             </div>
 
@@ -908,21 +990,23 @@
                 <div class="toolbar">
                     <div>
                         <div class="eyebrow">Equipe</div>
-                        <h2 style="font-family:var(--font-display); font-size:28px; margin-top:4px;">Barbeiros</h2>
+                        <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Barbeiros</h2>
                     </div>
-                    <button class="btn small" onclick="openBarbeiroModal()">+ Novo barbeiro</button>
+                    <button class="btn small" onclick="openBarbeiroModal()">+ Novo Barbeiro</button>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Especialidade</th>
-                            <th>WhatsApp</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tblBarbeiros"></tbody>
-                </table>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Especialidade</th>
+                                <th>WhatsApp</th>
+                                <th style="text-align:right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblBarbeiros"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- SERVICOS -->
@@ -930,33 +1014,33 @@
                 <div class="toolbar">
                     <div>
                         <div class="eyebrow">Catálogo</div>
-                        <h2 style="font-family:var(--font-display); font-size:28px; margin-top:4px;">Serviços</h2>
+                        <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Serviços</h2>
                     </div>
-                    <button class="btn small" onclick="openServicoModal()">+ Novo serviço</button>
+                    <button class="btn small" onclick="openServicoModal()">+ Novo Serviço</button>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Serviço</th>
-                            <th>Duração</th>
-                            <th>Preço</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tblServicos"></tbody>
-                </table>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Serviço</th>
+                                <th>Duração</th>
+                                <th>Preço</th>
+                                <th style="text-align:right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblServicos"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- HORARIOS -->
             <div class="admin-pane" id="pane-horarios">
-                <div class="toolbar">
-                    <div>
-                        <div class="eyebrow">Agenda de trabalho</div>
-                        <h2 style="font-family:var(--font-display); font-size:28px; margin-top:4px;">Horários por Barbeiro</h2>
-                    </div>
+                <div class="section-head" style="margin-bottom:18px;">
+                    <div class="eyebrow">Expediente</div>
+                    <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Agenda de Trabalho</h2>
                 </div>
-                <div class="field" style="max-width:280px; margin-bottom:20px;">
-                    <label>Selecione o Barbeiro</label>
+                <div class="field" style="max-width:280px; margin-bottom:18px;">
+                    <label>Selecionar Barbeiro</label>
                     <select id="horarioBarbeiroSelect" onchange="renderHorarios()"></select>
                 </div>
                 <div class="panel-box" id="horariosBox"></div>
@@ -967,59 +1051,61 @@
                 <div class="toolbar">
                     <div>
                         <div class="eyebrow">Fila de Atendimento</div>
-                        <h2 style="font-family:var(--font-display); font-size:28px; margin-top:4px;">Agendamentos</h2>
+                        <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Agendamentos</h2>
                     </div>
                     <select id="agFiltroBarbeiro" onchange="renderAgendamentos()"
-                        style="background:var(--panel); border:1px solid var(--line); color:var(--cream); padding:9px 12px; border-radius:var(--radius-sm);"></select>
+                        style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:8px 12px; border-radius:var(--radius-sm); font-size:13px;"></select>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Barbeiro</th>
-                            <th>Serviço</th>
-                            <th>Data</th>
-                            <th>Hora</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tblAgendamentos"></tbody>
-                </table>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Barbeiro</th>
+                                <th>Serviço</th>
+                                <th>Data</th>
+                                <th>Hora</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblAgendamentos"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- FINANCEIRO -->
             <div class="admin-pane" id="pane-financeiro">
-                <div class="toolbar">
-                    <div>
-                        <div class="eyebrow">Controle de Caixa</div>
-                        <h2 style="font-family:var(--font-display); font-size:28px; margin-top:4px;">Financeiro</h2>
-                    </div>
+                <div class="section-head" style="margin-bottom:20px;">
+                    <div class="eyebrow">Fluxo de Caixa</div>
+                    <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Financeiro</h2>
                 </div>
                 <div class="stat-grid" id="finStats"></div>
 
                 <div class="panel-box">
-                    <h3>Faturamento por barbeiro</h3>
+                    <h3>Faturamento por Barbeiro</h3>
                     <div class="bar-chart" id="finBarChart"></div>
                 </div>
 
                 <div class="panel-box">
-                    <div class="toolbar" style="margin-bottom:16px;">
+                    <div class="toolbar" style="margin-bottom:14px;">
                         <h3 style="margin:0;">Despesas</h3>
-                        <button class="btn small" onclick="openDespesaModal()">+ Nova despesa</button>
+                        <button class="btn small" onclick="openDespesaModal()">+ Nova Despesa</button>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Descrição</th>
-                                <th>Categoria</th>
-                                <th>Data</th>
-                                <th>Valor</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="tblDespesas"></tbody>
-                    </table>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Data</th>
+                                    <th>Valor</th>
+                                    <th style="text-align:right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblDespesas"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1029,15 +1115,15 @@
     <!-- ============ MODALS ============ -->
     <div class="modal-overlay" id="modalBarbeiro">
         <div class="modal">
-            <h3 id="modalBarbeiroTitle">Novo barbeiro</h3>
+            <h3 id="modalBarbeiroTitle">Novo Barbeiro</h3>
             <input type="hidden" id="barbId">
             <input type="hidden" id="barbFotoData">
             <div class="field">
-                <label>Foto de Perfil (Vercel Blob)</label>
+                <label>Foto do Barbeiro</label>
                 <div class="photo-upload-row">
                     <div class="photo-preview" id="barbFotoPreview">Sem foto</div>
                     <div>
-                        <label class="btn ghost small" style="display:inline-block;" for="barbFotoInput">Escolher foto</label>
+                        <label class="btn ghost small" style="display:inline-block;" for="barbFotoInput">Escolher Foto</label>
                         <input type="file" id="barbFotoInput" accept="image/*" style="display:none;" onchange="handleBarbFoto(this)">
                         <button class="btn ghost small" type="button" onclick="removeBarbFoto()" style="margin-left:6px;">Remover</button>
                     </div>
@@ -1055,9 +1141,9 @@
 
     <div class="modal-overlay" id="modalServico">
         <div class="modal">
-            <h3 id="modalServicoTitle">Novo serviço</h3>
+            <h3 id="modalServicoTitle">Novo Serviço</h3>
             <input type="hidden" id="svcId">
-            <div class="field"><label>Nome do serviço</label><input id="svcNome" placeholder="Ex: Corte + Barba"></div>
+            <div class="field"><label>Nome do Serviço</label><input id="svcNome" placeholder="Ex: Corte + Barba"></div>
             <div class="field"><label>Duração (minutos)</label><input id="svcDuracao" type="number" placeholder="45"></div>
             <div class="field"><label>Preço (R$)</label><input id="svcPreco" type="number" step="0.01" placeholder="60.00"></div>
             <div class="modal-actions">
@@ -1069,7 +1155,7 @@
 
     <div class="modal-overlay" id="modalDespesa">
         <div class="modal">
-            <h3>Nova despesa</h3>
+            <h3>Nova Despesa</h3>
             <div class="field"><label>Descrição</label><input id="despDesc" placeholder="Ex: Conta de energia"></div>
             <div class="field"><label>Categoria</label>
                 <select id="despCat">
@@ -1098,7 +1184,7 @@
             { key: 'qua', label: 'Quarta' }, { key: 'qui', label: 'Quinta' }, { key: 'sex', label: 'Sexta' }, { key: 'sab', label: 'Sábado' }
         ];
         const STORAGE_KEY = 'apolo-barbearia:data';
-        const APP_BUILD_VERSION = '2026.08.10.v4';
+        const APP_BUILD_VERSION = '2026.08.10.v5';
         const savedVersion = localStorage.getItem('apolo_admin_build_version');
         if (savedVersion !== APP_BUILD_VERSION) {
             localStorage.setItem('apolo_admin_build_version', APP_BUILD_VERSION);
@@ -1126,6 +1212,7 @@
 
         function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
         function brl(v) { return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+        
         function toast(msg) {
             const t = document.getElementById('toast');
             t.textContent = msg;
@@ -1227,12 +1314,10 @@
                 } catch (e) {}
             }
 
-            if (cloudConfig.isNeonConnected) {
-                try {
-                    const blobRes = await apiFetch('/api/upload', 'POST', { test: true });
-                    if (blobRes && blobRes.configured) cloudConfig.isBlobConnected = true;
-                } catch (e) {}
-            }
+            try {
+                const blobRes = await apiFetch('/api/upload', 'POST', { test: true });
+                if (blobRes && blobRes.configured) cloudConfig.isBlobConnected = true;
+            } catch (e) {}
 
             updateCloudPills();
             renderAdmin();
@@ -1264,19 +1349,14 @@
             location.reload();
         }
 
-        // Auto-login se já autenticado na sessão
-        if (sessionStorage.getItem('apolo_admin_auth') === 'true') {
-            document.getElementById('admin-login').style.display = 'none';
-            document.getElementById('admin-shell').style.display = 'flex';
-            document.getElementById('btnLogout').style.display = 'inline-flex';
-        }
-
+        // Tabs
         document.querySelectorAll('.admin-side .tab').forEach(tab => {
             tab.onclick = () => {
                 document.querySelectorAll('.admin-side .tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
                 tab.classList.add('active');
-                document.getElementById('pane-' + tab.dataset.pane).classList.add('active');
+                const target = document.getElementById('pane-' + tab.dataset.pane);
+                if (target) target.classList.add('active');
                 if (tab.dataset.pane === 'dashboard') renderDashboard();
                 if (tab.dataset.pane === 'horarios') renderHorarios();
                 if (tab.dataset.pane === 'agendamentos') renderAgendamentos();
@@ -1295,14 +1375,14 @@
             document.getElementById('barbId').value = id || '';
             if (id) {
                 const b = state.barbeiros.find(x => x.id === id);
-                document.getElementById('modalBarbeiroTitle').textContent = 'Editar barbeiro';
+                document.getElementById('modalBarbeiroTitle').textContent = 'Editar Barbeiro';
                 document.getElementById('barbNome').value = b.nome;
                 document.getElementById('barbEspec').value = b.especialidade || '';
                 document.getElementById('barbWhats').value = b.whatsapp;
                 document.getElementById('barbFotoData').value = b.foto || '';
                 document.getElementById('barbFotoPreview').innerHTML = b.foto ? `<img src="${b.foto}">` : 'Sem foto';
             } else {
-                document.getElementById('modalBarbeiroTitle').textContent = 'Novo barbeiro';
+                document.getElementById('modalBarbeiroTitle').textContent = 'Novo Barbeiro';
                 document.getElementById('barbNome').value = '';
                 document.getElementById('barbEspec').value = '';
                 document.getElementById('barbWhats').value = '';
@@ -1391,7 +1471,13 @@
         async function deleteBarbeiro(id) {
             if (!confirm('Remover este barbeiro?')) return;
             if (cloudConfig.isNeonConnected) {
-                try { await apiFetch('/api/barbeiros', 'DELETE', { id }); } catch (err) {}
+                try { 
+                    await apiFetch('/api/barbeiros', 'DELETE', { id }); 
+                } catch (err) {
+                    console.error('Erro ao deletar barbeiro:', err);
+                    toast('Erro ao deletar: ' + err.message);
+                    return;
+                }
             }
             state.barbeiros = state.barbeiros.filter(b => b.id !== id);
             delete state.horarios[id];
@@ -1405,10 +1491,10 @@
             if (!state.barbeiros.length) { tb.innerHTML = '<tr><td colspan="4" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum barbeiro cadastrado</td></tr>'; return; }
             tb.innerHTML = state.barbeiros.map(b => `
                 <tr>
-                    <td><div style="display:flex; align-items:center; gap:12px;"><div class="avatar">${avatarHTML(b)}</div>${b.nome}</div></td>
+                    <td><div style="display:flex; align-items:center; gap:10px;"><div class="avatar">${avatarHTML(b)}</div><b>${b.nome}</b></div></td>
                     <td>${b.especialidade || '—'}</td>
                     <td style="font-family:var(--font-mono);">${b.whatsapp}</td>
-                    <td><div class="row-actions">
+                    <td style="text-align:right;"><div class="row-actions">
                         <button class="icon-btn" onclick="openBarbeiroModal('${b.id}')" title="Editar">✎</button>
                         <button class="icon-btn del" onclick="deleteBarbeiro('${b.id}')" title="Remover">✕</button>
                     </div></td>
@@ -1420,12 +1506,12 @@
             document.getElementById('svcId').value = id || '';
             if (id) {
                 const s = state.servicos.find(x => x.id === id);
-                document.getElementById('modalServicoTitle').textContent = 'Editar serviço';
+                document.getElementById('modalServicoTitle').textContent = 'Editar Serviço';
                 document.getElementById('svcNome').value = s.nome;
                 document.getElementById('svcDuracao').value = s.duracao;
                 document.getElementById('svcPreco').value = s.preco;
             } else {
-                document.getElementById('modalServicoTitle').textContent = 'Novo serviço';
+                document.getElementById('modalServicoTitle').textContent = 'Novo Serviço';
                 document.getElementById('svcNome').value = '';
                 document.getElementById('svcDuracao').value = '';
                 document.getElementById('svcPreco').value = '';
@@ -1468,7 +1554,12 @@
         async function deleteServico(id) {
             if (!confirm('Remover este serviço?')) return;
             if (cloudConfig.isNeonConnected) {
-                try { await apiFetch('/api/servicos', 'DELETE', { id }); } catch (err) {}
+                try { 
+                    await apiFetch('/api/servicos', 'DELETE', { id }); 
+                } catch (err) {
+                    toast('Erro ao deletar: ' + err.message);
+                    return;
+                }
             }
             state.servicos = state.servicos.filter(s => s.id !== id);
             await persist();
@@ -1481,10 +1572,10 @@
             if (!state.servicos.length) { tb.innerHTML = '<tr><td colspan="4" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum serviço cadastrado</td></tr>'; return; }
             tb.innerHTML = state.servicos.map(s => `
                 <tr>
-                    <td>${s.nome}</td>
+                    <td><b>${s.nome}</b></td>
                     <td>${s.duracao} min</td>
                     <td style="font-family:var(--font-mono); color:var(--brass-2);">${brl(s.preco)}</td>
-                    <td><div class="row-actions">
+                    <td style="text-align:right;"><div class="row-actions">
                         <button class="icon-btn" onclick="openServicoModal('${s.id}')" title="Editar">✎</button>
                         <button class="icon-btn del" onclick="deleteServico('${s.id}')" title="Remover">✕</button>
                     </div></td>
@@ -1512,9 +1603,9 @@
                 const slots = [...cfg.slots].sort();
                 const chips = slots.length
                     ? slots.map(t => `<div class="time-chip">${t}<button onclick="removeHorarioSlot('${id}','${d.key}','${t}')" title="Remover">✕</button></div>`).join('')
-                    : `<span style="font-size:12px; color:var(--cream-faint); font-family:var(--font-mono);">Nenhum horário</span>`;
+                    : `<span style="font-size:11.5px; color:var(--cream-faint); font-family:var(--font-mono);">Nenhum horário</span>`;
                 return `<div class="weekday-row">
-                    <div style="display:flex; align-items:center; gap:14px;">
+                    <div style="display:flex; align-items:center; gap:12px; min-width:140px;">
                         <div class="wname">${d.label}</div>
                         <div class="toggle ${cfg.ativo ? 'on' : ''}" onclick="toggleDia('${id}','${d.key}')"><div class="dot"></div></div>
                     </div>
@@ -1551,20 +1642,19 @@
         }
 
         async function addHorarioSlot(barbId, dia) {
-            const input = document.getElementById(`novoHorario-${dia}`);
-            const valor = input.value;
-            if (!valor) return;
-            const cfg = state.horarios[barbId][dia];
-            if (cfg.slots.includes(valor)) { toast('Horário já cadastrado'); return; }
-            cfg.slots.push(valor);
-            await syncHorarioToDb(barbId, dia);
-            await persist();
-            renderHorarios();
+            const input = document.getElementById('novoHorario-' + dia);
+            const val = input.value;
+            if (!val) return;
+            if (!state.horarios[barbId][dia].slots.includes(val)) {
+                state.horarios[barbId][dia].slots.push(val);
+                await syncHorarioToDb(barbId, dia);
+                await persist();
+                renderHorarios();
+            }
         }
 
-        async function removeHorarioSlot(barbId, dia, valor) {
-            const cfg = state.horarios[barbId][dia];
-            cfg.slots = cfg.slots.filter(t => t !== valor);
+        async function removeHorarioSlot(barbId, dia, slot) {
+            state.horarios[barbId][dia].slots = state.horarios[barbId][dia].slots.filter(s => s !== slot);
             await syncHorarioToDb(barbId, dia);
             await persist();
             renderHorarios();
@@ -1573,6 +1663,7 @@
         /* Agendamentos */
         function renderAgendamentosFilters() {
             const sel = document.getElementById('agFiltroBarbeiro');
+            if (!sel) return;
             sel.innerHTML = '<option value="">Todos os barbeiros</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
         }
 
@@ -1580,70 +1671,99 @@
             renderAgendamentosFilters();
             const filtro = document.getElementById('agFiltroBarbeiro').value;
             const tb = document.getElementById('tblAgendamentos');
-            let list = [...state.agendamentos].sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora));
+            let list = [...state.agendamentos];
             if (filtro) list = list.filter(a => a.barbeiroId === filtro);
-            if (!list.length) { tb.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum agendamento ainda</td></tr>'; return; }
+            list.sort((a, b) => (b.data + b.hora).localeCompare(a.data + a.hora));
+
+            if (!list.length) { tb.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum agendamento encontrado</td></tr>'; return; }
+
             tb.innerHTML = list.map(a => {
                 const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
                 const svc = state.servicos.find(s => s.id === a.servicoId);
+                const badgeClass = a.status === 'concluido' ? 'ok' : (a.status === 'cancelado' ? 'cancel' : 'pending');
                 const dataFmt = new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                const badgeClass = a.status === 'concluido' ? 'ok' : a.status === 'cancelado' ? 'cancel' : 'pending';
                 return `<tr>
-                    <td>${a.nome}<div style="font-size:11px; color:var(--cream-faint); font-family:var(--font-mono);">${a.tel}</div></td>
-                    <td>${barb ? barb.nome : '—'}</td><td>${svc ? svc.nome : '—'}</td><td>${dataFmt}</td><td style="font-family:var(--font-mono);">${a.hora}</td>
+                    <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
+                    <td>${barb ? barb.nome : '—'}</td>
+                    <td>${svc ? svc.nome : '—'}</td>
+                    <td>${dataFmt}</td>
+                    <td style="font-family:var(--font-mono); font-weight:600;">${a.hora}</td>
                     <td><span class="badge ${badgeClass}">${a.status}</span></td>
-                    <td><div class="row-actions">
-                        ${a.status !== 'concluido' ? `<button class="icon-btn" title="Concluir" onclick="setStatus('${a.id}','concluido')">✓</button>` : ''}
-                        ${a.status !== 'cancelado' ? `<button class="icon-btn del" title="Cancelar" onclick="setStatus('${a.id}','cancelado')">✕</button>` : ''}
+                    <td style="text-align:right;"><div class="row-actions">
+                        ${a.status !== 'concluido' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','concluido')" title="Marcar como concluído">✓</button>` : ''}
+                        ${a.status !== 'cancelado' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','cancelado')" title="Cancelar">✕</button>` : ''}
+                        <button class="icon-btn del" onclick="deleteAgendamento('${a.id}')" title="Excluir">🗑</button>
                     </div></td>
                 </tr>`;
             }).join('');
         }
 
-        async function setStatus(id, status) {
-            const a = state.agendamentos.find(x => x.id === id);
-            if (!a) return;
-            a.status = status;
-            if (cloudConfig.isNeonConnected) {
-                try { await apiFetch('/api/agendamentos', 'PATCH', { id, status }); } catch (e) {}
+        async function setAgStatus(id, status) {
+            const ag = state.agendamentos.find(a => a.id === id);
+            if (ag) {
+                ag.status = status;
+                if (cloudConfig.isNeonConnected) {
+                    try { await apiFetch('/api/agendamentos', 'PATCH', { id, status }); } catch (e) {}
+                }
+                await persist();
+                renderAgendamentos(); renderDashboard();
+                toast('Status atualizado');
             }
+        }
+
+        async function deleteAgendamento(id) {
+            if (!confirm('Excluir este agendamento?')) return;
+            if (cloudConfig.isNeonConnected) {
+                try { 
+                    await apiFetch('/api/agendamentos', 'DELETE', { id }); 
+                } catch (err) {
+                    toast('Erro ao deletar: ' + err.message);
+                    return;
+                }
+            }
+            state.agendamentos = state.agendamentos.filter(a => a.id !== id);
             await persist();
             renderAgendamentos(); renderDashboard();
+            toast('Agendamento excluído');
         }
 
         /* Dashboard */
         function renderDashboard() {
-            const today = new Date().toISOString().slice(0, 10);
-            const hoje = state.agendamentos.filter(a => a.data === today && a.status !== 'cancelado').length;
-            const mesAtual = new Date().toISOString().slice(0, 7);
-            const faturamentoMes = state.agendamentos
-                .filter(a => a.data.startsWith(mesAtual) && a.status !== 'cancelado')
-                .reduce((sum, a) => { const s = state.servicos.find(sv => sv.id === a.servicoId); return sum + (s ? s.preco : 0); }, 0);
+            const stats = document.getElementById('dashStats');
+            const totalAg = state.agendamentos.length;
             const pendentes = state.agendamentos.filter(a => a.status === 'pendente').length;
+            const concluidos = state.agendamentos.filter(a => a.status === 'concluido').length;
+            const totalFaturado = state.agendamentos.filter(a => a.status === 'concluido').reduce((sum, a) => {
+                const svc = state.servicos.find(s => s.id === a.servicoId);
+                return sum + (svc ? Number(svc.preco) : 0);
+            }, 0);
 
-            document.getElementById('dashStats').innerHTML = `
-                <div class="stat-card"><div class="label">Agendamentos hoje</div><div class="value">${hoje}</div></div>
-                <div class="stat-card"><div class="label">Faturamento do mês</div><div class="value small">${brl(faturamentoMes)}</div></div>
+            stats.innerHTML = `
+                <div class="stat-card"><div class="label">Total Agendamentos</div><div class="value">${totalAg}</div></div>
                 <div class="stat-card"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
-                <div class="stat-card"><div class="label">Barbeiros ativos</div><div class="value">${state.barbeiros.length}</div></div>
+                <div class="stat-card"><div class="label">Concluídos</div><div class="value">${concluidos}</div></div>
+                <div class="stat-card"><div class="label">Faturamento Concluído</div><div class="value small">${brl(totalFaturado)}</div></div>
             `;
 
-            const upcoming = [...state.agendamentos]
-                .filter(a => a.data >= today && a.status !== 'cancelado')
-                .sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora)).slice(0, 6);
-            const tb = document.getElementById('dashUpcoming');
-            if (!upcoming.length) { tb.innerHTML = '<tr><td style="color:var(--cream-faint); padding:20px;">Nenhum agendamento futuro</td></tr>'; return; }
-            tb.innerHTML = '<thead><tr><th>Cliente</th><th>Barbeiro</th><th>Data</th><th>Hora</th></tr></thead><tbody>' +
-                upcoming.map(a => {
-                    const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
-                    const dataFmt = new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                    return `<tr><td>${a.nome}</td><td>${barb ? barb.nome : '—'}</td><td>${dataFmt}</td><td style="font-family:var(--font-mono);">${a.hora}</td></tr>`;
-                }).join('') + '</tbody>';
+            const upcoming = document.getElementById('dashUpcoming');
+            const proxs = [...state.agendamentos].filter(a => a.status === 'pendente').sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora)).slice(0, 6);
+            if (!proxs.length) { upcoming.innerHTML = '<tr><td style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhum agendamento pendente</td></tr>'; return; }
+            upcoming.innerHTML = proxs.map(a => {
+                const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
+                const svc = state.servicos.find(s => s.id === a.servicoId);
+                return `<tr>
+                    <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
+                    <td>${barb ? barb.nome : '—'}</td>
+                    <td>${svc ? svc.nome : '—'}</td>
+                    <td>${new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')} às <b>${a.hora}</b></td>
+                    <td style="text-align:right;"><button class="btn ghost small" onclick="setAgStatus('${a.id}','concluido')">Concluir ✓</button></td>
+                </tr>`;
+            }).join('');
         }
 
         /* Financeiro */
         function openDespesaModal() {
-            document.getElementById('despDesc').value = ''; document.getElementById('despCat').value = 'Aluguel';
+            document.getElementById('despDesc').value = '';
             document.getElementById('despData').value = new Date().toISOString().slice(0, 10);
             document.getElementById('despValor').value = '';
             openModal('modalDespesa');
@@ -1657,13 +1777,18 @@
             if (!desc || !data || !valor) { toast('Preencha todos os campos'); return; }
 
             const payload = { desc, cat, data, valor };
+
             if (cloudConfig.isNeonConnected) {
                 try {
                     const res = await apiFetch('/api/despesas', 'POST', payload);
                     if (res && res.despesa) payload.id = res.despesa.id;
-                } catch (err) {}
+                } catch (err) {
+                    toast('Erro no banco: ' + err.message);
+                    return;
+                }
             }
-            payload.id = payload.id || uid();
+
+            payload.id = payload.id || ('d_' + uid());
             state.despesas.push(payload);
             await persist();
             closeModal('modalDespesa');
@@ -1674,7 +1799,12 @@
         async function deleteDespesa(id) {
             if (!confirm('Remover esta despesa?')) return;
             if (cloudConfig.isNeonConnected) {
-                try { await apiFetch('/api/despesas', 'DELETE', { id }); } catch (err) {}
+                try { 
+                    await apiFetch('/api/despesas', 'DELETE', { id }); 
+                } catch (err) {
+                    toast('Erro ao deletar: ' + err.message);
+                    return;
+                }
             }
             state.despesas = state.despesas.filter(d => d.id !== id);
             await persist();
@@ -1683,27 +1813,30 @@
         }
 
         function renderFinanceiro() {
-            const faturamentoTotal = state.agendamentos.filter(a => a.status !== 'cancelado').reduce((sum, a) => {
-                const s = state.servicos.find(sv => sv.id === a.servicoId); return sum + (s ? s.preco : 0);
+            const receita = state.agendamentos.filter(a => a.status === 'concluido').reduce((sum, a) => {
+                const svc = state.servicos.find(s => s.id === a.servicoId);
+                return sum + (svc ? Number(svc.preco) : 0);
             }, 0);
-            const despesasTotal = state.despesas.reduce((sum, d) => sum + Number(d.valor), 0);
-            const saldo = faturamentoTotal - despesasTotal;
+            const totalDespesas = state.despesas.reduce((sum, d) => sum + Number(d.valor), 0);
+            const saldo = receita - totalDespesas;
 
             document.getElementById('finStats').innerHTML = `
-                <div class="stat-card"><div class="label">Faturamento total</div><div class="value small">${brl(faturamentoTotal)}</div></div>
-                <div class="stat-card"><div class="label">Despesas totais</div><div class="value small" style="color:var(--danger);">${brl(despesasTotal)}</div></div>
-                <div class="stat-card"><div class="label">Saldo</div><div class="value small" style="color:${saldo >= 0 ? '#8fb87e' : 'var(--danger)'};">${brl(saldo)}</div></div>
+                <div class="stat-card"><div class="label">Receita Realizada</div><div class="value small" style="color:#9cd488;">${brl(receita)}</div></div>
+                <div class="stat-card"><div class="label">Total Despesas</div><div class="value small" style="color:var(--danger);">${brl(totalDespesas)}</div></div>
+                <div class="stat-card"><div class="label">Saldo Líquido</div><div class="value small" style="color:${saldo >= 0 ? 'var(--brass-2)' : 'var(--danger)'};">${brl(saldo)}</div></div>
             `;
 
             const porBarbeiro = state.barbeiros.map(b => {
-                const total = state.agendamentos.filter(a => a.barbeiroId === b.id && a.status !== 'cancelado').reduce((sum, a) => {
-                    const s = state.servicos.find(sv => sv.id === a.servicoId); return sum + (s ? s.preco : 0);
+                const total = state.agendamentos.filter(a => a.barbeiroId === b.id && a.status === 'concluido').reduce((sum, a) => {
+                    const svc = state.servicos.find(s => s.id === a.servicoId);
+                    return sum + (svc ? Number(svc.preco) : 0);
                 }, 0);
                 return { nome: b.nome, total };
             });
-            const max = Math.max(1, ...porBarbeiro.map(p => p.total));
+
+            const max = Math.max(...porBarbeiro.map(p => p.total), 1);
             const chart = document.getElementById('finBarChart');
-            if (!porBarbeiro.length) { chart.innerHTML = '<div style="color:var(--cream-faint); padding:20px;">Sem dados ainda.</div>'; }
+            if (!porBarbeiro.length || porBarbeiro.every(p => p.total === 0)) chart.innerHTML = '<div style="color:var(--cream-faint); padding:16px;">Sem faturamento concluído ainda.</div>';
             else {
                 chart.innerHTML = porBarbeiro.map(p => `
                     <div class="bar-row">
@@ -1717,9 +1850,9 @@
             if (!state.despesas.length) { tb.innerHTML = '<tr><td colspan="5" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhuma despesa registrada</td></tr>'; return; }
             tb.innerHTML = [...state.despesas].sort((a, b) => b.data.localeCompare(a.data)).map(d => `
                 <tr>
-                    <td>${d.desc}</td><td>${d.cat}</td><td>${new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-                    <td style="font-family:var(--font-mono); color:var(--danger);">${brl(d.valor)}</td>
-                    <td><button class="icon-btn del" onclick="deleteDespesa('${d.id}')" title="Remover">✕</button></td>
+                    <td><b>${d.desc}</b></td><td>${d.cat}</td><td>${new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                    <td style="font-family:var(--font-mono); color:var(--danger); font-weight:600;">${brl(d.valor)}</td>
+                    <td style="text-align:right;"><button class="icon-btn del" onclick="deleteDespesa('${d.id}')" title="Remover">✕</button></td>
                 </tr>`).join('');
         }
 
@@ -1729,6 +1862,9 @@
         }
 
         if (sessionStorage.getItem('apolo_admin_auth') === 'true') {
+            document.getElementById('admin-login').style.display = 'none';
+            document.getElementById('admin-shell').style.display = 'flex';
+            document.getElementById('btnLogout').style.display = 'inline-flex';
             loadState();
         }
 
