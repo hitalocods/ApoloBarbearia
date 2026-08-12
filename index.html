@@ -8,6 +8,12 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Apolo Barbearia — Agendamento Online</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0c0a08">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Apolo Barbearia">
+    <link rel="apple-touch-icon" href="/logoapolo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
@@ -1253,6 +1259,15 @@
         window.addEventListener('focus', () => {
             loadState();
         });
+
+        // Registro do Service Worker PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[PWA] Service Worker registrado com sucesso:', reg.scope))
+                    .catch(err => console.warn('[PWA] Falha ao registrar Service Worker:', err));
+            });
+        }
     </script>
 </body>
 

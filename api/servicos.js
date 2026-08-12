@@ -1,11 +1,12 @@
 // api/servicos.js
 // CRUD de Serviços no Neon PostgreSQL
 import { query, isDbConfigured } from './db.js';
+import { requireAdminAuth } from './authCheck.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -18,6 +19,9 @@ export default async function handler(req, res) {
             const servicos = await query`SELECT id, nome, duracao, preco::float as preco FROM servicos ORDER BY created_at ASC`;
             return res.status(200).json({ ok: true, servicos });
         }
+
+        // Requisições de modificação exigem autorização administrativa
+        if (!requireAdminAuth(req, res)) return;
 
         if (req.method === 'POST') {
             const { id, nome, duracao, preco } = req.body || {};

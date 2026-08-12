@@ -1,11 +1,12 @@
 // api/barbeiros.js
 // CRUD de Barbeiros no Neon PostgreSQL
 import { query, isDbConfigured } from './db.js';
+import { requireAdminAuth } from './authCheck.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -18,6 +19,9 @@ export default async function handler(req, res) {
             const barbeiros = await query`SELECT id, nome, especialidade, whatsapp, foto, COALESCE(comissao_pct, 40.00)::float as "comissaoPct" FROM barbeiros ORDER BY created_at ASC`;
             return res.status(200).json({ ok: true, barbeiros });
         }
+
+        // Requisições de modificação exigem autorização administrativa
+        if (!requireAdminAuth(req, res)) return;
 
         if (req.method === 'POST') {
             const { id, nome, especialidade, whatsapp, foto, comissaoPct } = req.body || {};

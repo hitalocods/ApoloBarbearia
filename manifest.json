@@ -1,0 +1,24 @@
+{
+  "name": "Apolo Barbearia — Agendamento e Gestão",
+  "short_name": "Apolo Barbearia",
+  "description": "Sistema de Agendamento Online e Gestão da Apolo Barbearia",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0a08",
+  "theme_color": "#c9a227",
+  "icons": [
+    {
+      "src": "/logoapolo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logoapolo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,11 +1,12 @@
 // api/horarios.js
 // Gestão de horários de trabalho por barbeiro
 import { query, isDbConfigured } from './db.js';
+import { requireAdminAuth } from './authCheck.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -24,6 +25,9 @@ export default async function handler(req, res) {
             }
             return res.status(200).json({ ok: true, horarios: rows });
         }
+
+        // Requisição de alteração de escala exige login admin
+        if (!requireAdminAuth(req, res)) return;
 
         if (req.method === 'POST') {
             const { barbeiroId, dia, ativo, slots, schedule } = req.body || {};

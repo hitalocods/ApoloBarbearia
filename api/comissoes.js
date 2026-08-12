@@ -1,13 +1,15 @@
 // api/comissoes.js
 // Gestão de Histórico e Pagamentos de Comissões no Neon PostgreSQL
 import { query, isDbConfigured } from './db.js';
+import { requireAdminAuth } from './authCheck.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
+    if (!requireAdminAuth(req, res)) return;
 
     if (!isDbConfigured) {
         return res.status(200).json({ ok: false, isDbConfigured: false, message: 'DATABASE_URL não configurada.' });

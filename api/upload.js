@@ -2,6 +2,7 @@
 // Upload de arquivos e fotos para o Vercel Blob Storage
 import { put } from '@vercel/blob';
 import dotenv from 'dotenv';
+import { requireAdminAuth } from './authCheck.js';
 
 try {
     dotenv.config({ path: '.env.local' });
@@ -19,7 +20,7 @@ export const config = {
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -42,6 +43,8 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método não permitido. Use POST.' });
     }
+
+    if (!requireAdminAuth(req, res)) return;
 
     if (!isBlobConfigured) {
         return res.status(200).json({

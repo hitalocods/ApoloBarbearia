@@ -8,6 +8,12 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Apolo Barbearia — Painel Administrativo</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0c0a08">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Apolo Admin">
+    <link rel="apple-touch-icon" href="/logoapolo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
@@ -1726,14 +1732,31 @@
 
         async function apiFetch(endpoint, method = 'GET', data = null) {
             const url = endpoint.includes('?') ? `${endpoint}&_t=${Date.now()}` : `${endpoint}?_t=${Date.now()}`;
+            const token = sessionStorage.getItem('apolo_admin_token') || sessionStorage.getItem('apolo_admin_auth');
+            const headers = { 
+                'Content-Type': 'application/json', 
+                'Cache-Control': 'no-cache' 
+            };
+            if (token && token !== 'true') {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const options = {
                 method,
-                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+                headers,
                 cache: 'no-store'
             };
             if (data && method !== 'GET') options.body = JSON.stringify(data);
             try {
                 const res = await fetch(url, options);
+                if (res.status === 401) {
+                    sessionStorage.removeItem('apolo_admin_auth');
+                    sessionStorage.removeItem('apolo_admin_token');
+                    document.getElementById('admin-login').style.display = 'flex';
+                    document.getElementById('admin-shell').style.display = 'none';
+                    document.getElementById('btnLogout').style.display = 'none';
+                    throw new Error('Sessão expirada. Faça login novamente.');
+                }
                 if (!res.ok) {
                     const errJson = await res.json().catch(() => ({}));
                     throw new Error(errJson.error || `Erro HTTP ${res.status}`);
@@ -1813,22 +1836,47 @@
         }
 
         /* Auth */
-        function tryLogin() {
+        async function tryLogin() {
             const val = document.getElementById('adminPass').value;
-            if (val === 'apolo123') {
-                sessionStorage.setItem('apolo_admin_auth', 'true');
-                document.getElementById('admin-login').style.display = 'none';
-                document.getElementById('admin-shell').style.display = 'flex';
-                document.getElementById('btnLogout').style.display = 'inline-flex';
-                loadState();
-            } else {
-                toast('Senha incorreta');
+            if (!val) { toast('Digite a senha de administrador'); return; }
+
+            try {
+                const res = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: val })
+                });
+                const json = await res.json();
+                if (res.ok && json.ok && json.token) {
+                    sessionStorage.setItem('apolo_admin_auth', 'true');
+                    sessionStorage.setItem('apolo_admin_token', json.token);
+                    document.getElementById('admin-login').style.display = 'none';
+                    document.getElementById('admin-shell').style.display = 'flex';
+                    document.getElementById('btnLogout').style.display = 'inline-flex';
+                    loadState();
+                    toast('Login efetuado com sucesso!');
+                } else {
+                    toast(json.error || 'Senha incorreta');
+                }
+            } catch (err) {
+                if (val === 'apolo123') {
+                    sessionStorage.setItem('apolo_admin_auth', 'true');
+                    sessionStorage.setItem('apolo_admin_token', 'apolo123');
+                    document.getElementById('admin-login').style.display = 'none';
+                    document.getElementById('admin-shell').style.display = 'flex';
+                    document.getElementById('btnLogout').style.display = 'inline-flex';
+                    loadState();
+                    toast('Login efetuado (modo offline)');
+                } else {
+                    toast('Erro na verificação de senha');
+                }
             }
         }
         document.getElementById('adminPass').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
 
         function logout() {
             sessionStorage.removeItem('apolo_admin_auth');
+            sessionStorage.removeItem('apolo_admin_token');
             location.reload();
         }
 
@@ -2257,6 +2305,7 @@
                 const svc = state.servicos.find(s => s.id === a.servicoId);
                 const badgeClass = a.status === 'concluido' ? 'ok' : (a.status === 'cancelado' ? 'cancel' : 'pending');
                 const dataFmt = new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                const cleanTel = (a.tel || '').replace(/\D/g, '');
                 
                 let acoes = '';
                 if (a.origem === 'manual') {
@@ -2266,6 +2315,7 @@
                     </div>`;
                 } else {
                     acoes = `<div class="row-actions">
+                        ${cleanTel ? `<button class="icon-btn" onclick="sendWhatsAppReminder('${a.id}')" title="Enviar Lembrete WhatsApp" style="color:#25d366;">💬</button>` : ''}
                         ${a.status !== 'concluido' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','concluido')" title="Marcar como concluído">✓</button>` : ''}
                         ${a.status !== 'cancelado' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','cancelado')" title="Cancelar">✕</button>` : ''}
                         <button class="icon-btn del" onclick="deleteAgendamento('${a.id}')" title="Excluir">🗑</button>
@@ -2285,6 +2335,28 @@
                     <td style="text-align:right;">${acoes}</td>
                 </tr>`;
             }).join('');
+        }
+
+        function sendWhatsAppReminder(agendamentoId) {
+            const ag = state.agendamentos.find(a => a.id === agendamentoId);
+            if (!ag) return;
+            const barb = state.barbeiros.find(b => b.id === ag.barbeiroId);
+            const svc = state.servicos.find(s => s.id === ag.servicoId);
+            const cleanTel = (ag.tel || '').replace(/\D/g, '');
+            if (!cleanTel) {
+                toast('Telefone do cliente não cadastrado.');
+                return;
+            }
+            const dataFmt = new Date(ag.data + 'T00:00:00').toLocaleDateString('pt-BR');
+            const msg = encodeURIComponent(
+                `Olá ${ag.nome}! 💈 Passando para lembrar do seu agendamento na Apolo Barbearia:\n` +
+                `📅 Data: ${dataFmt}\n` +
+                `⏰ Horário: ${ag.hora}\n` +
+                `✂️ Serviço: ${svc ? svc.nome : 'Atendimento'}\n` +
+                `👤 Barbeiro: ${barb ? barb.nome : 'Apolo'}\n\n` +
+                `Podemos confirmar a sua presença?`
+            );
+            window.open(`https://wa.me/55${cleanTel}?text=${msg}`, '_blank');
         }
 
         async function setAgStatus(id, status) {
@@ -2343,12 +2415,18 @@
             upcoming.innerHTML = proxs.map(a => {
                 const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
                 const svc = state.servicos.find(s => s.id === a.servicoId);
+                const cleanTel = (a.tel || '').replace(/\D/g, '');
                 return `<tr>
                     <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
                     <td>${barb ? barb.nome : '—'}</td>
                     <td>${svc ? svc.nome : '—'}</td>
                     <td>${new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')} às <b>${a.hora}</b></td>
-                    <td style="text-align:right;"><button class="btn ghost small" onclick="setAgStatus('${a.id}','concluido')">Concluir ✓</button></td>
+                    <td style="text-align:right;">
+                        <div style="display:inline-flex; gap:6px; align-items:center;">
+                            ${cleanTel ? `<button class="btn ghost small" onclick="sendWhatsAppReminder('${a.id}')" style="color:#25d366; border-color:rgba(37,211,102,0.4);" title="Enviar lembrete via WhatsApp">💬 Lembrete</button>` : ''}
+                            <button class="btn ghost small" onclick="setAgStatus('${a.id}','concluido')">Concluir ✓</button>
+                        </div>
+                    </td>
                 </tr>`;
             }).join('');
         }
@@ -2945,6 +3023,15 @@
         window.addEventListener('focus', () => {
             if (sessionStorage.getItem('apolo_admin_auth') === 'true') loadState();
         });
+
+        // Registro do Service Worker PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[PWA Admin] Service Worker registrado:', reg.scope))
+                    .catch(err => console.warn('[PWA Admin] Erro no SW:', err));
+            });
+        }
     </script>
 </body>
 
