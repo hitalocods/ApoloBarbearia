@@ -40,8 +40,8 @@ export default async function handler(req, res) {
             // Disparo de teste
             if (body.action === 'test') {
                 const result = await sendPushToAll({
-                    title: '🔔 Teste Apolo Barbearia',
-                    body: 'Notificações no celular ativadas com sucesso! Você receberá alertas a cada novo agendamento.',
+                    title: '💈 Novo Agendamento — Lucas Silva (Exemplo)',
+                    body: '✂️ Corte + Barba\n📅 Hoje às 16:30\n👤 Barbeiro: Marcus Ferreira\n📞 Tel: (86) 99999-0000',
                     url: '/admin.html',
                     data: { type: 'test', timestamp: Date.now() }
                 });

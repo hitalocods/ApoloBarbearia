@@ -66,11 +66,23 @@ export default async function handler(req, res) {
                         if (parts.length === 3) dataFmt = `${parts[2]}/${parts[1]}`;
                     }
 
+                    // Formatar telefone se disponível
+                    let telFmt = tel;
+                    const cleanDigits = String(tel || '').replace(/\D/g, '');
+                    if (cleanDigits.length === 11) {
+                        telFmt = `(${cleanDigits.slice(0, 2)}) ${cleanDigits.slice(2, 7)}-${cleanDigits.slice(7)}`;
+                    } else if (cleanDigits.length === 10) {
+                        telFmt = `(${cleanDigits.slice(0, 2)}) ${cleanDigits.slice(2, 6)}-${cleanDigits.slice(6)}`;
+                    }
+
+                    const pushTitle = `💈 Novo Agendamento — ${nome}`;
+                    const pushBody = `✂️ ${servicoNome}\n📅 ${dataFmt} às ${hora}\n👤 Barbeiro: ${barbeiroNome}\n📞 ${telFmt}`;
+
                     await sendPushToAll({
-                        title: '💈 Novo Agendamento Recebido!',
-                        body: `${nome} agendou ${servicoNome} para ${dataFmt} às ${hora} com ${barbeiroNome}.`,
+                        title: pushTitle,
+                        body: pushBody,
                         url: '/admin.html',
-                        data: { agendamentoId: agId, data, hora, barbeiroId }
+                        data: { agendamentoId: agId, data, hora, barbeiroId, nome, servicoNome, barbeiroNome, tel }
                     });
                 } catch (pushErr) {
                     console.error('[Agendamentos] Erro ao disparar notificação push:', pushErr);
