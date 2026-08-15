@@ -1715,12 +1715,14 @@
             isBlobConnected: false
         };
 
+        const DEFAULT_VAPID_PUBLIC_KEY = 'BEiereOENb_vK1OiCUptsfKyZsWOZNFIicE36soiAOGEgkC4y-rF7-Yqy2hizoJYp-JXZnC-1VD-H7bbDJkHGio';
+
         // Estado das Notificações Push
         let pushState = {
             isSupported: false,
             isSubscribed: false,
             permission: 'default',
-            vapidPublicKey: ''
+            vapidPublicKey: DEFAULT_VAPID_PUBLIC_KEY
         };
 
         function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -1919,15 +1921,18 @@
                 }
 
                 if (!pushState.vapidPublicKey) {
-                    const res = await fetch('/api/push');
-                    const data = await res.json();
-                    if (data && data.ok && data.publicKey) {
-                        pushState.vapidPublicKey = data.publicKey;
-                    }
+                    try {
+                        const res = await fetch('/api/push');
+                        const data = await res.json();
+                        if (data && data.ok && data.publicKey) {
+                            pushState.vapidPublicKey = data.publicKey;
+                        }
+                    } catch (e) {}
                 }
 
-                if (!pushState.vapidPublicKey) {
-                    toast('Chave VAPID não encontrada no servidor.');
+                const finalVapidKey = pushState.vapidPublicKey || DEFAULT_VAPID_PUBLIC_KEY;
+                if (!finalVapidKey) {
+                    toast('Chave VAPID não configurada.');
                     return;
                 }
 
@@ -1935,7 +1940,7 @@
                 let sub = await reg.pushManager.getSubscription();
 
                 if (!sub) {
-                    const appServerKey = urlBase64ToUint8Array(pushState.vapidPublicKey);
+                    const appServerKey = urlBase64ToUint8Array(finalVapidKey);
                     sub = await reg.pushManager.subscribe({
                         userVisibleOnly: true,
                         applicationServerKey: appServerKey
