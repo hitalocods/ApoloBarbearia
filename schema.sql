@@ -83,6 +83,16 @@ CREATE TABLE IF NOT EXISTS pagamentos_comissao (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 8. INSCRIÇÕES DE NOTIFICAÇÃO PUSH (Web Push / Celular)
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id TEXT PRIMARY KEY,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ÍNDICES PARA ALTA PERFORMANCE DE CONSULTA
 CREATE INDEX IF NOT EXISTS idx_agendamentos_data_hora ON agendamentos(data, hora);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_barbeiro ON agendamentos(barbeiro_id);
@@ -90,4 +100,5 @@ CREATE INDEX IF NOT EXISTS idx_horarios_barbeiro ON horarios(barbeiro_id);
 CREATE INDEX IF NOT EXISTS idx_despesas_data ON despesas(data);
 CREATE INDEX IF NOT EXISTS idx_entradas_data ON entradas(data);
 CREATE INDEX IF NOT EXISTS idx_pagamentos_comissao_barbeiro ON pagamentos_comissao(barbeiro_id);
+CREATE INDEX IF NOT EXISTS idx_push_endpoint ON push_subscriptions(endpoint);
 

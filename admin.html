@@ -1211,6 +1211,13 @@
                 <div class="cloud-pill offline" id="pillBlobMobile">
                     <span class="dot"></span> Vercel Blob: Verificando...
                 </div>
+                <div class="cloud-pill offline" id="pillPushMobile">
+                    <span class="dot"></span> Push: Inativo
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+                <button class="btn ghost small" id="btnPushActionMobile" onclick="handlePushAction()" style="width:100%; font-size:11px; padding:6px 8px;">🔔 Ativar Notificações</button>
+                <button class="btn ghost small" id="btnPushTestMobile" onclick="testPushNotification()" style="width:100%; font-size:11px; padding:6px 8px; display:none;">📲 Testar Alerta</button>
             </div>
             <div style="display:flex; gap:8px;">
                 <a href="index.html" class="btn ghost small" style="flex:1; text-align:center;">← Agendamento</a>
@@ -1247,6 +1254,11 @@
                 <div class="cloud-pill offline" id="pillBlob">
                     <span class="dot"></span> Vercel Blob: Verificando...
                 </div>
+                <div class="cloud-pill offline" id="pillPush">
+                    <span class="dot"></span> Push: Inativo
+                </div>
+                <button class="btn ghost small" id="btnPushAction" onclick="handlePushAction()" style="width:100%; font-size:11px; padding:5px 8px; margin-top:2px;">🔔 Ativar Notificações</button>
+                <button class="btn ghost small" id="btnPushTest" onclick="testPushNotification()" style="width:100%; font-size:11px; padding:5px 8px; margin-top:2px; display:none;">📲 Testar Alerta</button>
             </div>
         </div>
 
@@ -1258,6 +1270,24 @@
                     <div class="eyebrow">Visão Geral</div>
                     <h2 style="font-family:var(--font-display); font-size:24px; margin-top:4px;">Dashboard</h2>
                 </div>
+
+                <!-- BANNER DE NOTIFICAÇÕES PUSH -->
+                <div class="panel-box" id="pushNotificationBanner" style="display:none; background:linear-gradient(135deg, rgba(201,162,39,0.12), rgba(22,18,9,0.95)); border:1px solid var(--brass-dim); margin-bottom:18px; padding:16px 18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="font-size:26px; line-height:1;">🔔</div>
+                            <div>
+                                <div style="font-weight:600; font-size:14.5px; color:var(--cream);" id="pushBannerTitle">Notificações no Celular</div>
+                                <div style="font-size:12px; color:var(--cream-dim);" id="pushBannerSub">Receba alertas na tela do celular a cada novo agendamento de cliente.</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;" id="pushBannerActions">
+                            <button class="btn small" id="btnBannerSubscribe" onclick="subscribeToPush()">🔔 Ativar Notificações</button>
+                            <button class="btn ghost small" id="btnBannerTest" onclick="testPushNotification()" style="display:none;">📲 Testar Alerta</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="stat-grid" id="dashStats"></div>
                 <div class="panel-box">
                     <h3>Próximos Agendamentos</h3>
@@ -1655,17 +1685,11 @@
             { key: 'qua', label: 'Quarta' }, { key: 'qui', label: 'Quinta' }, { key: 'sex', label: 'Sexta' }, { key: 'sab', label: 'Sábado' }
         ];
         const STORAGE_KEY = 'apolo-barbearia:data';
-        const APP_BUILD_VERSION = '2026.08.10.v5';
+        const APP_BUILD_VERSION = '2026.08.15.v1';
         const savedVersion = localStorage.getItem('apolo_admin_build_version');
         if (savedVersion !== APP_BUILD_VERSION) {
             localStorage.setItem('apolo_admin_build_version', APP_BUILD_VERSION);
             try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-        }
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(regs => {
-                for (let reg of regs) reg.unregister();
-            });
         }
 
         let state = {
@@ -1689,6 +1713,14 @@
         let cloudConfig = {
             isNeonConnected: false,
             isBlobConnected: false
+        };
+
+        // Estado das Notificações Push
+        let pushState = {
+            isSupported: false,
+            isSubscribed: false,
+            permission: 'default',
+            vapidPublicKey: ''
         };
 
         function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -1728,6 +1760,247 @@
                     }
                 }
             });
+
+            updatePushUI();
+        }
+
+        // Converte base64 para Uint8Array para uso com ApplicationServerKey
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function updatePushUI() {
+            const pPushes = [document.getElementById('pillPush'), document.getElementById('pillPushMobile')];
+            const btnActions = [document.getElementById('btnPushAction'), document.getElementById('btnPushActionMobile')];
+            const btnTests = [document.getElementById('btnPushTest'), document.getElementById('btnPushTestMobile')];
+            
+            const banner = document.getElementById('pushNotificationBanner');
+            const btnBannerSub = document.getElementById('btnBannerSubscribe');
+            const btnBannerTest = document.getElementById('btnBannerTest');
+            const bannerTitle = document.getElementById('pushBannerTitle');
+            const bannerSub = document.getElementById('pushBannerSub');
+
+            if (!pushState.isSupported) {
+                pPushes.forEach(p => {
+                    if (p) {
+                        p.className = 'cloud-pill offline';
+                        p.innerHTML = '<span class="dot" style="background:#b6543f;"></span> Push: Não suportado';
+                    }
+                });
+                btnActions.forEach(b => { if (b) b.style.display = 'none'; });
+                btnTests.forEach(b => { if (b) b.style.display = 'none'; });
+                if (banner) banner.style.display = 'none';
+                return;
+            }
+
+            if (pushState.isSubscribed) {
+                pPushes.forEach(p => {
+                    if (p) {
+                        p.className = 'cloud-pill connected';
+                        p.innerHTML = '<span class="dot"></span> 🔔 Push: Ativado';
+                    }
+                });
+                btnActions.forEach(b => {
+                    if (b) {
+                        b.style.display = 'block';
+                        b.textContent = '🔕 Desativar Push';
+                    }
+                });
+                btnTests.forEach(b => { if (b) b.style.display = 'block'; });
+
+                if (banner) {
+                    banner.style.display = 'block';
+                    banner.style.border = '1px solid rgba(92, 127, 79, 0.4)';
+                    banner.style.background = 'linear-gradient(135deg, rgba(92, 127, 79, 0.12), rgba(22, 18, 9, 0.95))';
+                    if (bannerTitle) bannerTitle.innerHTML = '🔔 Notificações Ativadas neste Celular';
+                    if (bannerSub) bannerSub.textContent = 'Seu dispositivo está pronto para receber alertas na tela a cada agendamento.';
+                    if (btnBannerSub) {
+                        btnBannerSub.textContent = '🔕 Desativar Notificações';
+                        btnBannerSub.className = 'btn ghost small';
+                    }
+                    if (btnBannerTest) btnBannerTest.style.display = 'inline-flex';
+                }
+            } else {
+                pPushes.forEach(p => {
+                    if (p) {
+                        p.className = 'cloud-pill offline';
+                        p.innerHTML = '<span class="dot"></span> 🔕 Push: Inativo';
+                    }
+                });
+                btnActions.forEach(b => {
+                    if (b) {
+                        b.style.display = 'block';
+                        b.textContent = '🔔 Ativar Notificações';
+                    }
+                });
+                btnTests.forEach(b => { if (b) b.style.display = 'none'; });
+
+                if (banner) {
+                    banner.style.display = 'block';
+                    banner.style.border = '1px solid var(--brass-dim)';
+                    banner.style.background = 'linear-gradient(135deg, rgba(201, 162, 39, 0.12), rgba(22, 18, 9, 0.95))';
+                    if (bannerTitle) bannerTitle.innerHTML = '🔔 Notificações no Celular';
+                    if (bannerSub) bannerSub.textContent = 'Receba alertas sonoros e na tela de bloqueio a cada novo agendamento!';
+                    if (btnBannerSub) {
+                        btnBannerSub.textContent = '🔔 Ativar Notificações';
+                        btnBannerSub.className = 'btn small';
+                    }
+                    if (btnBannerTest) btnBannerTest.style.display = 'none';
+                }
+            }
+        }
+
+        async function initPushNotificationStatus() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+                console.log('[Push] Notificações push não suportadas neste navegador.');
+                pushState.isSupported = false;
+                updatePushUI();
+                return;
+            }
+
+            pushState.isSupported = true;
+            pushState.permission = Notification.permission;
+
+            try {
+                // Obter chave pública VAPID do servidor
+                const res = await fetch('/api/push');
+                const data = await res.json();
+                if (data && data.ok && data.publicKey) {
+                    pushState.vapidPublicKey = data.publicKey;
+                }
+
+                // Registrar ou obter Service Worker
+                const reg = await navigator.serviceWorker.ready;
+                const existingSub = await reg.pushManager.getSubscription();
+
+                if (existingSub) {
+                    pushState.isSubscribed = true;
+                } else {
+                    pushState.isSubscribed = false;
+                }
+            } catch (err) {
+                console.warn('[Push] Erro ao verificar assinatura push:', err);
+                pushState.isSubscribed = false;
+            }
+
+            updatePushUI();
+        }
+
+        async function handlePushAction() {
+            if (pushState.isSubscribed) {
+                await unsubscribePush();
+            } else {
+                await subscribeToPush();
+            }
+        }
+
+        async function subscribeToPush() {
+            if (!pushState.isSupported) {
+                alert('Notificações Web Push não são suportadas neste navegador.\n\nSe você estiver no iPhone/iPad (iOS), toque no botão "Compartilhar" do Safari e selecione "Adicionar à Tela de Início" para habilitar notificações.');
+                return;
+            }
+
+            try {
+                // Solicitar permissão do usuário
+                const perm = await Notification.requestPermission();
+                pushState.permission = perm;
+
+                if (perm !== 'granted') {
+                    toast('Permissão de notificação não foi concedida.');
+                    updatePushUI();
+                    return;
+                }
+
+                if (!pushState.vapidPublicKey) {
+                    const res = await fetch('/api/push');
+                    const data = await res.json();
+                    if (data && data.ok && data.publicKey) {
+                        pushState.vapidPublicKey = data.publicKey;
+                    }
+                }
+
+                if (!pushState.vapidPublicKey) {
+                    toast('Chave VAPID não encontrada no servidor.');
+                    return;
+                }
+
+                const reg = await navigator.serviceWorker.ready;
+                let sub = await reg.pushManager.getSubscription();
+
+                if (!sub) {
+                    const appServerKey = urlBase64ToUint8Array(pushState.vapidPublicKey);
+                    sub = await reg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: appServerKey
+                    });
+                }
+
+                // Enviar inscrição ao backend para salvar no banco
+                const saveRes = await fetch('/api/push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subscription: sub })
+                });
+                const saveJson = await saveRes.json();
+
+                if (saveJson.ok) {
+                    pushState.isSubscribed = true;
+                    updatePushUI();
+                    toast('🔔 Celular registrado com sucesso para receber notificações!');
+                } else {
+                    toast('Erro ao salvar celular: ' + (saveJson.error || 'Tente novamente'));
+                }
+            } catch (err) {
+                console.error('[Push] Erro ao registrar inscrição push:', err);
+                toast('Erro ao ativar notificações: ' + err.message);
+            }
+        }
+
+        async function unsubscribePush() {
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
+                if (sub) {
+                    await fetch('/api/push', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endpoint: sub.endpoint })
+                    });
+                    await sub.unsubscribe();
+                }
+                pushState.isSubscribed = false;
+                updatePushUI();
+                toast('Notificações desativadas neste aparelho.');
+            } catch (err) {
+                console.error('[Push] Erro ao desinscrever:', err);
+                toast('Erro ao desativar notificações.');
+            }
+        }
+
+        async function testPushNotification() {
+            toast('Enviando notificação de teste para os celulares...');
+            try {
+                const res = await fetch('/api/push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'test' })
+                });
+                const json = await res.json();
+                if (json.ok) {
+                    toast('📲 Alerta disparado! Verifique a notificação no aparelho.');
+                } else {
+                    toast('Erro no envio: ' + (json.error || 'Verifique se há celulares inscritos.'));
+                }
+            } catch (e) {
+                toast('Erro ao disparar teste: ' + e.message);
+            }
         }
 
         async function apiFetch(endpoint, method = 'GET', data = null) {
@@ -1826,6 +2099,7 @@
             } catch (e) {}
 
             updateCloudPills();
+            initPushNotificationStatus();
             renderAdmin();
         }
 

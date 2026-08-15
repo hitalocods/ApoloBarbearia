@@ -69,6 +69,17 @@ export default async function handler(req, res) {
             );
         `;
 
+        await query`
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id TEXT PRIMARY KEY,
+                endpoint TEXT NOT NULL UNIQUE,
+                p256dh TEXT NOT NULL,
+                auth TEXT NOT NULL,
+                user_agent TEXT,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+        `;
+
         const countRes = await query`SELECT COUNT(*) as total FROM barbeiros`;
         const totalBarbeiros = parseInt(countRes[0]?.total || '0', 10);
 

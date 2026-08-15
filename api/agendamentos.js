@@ -1,6 +1,5 @@
-// api/agendamentos.js
-// Gestão de agendamentos de clientes
 import { query, isDbConfigured } from './db.js';
+import { sendPushToAll } from './pushHelper.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -50,6 +49,33 @@ export default async function handler(req, res) {
                 INSERT INTO agendamentos (id, barbeiro_id, servico_id, data, hora, nome, tel, status)
                 VALUES (${agId}, ${barbeiroId}, ${servicoId}, ${data}::date, ${hora}, ${nome}, ${tel}, ${status})
             `;
+
+            // Disparo de notificação Push para os celulares cadastrados (em background seguro)
+            (async () => {
+                try {
+                    // Buscar nomes do barbeiro e serviço para montar mensagem rica
+                    const bRes = await query`SELECT nome FROM barbeiros WHERE id = ${barbeiroId}`;
+                    const sRes = await query`SELECT nome FROM servicos WHERE id = ${servicoId}`;
+                    const barbeiroNome = bRes[0]?.nome || 'Barbeiro';
+                    const servicoNome = sRes[0]?.nome || 'Serviço';
+
+                    // Formatar data DD/MM
+                    let dataFmt = data;
+                    if (data && data.includes('-')) {
+                        const parts = data.split('-');
+                        if (parts.length === 3) dataFmt = `${parts[2]}/${parts[1]}`;
+                    }
+
+                    await sendPushToAll({
+                        title: '💈 Novo Agendamento Recebido!',
+                        body: `${nome} agendou ${servicoNome} para ${dataFmt} às ${hora} com ${barbeiroNome}.`,
+                        url: '/admin.html',
+                        data: { agendamentoId: agId, data, hora, barbeiroId }
+                    });
+                } catch (pushErr) {
+                    console.error('[Agendamentos] Erro ao disparar notificação push:', pushErr);
+                }
+            })();
 
             return res.status(201).json({
                 ok: true,

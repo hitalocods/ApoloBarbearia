@@ -1,5 +1,5 @@
 // sw.js — Service Worker da Apolo Barbearia
-const CACHE_NAME = 'apolo-barbearia-v1';
+const CACHE_NAME = 'apolo-barbearia-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -29,6 +29,68 @@ self.addEventListener('activate', (event) => {
                 keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
             );
         }).then(() => self.clients.claim())
+    );
+});
+
+// ============================================================
+// RECEBIMENTO DE NOTIFICAÇÕES PUSH
+// ============================================================
+self.addEventListener('push', (event) => {
+    let payload = {
+        title: 'Apolo Barbearia 💈',
+        body: 'Novo agendamento recebido!',
+        icon: '/logoapolo.png',
+        badge: '/logoapolo.png',
+        url: '/admin.html'
+    };
+
+    if (event.data) {
+        try {
+            const json = event.data.json();
+            payload = Object.assign(payload, json);
+        } catch (e) {
+            payload.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: payload.body,
+        icon: payload.icon || '/logoapolo.png',
+        badge: payload.badge || '/logoapolo.png',
+        vibrate: [200, 100, 200, 100, 300],
+        data: {
+            url: payload.url || '/admin.html',
+            timestamp: Date.now(),
+            ...payload.data
+        },
+        actions: [
+            { action: 'open', title: 'Ver Painel ✂️' }
+        ],
+        tag: 'apolo-agendamento-' + Date.now(),
+        renotify: true
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(payload.title, options)
+    );
+});
+
+// CLIQUE NA NOTIFICAÇÃO
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = event.notification.data?.url || '/admin.html';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url.includes('admin') && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
     );
 });
 
@@ -65,3 +127,4 @@ self.addEventListener('fetch', (event) => {
             })
     );
 });
+

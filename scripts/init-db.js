@@ -118,6 +118,18 @@ async function init() {
             );
         `;
 
+        // 8. Inscrições de Notificação Push (Web Push Celular)
+        await sql`
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id TEXT PRIMARY KEY,
+                endpoint TEXT NOT NULL UNIQUE,
+                p256dh TEXT NOT NULL,
+                auth TEXT NOT NULL,
+                user_agent TEXT,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+        `;
+
         // Índices
         await sql`CREATE INDEX IF NOT EXISTS idx_agendamentos_data_hora ON agendamentos(data, hora);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_agendamentos_barbeiro ON agendamentos(barbeiro_id);`;
@@ -125,6 +137,7 @@ async function init() {
         await sql`CREATE INDEX IF NOT EXISTS idx_despesas_data ON despesas(data);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_entradas_data ON entradas(data);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_pagamentos_comissao_barbeiro ON pagamentos_comissao(barbeiro_id);`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_push_endpoint ON push_subscriptions(endpoint);`;
 
         console.log('✅ Tabelas e colunas criadas/verificadas com sucesso!');
 
