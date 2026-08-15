@@ -1,7 +1,7 @@
 // api/push.js
 // Endpoint para registro de inscrições Web Push e envio de testes
-import { query, isDbConfigured } from './db.js';
-import { getVapidPublicKey, isPushConfigured, sendPushToAll } from './pushHelper.js';
+import { query, isDbConfigured } from '../lib/db.js';
+import { getVapidPublicKey, isPushConfigured, sendPushToAll } from '../lib/pushHelper.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');

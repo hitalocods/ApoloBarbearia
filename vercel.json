@@ -1,7 +1,13 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/api/barbeiros", "destination": "/api/equipe" },
+    { "source": "/api/servicos", "destination": "/api/equipe" },
+    { "source": "/api/horarios", "destination": "/api/equipe" },
+    { "source": "/api/despesas", "destination": "/api/financeiro" },
+    { "source": "/api/entradas", "destination": "/api/financeiro" },
+    { "source": "/api/comissoes", "destination": "/api/financeiro" }
   ],
   "headers": [
     {

@@ -1,7 +1,7 @@
 // api/data.js
 // Retorna o estado do sistema (barbeiros, serviços, horários, agendamentos, despesas)
-import { query, isDbConfigured } from './db.js';
-import { verifyAdminAuth } from './authCheck.js';
+import { query, isDbConfigured } from '../lib/db.js';
+import { verifyAdminAuth } from '../lib/authCheck.js';
 
 export default async function handler(req, res) {
     // Definir headers CORS

@@ -2,7 +2,7 @@
 // Upload de arquivos e fotos para o Vercel Blob Storage
 import { put } from '@vercel/blob';
 import dotenv from 'dotenv';
-import { requireAdminAuth } from './authCheck.js';
+import { requireAdminAuth } from '../lib/authCheck.js';
 
 try {
     dotenv.config({ path: '.env.local' });
