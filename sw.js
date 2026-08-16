@@ -1,5 +1,5 @@
 // sw.js — Service Worker da Apolo Barbearia
-const CACHE_NAME = 'apolo-barbearia-v2';
+const CACHE_NAME = 'apolo-barbearia-v5';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

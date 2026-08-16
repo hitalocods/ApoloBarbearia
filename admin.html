@@ -18,6 +18,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --ink: #0c0a08;
@@ -1151,6 +1152,509 @@
                 gap: 0;
             }
         }
+
+        /* --- ESTILOS ADICIONAIS DAS NOVAS TELAS (DASHBOARD, AGENDA, FATURAMENTO) --- */
+        
+        /* Dashboard & Charts */
+        .chart-container {
+            position: relative;
+            margin: 20px 0;
+            height: 250px;
+            width: 100%;
+        }
+        
+        /* Accordions */
+        .accordion {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: var(--panel);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .accordion-header {
+            padding: 14px 18px;
+            background: var(--panel-2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .accordion-header:hover {
+            background: var(--panel-3);
+        }
+        .accordion-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .accordion-icon {
+            transition: transform 0.2s ease;
+            font-size: 12px;
+            color: var(--brass);
+        }
+        .accordion.open .accordion-icon {
+            transform: rotate(180deg);
+        }
+        .accordion-body {
+            display: none;
+            padding: 16px;
+            border-top: 1px solid var(--line);
+            background: var(--panel);
+        }
+        .accordion.open .accordion-body {
+            display: block;
+        }
+
+        /* Agenda Timeline Layout */
+        .agenda-header {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .agenda-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .agenda-title-btn {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--cream);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .agenda-day-bar {
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 12px;
+        }
+        .agenda-day-badge {
+            background: #ffffff;
+            color: #0c0a08;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            line-height: 1.1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .agenda-day-badge span {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .timeline-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            position: relative;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--line);
+            background: var(--panel);
+            margin-bottom: 18px;
+        }
+
+        .timeline-wrapper {
+            display: flex;
+            position: relative;
+            min-height: 840px; /* 14 horas * 60px/hora */
+            min-width: 600px;
+        }
+
+        .timeline-hours {
+            width: 60px;
+            border-right: 1px solid var(--line);
+            background: var(--panel-2);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 12;
+        }
+
+        .timeline-hour-slot {
+            height: 60px; /* 1 hora = 60px */
+            box-sizing: border-box;
+            border-bottom: 1px dashed rgba(243, 234, 217, 0.05);
+            padding: 6px 8px;
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            color: var(--cream-dim);
+            text-align: right;
+        }
+
+        .timeline-lanes {
+            display: flex;
+            flex: 1;
+            position: relative;
+            z-index: 10;
+        }
+
+        .timeline-lane {
+            flex: 1;
+            border-right: 1px solid var(--line);
+            position: relative;
+            min-width: 180px;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .timeline-lane:hover {
+            background-color: rgba(243, 234, 217, 0.012);
+        }
+        .timeline-lane:last-child {
+            border-right: none;
+        }
+        .timeline-lane-header {
+            background: var(--panel-3);
+            border-bottom: 1px solid var(--line);
+            padding: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12.5px;
+            color: var(--brass-2);
+            position: sticky;
+            top: 0;
+            z-index: 11;
+        }
+
+        .timeline-grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .timeline-grid-line {
+            height: 60px;
+            border-bottom: 1px solid rgba(243, 234, 217, 0.04);
+            box-sizing: border-box;
+        }
+
+        .timeline-now-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ff5252;
+            z-index: 15;
+            pointer-events: none;
+        }
+        .timeline-now-line::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff5252;
+        }
+
+        /* Appointment blocks */
+        .timeline-block {
+            position: absolute;
+            left: 6px;
+            right: 6px;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11.5px;
+            color: #ffffff;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            transition: filter 0.15s, transform 0.15s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            border-left: 3.5px solid rgba(255, 255, 255, 0.55);
+            z-index: 5;
+        }
+        .timeline-block:hover {
+            filter: brightness(1.15);
+            transform: scale(1.02);
+            z-index: 8;
+        }
+        .timeline-block .tb-title {
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .timeline-block .tb-desc {
+            font-size: 10px;
+            opacity: 0.85;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .timeline-block.status-pendente {
+            background: linear-gradient(135deg, #1d3557, #457b9d);
+            border-left-color: #a8dadc;
+        }
+        .timeline-block.status-concluido {
+            background: linear-gradient(135deg, #1e3518, #3b5f30);
+            border-left-color: #9cd488;
+        }
+        .timeline-block.status-parcial {
+            background: linear-gradient(135deg, #b87333, #cd7f32);
+            border-left-color: var(--brass-2);
+        }
+        .timeline-block.status-cancelado {
+            background: linear-gradient(135deg, #4d1c1c, #b6543f);
+            border-left-color: #ff8b73;
+        }
+
+        .agenda-navigation-arrows {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 16px;
+            position: fixed;
+            bottom: 20px;
+            left: 240px;
+            right: 16px;
+            pointer-events: none;
+            z-index: 30;
+        }
+        @media(max-width: 860px) {
+            .agenda-navigation-arrows {
+                left: 16px;
+            }
+        }
+        .agenda-nav-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--panel-3);
+            border: 1px solid var(--brass);
+            color: var(--brass-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+            pointer-events: auto;
+            cursor: pointer;
+            transition: .2s;
+        }
+        .agenda-nav-btn:hover {
+            background: var(--brass);
+            color: var(--ink);
+            transform: scale(1.1);
+        }
+
+        /* Faturamento layout - Tickets */
+        .fat-filter-header {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .fat-filter-periodo {
+            font-weight: 500;
+            color: var(--cream);
+        }
+        .fat-filter-profissionais {
+            font-size: 12px;
+            color: var(--brass-2);
+            margin-top: 4px;
+        }
+
+        .fat-cards-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .fat-card-summary {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .fat-card-summary .fc-value {
+            font-family: var(--font-display);
+            font-size: 22px;
+            color: var(--brass-2);
+            margin-top: 4px;
+        }
+        .fat-card-summary .fc-label {
+            font-size: 11px;
+            color: var(--cream-dim);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+        }
+        .fat-card-summary .fc-count {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: var(--panel-3);
+            border: 1px solid var(--line);
+            font-family: var(--font-mono);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: var(--cream);
+        }
+
+        .fat-tickets-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 80px; /* Espaço para a gaveta inferior */
+        }
+        .fat-ticket-item {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--line); /* Bordas de status dinâmicas */
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.15s;
+        }
+        .fat-ticket-item:hover {
+            transform: translateY(-1px);
+            border-color: var(--brass-dim);
+        }
+        .fat-ticket-item.status-pendente { border-left-color: #457b9d; }
+        .fat-ticket-item.status-concluido { border-left-color: #5c7f4f; }
+        .fat-ticket-item.status-parcial { border-left-color: var(--brass); }
+        .fat-ticket-item.status-cancelado { border-left-color: var(--danger); }
+
+        .fat-ticket-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
+            padding-right: 10px;
+        }
+        .fat-ticket-client {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .fat-ticket-time {
+            font-size: 11px;
+            color: var(--cream-dim);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fat-ticket-amount {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .fat-ticket-price {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 14.5px;
+            color: var(--cream);
+        }
+        .fat-ticket-badge {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .fat-ticket-badge.status-pendente { background: rgba(69, 123, 157, 0.15); color: #a8dadc; border: 1px solid rgba(69, 123, 157, 0.3); }
+        .fat-ticket-badge.status-concluido { background: rgba(92, 127, 79, 0.15); color: #9cd488; border: 1px solid rgba(92, 127, 79, 0.3); }
+        .fat-ticket-badge.status-parcial { background: rgba(201, 162, 39, 0.15); color: var(--brass-2); border: 1px solid rgba(201, 162, 39, 0.3); }
+        .fat-ticket-badge.status-cancelado { background: rgba(182, 84, 63, 0.15); color: #ff8b73; border: 1px solid rgba(182, 84, 63, 0.3); }
+
+        /* Bottom Fixed Drawer */
+        .fat-bottom-drawer {
+            position: fixed;
+            bottom: 0;
+            left: 230px; /* Largura da sidebar desktop */
+            right: 0;
+            background: rgba(22, 18, 9, 0.96);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--line);
+            padding: 14px 34px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 35;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+            transition: left 0.3s;
+        }
+        @media(max-width: 860px) {
+            .fat-bottom-drawer {
+                left: 0;
+                padding: 12px 16px;
+            }
+        }
+        .fat-drawer-stats {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .fat-drawer-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        .fat-drawer-stat .fds-label {
+            font-size: 10px;
+            color: var(--cream-dim);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+        }
+        .fat-drawer-stat .fds-value {
+            font-family: var(--font-display);
+            font-size: 20px;
+            color: var(--brass-2);
+        }
+        .fat-fab-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #543bb8; /* Roxo vibrante conforme imagens */
+            color: #ffffff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(84, 59, 184, 0.4);
+            cursor: pointer;
+            transition: .2s;
+            line-height: 1;
+        }
+        .fat-fab-btn:hover {
+            transform: scale(1.08) rotate(90deg);
+            background: #654ad8;
+        }
     </style>
 </head>
 
@@ -1187,6 +1691,9 @@
             <div class="mobile-tab active" data-pane="dashboard" onclick="switchPane('dashboard')">
                 <span class="m-icon">📊</span> <span class="m-label">Dashboard</span>
             </div>
+            <div class="mobile-tab" data-pane="agenda" onclick="switchPane('agenda')">
+                <span class="m-icon">📅</span> <span class="m-label">Agenda</span>
+            </div>
             <div class="mobile-tab" data-pane="barbeiros" onclick="switchPane('barbeiros')">
                 <span class="m-icon">✂️</span> <span class="m-label">Barbeiros</span>
             </div>
@@ -1196,11 +1703,8 @@
             <div class="mobile-tab" data-pane="horarios" onclick="switchPane('horarios')">
                 <span class="m-icon">⏰</span> <span class="m-label">Horários</span>
             </div>
-            <div class="mobile-tab" data-pane="agendamentos" onclick="switchPane('agendamentos')">
-                <span class="m-icon">📅</span> <span class="m-label">Agendamentos & Cortes</span>
-            </div>
-            <div class="mobile-tab" data-pane="financeiro" onclick="switchPane('financeiro')">
-                <span class="m-icon">💰</span> <span class="m-label">Financeiro</span>
+            <div class="mobile-tab" data-pane="faturamento" onclick="switchPane('faturamento')">
+                <span class="m-icon">💰</span> <span class="m-label">Faturamento</span>
             </div>
         </div>
         <div class="mobile-drawer-footer">
@@ -1241,11 +1745,11 @@
     <div id="admin-shell" class="admin-shell" style="display:none;">
         <div class="admin-side">
             <div class="tab active" data-pane="dashboard">📊 Dashboard</div>
+            <div class="tab" data-pane="agenda">📅 Agenda</div>
             <div class="tab" data-pane="barbeiros">✂️ Barbeiros</div>
             <div class="tab" data-pane="servicos">💇 Serviços</div>
             <div class="tab" data-pane="horarios">⏰ Horários</div>
-            <div class="tab" data-pane="agendamentos">📅 Agendamentos</div>
-            <div class="tab" data-pane="financeiro">💰 Financeiro</div>
+            <div class="tab" data-pane="faturamento">💰 Faturamento</div>
 
             <div class="admin-cloud-status">
                 <div class="cloud-pill offline" id="pillNeon">
@@ -1288,12 +1792,132 @@
                     </div>
                 </div>
 
+                <!-- SELETOR DE PROFISSIONAL -->
+                <div class="panel-box" style="padding:14px; margin-bottom:18px;">
+                    <label style="font-size:11px; color:var(--cream-dim); font-family:var(--font-mono); text-transform:uppercase; display:block; margin-bottom:6px;">Selecione o profissional que deseja exibir</label>
+                    <select id="dashBarbeiroSelect" onchange="renderDashboard()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:8px 12px; border-radius:var(--radius-sm); font-size:13.5px; width:100%; max-width:320px;">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
                 <div class="stat-grid" id="dashStats"></div>
+
+                <!-- GRÁFICO DE FATURAMENTO ANUAL -->
+                <div class="panel-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin-bottom:0;">Faturamento anual</h3>
+                        <span style="font-size:18px; color:var(--brass);">▲</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartFaturamentoAnual"></canvas>
+                    </div>
+                </div>
+
+                <!-- FATURAMENTO SEMANAL ACCORDION -->
+                <div class="accordion" id="accFaturamentoSemanal">
+                    <div class="accordion-header" onclick="toggleAccordion('accFaturamentoSemanal')">
+                        <span class="accordion-title">Faturamento Semanal</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="table-wrap" style="margin-bottom:0;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Dia da Semana</th>
+                                        <th>Faturamento</th>
+                                        <th>Atendimentos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblDashSemanal"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOP CLIENTES ACCORDION -->
+                <div class="accordion" id="accTopClientes">
+                    <div class="accordion-header" onclick="toggleAccordion('accTopClientes')">
+                        <span class="accordion-title">Top Clientes</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="table-wrap" style="margin-bottom:0;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Total Gasto</th>
+                                        <th>Nº de Visitas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblDashTopClientes"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRÓXIMOS AGENDAMENTOS -->
                 <div class="panel-box">
                     <h3>Próximos Agendamentos</h3>
-                    <div class="table-wrap">
+                    <div class="table-wrap" style="margin-bottom:0;">
                         <table class="data-table" id="dashUpcoming"></table>
                     </div>
+                </div>
+            </div>
+
+            <!-- AGENDA (CALENDÁRIO DIÁRIO TIMELINE) -->
+            <div class="admin-pane" id="pane-agenda">
+                <div class="agenda-header">
+                    <div>
+                        <div class="eyebrow">Expediente</div>
+                        <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;" id="agendaHeaderMonth">Agosto 2026</h2>
+                    </div>
+                    
+                    <div class="agenda-controls">
+                        <div style="display:flex; gap:10px; align-items:center; width:100%; flex-wrap:wrap; justify-content:space-between;">
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <input type="date" id="agendaDatePicker" onchange="onAgendaDateChange()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:7px 12px; border-radius:var(--radius-sm); font-size:13px;">
+                                <select id="agendaBarbeiroFilter" onchange="renderAgendaTimeline()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:7px 12px; border-radius:var(--radius-sm); font-size:13px;">
+                                    <option value="">Todos os barbeiros</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn ghost small" onclick="changeAgendaDay(-1)">◀ Dia Anterior</button>
+                                <button class="btn ghost small" onclick="setAgendaToday()">Hoje</button>
+                                <button class="btn ghost small" onclick="changeAgendaDay(1)">Próximo Dia ▶</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra do Dia Selecionado -->
+                <div class="agenda-day-bar">
+                    <div class="agenda-day-badge" id="agendaDayBadge">
+                        Sáb
+                        <span>15</span>
+                    </div>
+                </div>
+
+                <!-- Container da Linha do Tempo -->
+                <div class="timeline-scroll-container">
+                    <div class="timeline-wrapper" id="timelineWrapper">
+                        <!-- Horários à esquerda -->
+                        <div class="timeline-hours" id="timelineHoursList">
+                            <!-- Inserido dinamicamente (08:00, 09:00...) -->
+                        </div>
+                        
+                        <!-- Colunas dos Barbeiros / Lanes -->
+                        <div class="timeline-lanes" id="timelineLanesContainer">
+                            <!-- Inserido dinamicamente por barbeiro -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Setas flutuantes de navegação inferior -->
+                <div class="agenda-navigation-arrows">
+                    <button class="agenda-nav-btn" onclick="changeAgendaDay(-1)" title="Dia Anterior">◀</button>
+                    <button class="agenda-nav-btn" onclick="changeAgendaDay(1)" title="Próximo Dia">▶</button>
                 </div>
             </div>
 
@@ -1390,16 +2014,16 @@
                 </div>
             </div>
 
-            <!-- FINANCEIRO -->
-            <div class="admin-pane" id="pane-financeiro">
-                <div class="section-head" style="margin-bottom:20px;">
+            <!-- FATURAMENTO (MÓDULO FINANCEIRO REESTRUTURADO) -->
+            <div class="admin-pane" id="pane-faturamento">
+                <div class="section-head" style="margin-bottom:16px;">
                     <div class="eyebrow">Gestão de Caixa & Comissões</div>
-                    <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Módulo Financeiro</h2>
+                    <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Faturamento</h2>
                 </div>
 
-                <!-- FILTROS FINANCEIROS -->
-                <div class="panel-box" style="padding:16px; margin-bottom:20px;">
-                    <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;">
+                <!-- FILTROS PRINCIPAIS -->
+                <div class="panel-box" style="padding:14px; margin-bottom:16px;">
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
                         <!-- Botões de Período -->
                         <div style="display:flex; gap:6px; flex-wrap:wrap;">
                             <button class="btn small period-btn active" id="btnPeriodoHoje" onclick="setFinPeriodo('hoje')">Hoje</button>
@@ -1408,15 +2032,15 @@
                             <button class="btn small period-btn ghost" id="btnPeriodoCustom" onclick="setFinPeriodo('custom')">Personalizado</button>
                         </div>
                         
-                        <!-- Seletores Adicionais -->
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <!-- Seletores e Inputs -->
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                             <div id="finCustomDates" style="display:none; align-items:center; gap:6px;">
-                                <input type="date" id="finDataInicio" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:6px 10px; border-radius:var(--radius-sm); font-size:12px;">
+                                <input type="date" id="finDataInicio" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:5px 8px; border-radius:var(--radius-sm); font-size:12px;">
                                 <span style="font-size:12px; color:var(--cream-dim);">até</span>
-                                <input type="date" id="finDataFim" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:6px 10px; border-radius:var(--radius-sm); font-size:12px;">
+                                <input type="date" id="finDataFim" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:5px 8px; border-radius:var(--radius-sm); font-size:12px;">
                             </div>
-                            <select id="finFiltroBarbeiro" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:7px 10px; border-radius:var(--radius-sm); font-size:12px;"></select>
-                            <select id="finFiltroCategoria" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:7px 10px; border-radius:var(--radius-sm); font-size:12px;">
+                            <select id="finFiltroBarbeiro" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:6px 10px; border-radius:var(--radius-sm); font-size:12px;"></select>
+                            <select id="finFiltroCategoria" onchange="renderFinanceiro()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:6px 10px; border-radius:var(--radius-sm); font-size:12px;">
                                 <option value="">Todas as Categorias</option>
                                 <option value="Produtos">Produtos</option>
                                 <option value="Aluguel">Aluguel</option>
@@ -1431,113 +2055,130 @@
                     </div>
                 </div>
 
-                <!-- CARDS DE STATS -->
-                <div class="stat-grid" id="finStats"></div>
+                <!-- INDICADORES DE FILTRO ATIVOS -->
+                <div class="fat-filter-header">
+                    <div class="fat-filter-periodo" id="fatFilterPeriodoText">Período: Carregando...</div>
+                    <div class="fat-filter-profissionais" id="fatFilterBarbeirosText">Profissionais: Todos</div>
+                </div>
 
-                <!-- SEÇÃO 1: ENTRADAS / RECEITAS -->
-                <div class="panel-box">
-                    <div class="toolbar" style="margin-bottom:14px;">
-                        <div>
-                            <h3 style="margin:0;">Entradas (Receitas)</h3>
-                            <small style="color:var(--cream-dim); font-size:11.5px;">Atendimentos concluídos e lançamentos manuais/retroativos</small>
-                        </div>
-                        <button class="btn small" onclick="openEntradaModal()">+ Lançar Entrada</button>
+                <!-- CARDS DE RESUMO (ESTILO MOCKUP) -->
+                <div class="fat-cards-container">
+                    <div class="fat-card-summary">
+                        <div class="fc-count" id="dashCountSemPag">0</div>
+                        <div class="fc-label">Sem Pagamento</div>
+                        <div class="fc-value" id="dashValSemPag">R$ 0,00</div>
                     </div>
-                    <div class="table-wrap">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Descrição / Cliente</th>
-                                    <th>Barbeiro</th>
-                                    <th>Serviço</th>
-                                    <th>Valor</th>
-                                    <th>Origem</th>
-                                    <th style="text-align:right;">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tblEntradas"></tbody>
-                        </table>
+                    <div class="fat-card-summary">
+                        <div class="fc-count" id="dashCountParcial">0</div>
+                        <div class="fc-label">Pagamento Parcial</div>
+                        <div class="fc-value" id="dashValParcial">R$ 0,00</div>
                     </div>
                 </div>
 
-                <!-- SEÇÃO 2: DESPESAS / SAÍDAS -->
-                <div class="panel-box">
-                    <div class="toolbar" style="margin-bottom:14px;">
-                        <div>
-                            <h3 style="margin:0;">Despesas (Saídas)</h3>
-                            <small style="color:var(--cream-dim); font-size:11.5px;">Controle de custos operacionais e pagamentos</small>
-                        </div>
-                        <button class="btn small" onclick="openDespesaModal()">+ Nova Despesa</button>
+                <!-- LISTA DE COMANDAS / TICKETS -->
+                <div style="margin-bottom:12px;">
+                    <h3 style="font-family:var(--font-display); font-size:16px; margin-bottom:10px; font-weight:500;">Comandas e Atendimentos do Período</h3>
+                </div>
+                <div class="fat-tickets-list" id="fatTicketsList">
+                    <!-- Gerado dinamicamente no JS -->
+                </div>
+
+                <!-- ACCORDIONS PARA OUTRAS TABELAS FINANCEIRAS -->
+                <!-- DESPESAS ACCORDION -->
+                <div class="accordion" id="accDespesas">
+                    <div class="accordion-header" onclick="toggleAccordion('accDespesas')">
+                        <span class="accordion-title">Despesas (Saídas)</span>
+                        <span class="accordion-icon">▼</span>
                     </div>
-                    <div class="table-wrap">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Descrição</th>
-                                    <th>Categoria</th>
-                                    <th>Observação</th>
-                                    <th>Valor</th>
-                                    <th style="text-align:right;">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tblDespesas"></tbody>
-                        </table>
+                    <div class="accordion-body">
+                        <div class="toolbar" style="margin-bottom:12px;">
+                            <small style="color:var(--cream-dim);">Controle de custos operacionais</small>
+                            <button class="btn small" onclick="openDespesaModal()">+ Nova Despesa</button>
+                        </div>
+                        <div class="table-wrap" style="margin-bottom:0;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Descrição</th>
+                                        <th>Categoria</th>
+                                        <th>Observação</th>
+                                        <th>Valor</th>
+                                        <th style="text-align:right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblDespesas"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- SEÇÃO 3: COMISSÕES E DESEMPENHO DOS BARBEIROS -->
-                <div class="panel-box">
-                    <div class="toolbar" style="margin-bottom:14px;">
-                        <div>
-                            <h3 style="margin:0;">Produção & Comissões por Barbeiro</h3>
-                            <small style="color:var(--cream-dim); font-size:11.5px;">Valores calculados automaticamente com base no percentual de comissão</small>
-                        </div>
+                <!-- COMISSÕES ACCORDION -->
+                <div class="accordion" id="accComissoes">
+                    <div class="accordion-header" onclick="toggleAccordion('accComissoes')">
+                        <span class="accordion-title">Comissões & Produção</span>
+                        <span class="accordion-icon">▼</span>
                     </div>
-                    <div class="table-wrap">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Barbeiro</th>
-                                    <th>% Comissão</th>
-                                    <th>Atendimentos</th>
-                                    <th>Faturamento</th>
-                                    <th>Comissão Gerada</th>
-                                    <th>Paga no Período</th>
-                                    <th>Saldo Pendente</th>
-                                    <th style="text-align:right;">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tblComissoesBarbeiros"></tbody>
-                        </table>
+                    <div class="accordion-body">
+                        <div class="table-wrap" style="margin-bottom:0;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Barbeiro</th>
+                                        <th>Comissão %</th>
+                                        <th>Atendimentos</th>
+                                        <th>Faturamento</th>
+                                        <th>Comissão Gerada</th>
+                                        <th>Pago</th>
+                                        <th>Pendente</th>
+                                        <th style="text-align:right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblComissoesBarbeiros"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- SEÇÃO 4: HISTÓRICO DE PAGAMENTOS DE COMISSÃO -->
-                <div class="panel-box">
-                    <div class="toolbar" style="margin-bottom:14px;">
-                        <div>
-                            <h3 style="margin:0;">Histórico de Comissões Pagas</h3>
-                            <small style="color:var(--cream-dim); font-size:11.5px;">Registro de acertos e repasses efetuados aos barbeiros</small>
+                <!-- HISTÓRICO PAGAMENTOS COMISSÃO ACCORDION -->
+                <div class="accordion" id="accHistComissoes">
+                    <div class="accordion-header" onclick="toggleAccordion('accHistComissoes')">
+                        <span class="accordion-title">Histórico de Pagamentos de Comissão</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="table-wrap" style="margin-bottom:0;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Barbeiro</th>
+                                        <th>Período</th>
+                                        <th>Data Pag.</th>
+                                        <th>Valor Pago</th>
+                                        <th>Obs.</th>
+                                        <th>Status</th>
+                                        <th style="text-align:right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblHistoricoComissoes"></tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="table-wrap">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Barbeiro</th>
-                                    <th>Período de Referência</th>
-                                    <th>Data do Pagamento</th>
-                                    <th>Valor Pago</th>
-                                    <th>Observação</th>
-                                    <th>Status</th>
-                                    <th style="text-align:right;">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tblHistoricoComissoes"></tbody>
-                        </table>
+                </div>
+
+                <!-- GAVETA FIXA NO RODAPÉ -->
+                <div class="fat-bottom-drawer">
+                    <div class="fat-drawer-stats">
+                        <div class="fat-drawer-stat">
+                            <div class="fds-label">Quantidade</div>
+                            <div class="fds-value" id="fatDrawerQty">0</div>
+                        </div>
+                        <div class="fat-drawer-stat">
+                            <div class="fds-label">Total Faturado</div>
+                            <div class="fds-value" id="fatDrawerTotal">R$ 0,00</div>
+                        </div>
                     </div>
+                    <button class="fat-fab-btn" onclick="openEntradaModal()" title="Registrar Atendimento">+</button>
                 </div>
             </div>
 
@@ -1652,6 +2293,45 @@
             <div class="modal-actions">
                 <button class="btn ghost small" onclick="closeModal('modalEntrada')">Cancelar</button>
                 <button class="btn small" onclick="saveEntrada()">Salvar Atendimento</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalCriarAgendamento">
+        <div class="modal">
+            <h3>Novo Agendamento</h3>
+            <input type="hidden" id="newAgId">
+            <div class="field">
+                <label>Nome do Cliente</label>
+                <input id="newAgCliente" placeholder="Ex: Guilherme Muniz">
+            </div>
+            <div class="field">
+                <label>Telefone / WhatsApp (com DDD)</label>
+                <input id="newAgTelefone" placeholder="Ex: 86999999999">
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>Barbeiro</label>
+                    <select id="newAgBarbeiro"></select>
+                </div>
+                <div class="field">
+                    <label>Serviço</label>
+                    <select id="newAgServico"></select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>Data</label>
+                    <input id="newAgData" type="date">
+                </div>
+                <div class="field">
+                    <label>Horário</label>
+                    <input id="newAgHora" type="time">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn ghost small" onclick="closeModal('modalCriarAgendamento')">Cancelar</button>
+                <button class="btn small" onclick="saveManualAgendamento()">Salvar Agendamento</button>
             </div>
         </div>
     </div>
@@ -2171,11 +2851,11 @@
 
             const titleMap = {
                 dashboard: 'Dashboard',
+                agenda: 'Agenda Diária',
                 barbeiros: 'Barbeiros',
                 servicos: 'Serviços',
                 horarios: 'Horários',
-                agendamentos: 'Agendamentos & Cortes',
-                financeiro: 'Módulo Financeiro'
+                faturamento: 'Faturamento'
             };
             const subTitle = document.getElementById('brandSubTitle');
             if (subTitle && titleMap[paneName]) {
@@ -2183,9 +2863,9 @@
             }
 
             if (paneName === 'dashboard') renderDashboard();
+            if (paneName === 'agenda') renderAgendaTimeline();
             if (paneName === 'horarios') renderHorarios();
-            if (paneName === 'agendamentos') renderAgendamentos();
-            if (paneName === 'financeiro') renderFinanceiro();
+            if (paneName === 'faturamento') renderFinanceiro();
 
             closeMobileNav();
         }
@@ -2668,46 +3348,549 @@
         }
 
         /* Dashboard */
+        let myDashChart = null;
+
         function renderDashboard() {
-            const stats = document.getElementById('dashStats');
-            const totalAg = state.agendamentos.length + state.entradas.length;
-            const pendentes = state.agendamentos.filter(a => a.status === 'pendente').length;
-            const concluidos = state.agendamentos.filter(a => a.status === 'concluido').length + state.entradas.length;
+            const bSel = document.getElementById('dashBarbeiroSelect');
+            if (bSel && bSel.options.length <= 1) {
+                bSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + 
+                    state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            }
             
-            const totalFaturadoAg = state.agendamentos.filter(a => a.status === 'concluido').reduce((sum, a) => {
+            const bFiltro = bSel ? bSel.value : '';
+
+            // Filtrar agendamentos e entradas pelo profissional
+            const ags = bFiltro ? state.agendamentos.filter(a => a.barbeiroId === bFiltro) : state.agendamentos;
+            const ents = bFiltro ? state.entradas.filter(e => e.barbeiroId === bFiltro) : state.entradas;
+
+            // Stats Básicas
+            const totalAg = ags.length + ents.filter(e => !e.agendamentoId).length;
+            const pendentes = ags.filter(a => a.status === 'pendente').length;
+            const concluidos = ags.filter(a => a.status === 'concluido').length + ents.filter(e => !e.agendamentoId).length;
+            
+            const totalFaturadoAg = ags.filter(a => a.status === 'concluido').reduce((sum, a) => {
                 const svc = state.servicos.find(s => s.id === a.servicoId);
                 return sum + (svc ? Number(svc.preco) : 0);
             }, 0);
-            const totalFaturadoEnt = state.entradas.reduce((sum, e) => sum + Number(e.valor), 0);
+            const totalFaturadoEnt = ents.filter(e => !e.agendamentoId).reduce((sum, e) => sum + Number(e.valor), 0);
             const totalFaturado = totalFaturadoAg + totalFaturadoEnt;
 
-            stats.innerHTML = `
-                <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${totalAg}</div></div>
-                <div class="stat-card"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
-                <div class="stat-card"><div class="label">Concluídos</div><div class="value">${concluidos}</div></div>
-                <div class="stat-card"><div class="label">Faturamento Total</div><div class="value small">${brl(totalFaturado)}</div></div>
-            `;
+            const stats = document.getElementById('dashStats');
+            if (stats) {
+                stats.innerHTML = `
+                    <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${totalAg}</div></div>
+                    <div class="stat-card"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
+                    <div class="stat-card"><div class="label">Concluídos</div><div class="value">${concluidos}</div></div>
+                    <div class="stat-card"><div class="label">Faturamento Total</div><div class="value small">${brl(totalFaturado)}</div></div>
+                `;
+            }
 
+            // Próximos Agendamentos
             const upcoming = document.getElementById('dashUpcoming');
-            const proxs = [...state.agendamentos].filter(a => a.status === 'pendente').sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora)).slice(0, 6);
-            if (!proxs.length) { upcoming.innerHTML = '<tr><td style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhum agendamento pendente</td></tr>'; return; }
-            upcoming.innerHTML = proxs.map(a => {
-                const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
+            if (upcoming) {
+                const proxs = [...ags].filter(a => a.status === 'pendente').sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora)).slice(0, 6);
+                if (!proxs.length) {
+                    upcoming.innerHTML = '<tr><td style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhum agendamento pendente</td></tr>';
+                } else {
+                    upcoming.innerHTML = proxs.map(a => {
+                        const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
+                        const svc = state.servicos.find(s => s.id === a.servicoId);
+                        const cleanTel = (a.tel || '').replace(/\D/g, '');
+                        return `<tr>
+                            <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
+                            <td>${barb ? barb.nome : '—'}</td>
+                            <td>${svc ? svc.nome : '—'}</td>
+                            <td>${new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')} às <b>${a.hora}</b></td>
+                            <td style="text-align:right;">
+                                <div style="display:inline-flex; gap:6px; align-items:center;">
+                                    ${cleanTel ? `<button class="btn ghost small" onclick="sendWhatsAppReminder('${a.id}')" style="color:#25d366; border-color:rgba(37,211,102,0.4);" title="Enviar lembrete via WhatsApp">💬 Lembrete</button>` : ''}
+                                    <button class="btn ghost small" onclick="setAgStatus('${a.id}','concluido')">Concluir ✓</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
+            }
+
+            // --- GRÁFICO DE FATURAMENTO ANUAL (ÚLTIMOS 12 MESES) ---
+            const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const faturamentoPorMes = Array(12).fill(0);
+            
+            // Obter últimos 12 meses cronológicos
+            const hoje = new Date();
+            const mesesList = [];
+            for (let i = 11; i >= 0; i--) {
+                const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+                mesesList.push({
+                    ano: d.getFullYear(),
+                    mes: d.getMonth(),
+                    label: mesesLabels[d.getMonth()] + ' ' + String(d.getFullYear()).slice(-2)
+                });
+            }
+
+            // Somar faturamento por mês correspondente
+            const somarFaturamento = (dataStr, valor) => {
+                if (!dataStr) return;
+                const d = new Date(dataStr + 'T00:00:00');
+                const ano = d.getFullYear();
+                const mes = d.getMonth();
+                const idx = mesesList.findIndex(m => m.ano === ano && m.mes === mes);
+                if (idx !== -1) faturamentoPorMes[idx] += Number(valor);
+            };
+
+            // Somar agendamentos concluídos
+            ags.filter(a => a.status === 'concluido').forEach(a => {
                 const svc = state.servicos.find(s => s.id === a.servicoId);
-                const cleanTel = (a.tel || '').replace(/\D/g, '');
-                return `<tr>
-                    <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
-                    <td>${barb ? barb.nome : '—'}</td>
-                    <td>${svc ? svc.nome : '—'}</td>
-                    <td>${new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')} às <b>${a.hora}</b></td>
-                    <td style="text-align:right;">
-                        <div style="display:inline-flex; gap:6px; align-items:center;">
-                            ${cleanTel ? `<button class="btn ghost small" onclick="sendWhatsAppReminder('${a.id}')" style="color:#25d366; border-color:rgba(37,211,102,0.4);" title="Enviar lembrete via WhatsApp">💬 Lembrete</button>` : ''}
-                            <button class="btn ghost small" onclick="setAgStatus('${a.id}','concluido')">Concluir ✓</button>
+                if (svc) somarFaturamento(a.data, svc.preco);
+            });
+
+            // Somar entradas manuais
+            ents.filter(e => !e.agendamentoId).forEach(e => somarFaturamento(e.data, e.valor));
+
+            // Inicializar/atualizar Chart.js
+            const ctx = document.getElementById('chartFaturamentoAnual');
+            if (ctx) {
+                if (myDashChart) myDashChart.destroy();
+                
+                const canvasCtx = ctx.getContext('2d');
+                const gradient = canvasCtx.createLinearGradient(0, 0, 0, 200);
+                gradient.addColorStop(0, 'rgba(201, 162, 39, 0.3)');
+                gradient.addColorStop(1, 'rgba(22, 18, 9, 0.0)');
+
+                myDashChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: mesesList.map(m => m.label),
+                        datasets: [{
+                            label: 'Faturamento',
+                            data: faturamentoPorMes,
+                            borderColor: '#c9a227',
+                            borderWidth: 3,
+                            backgroundColor: gradient,
+                            fill: true,
+                            tension: 0.4, // Spline curva suave
+                            pointBackgroundColor: '#e8c868',
+                            pointHoverRadius: 7,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return brl(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: 'rgba(243, 234, 217, 0.05)' },
+                                ticks: {
+                                    color: 'rgba(243, 234, 217, 0.6)',
+                                    callback: function(value) { return 'R$ ' + value; }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: 'rgba(243, 234, 217, 0.6)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- FATURAMENTO SEMANAL ---
+            const tblSemanal = document.getElementById('tblDashSemanal');
+            if (tblSemanal) {
+                const faturamentoSemana = Array(7).fill(0);
+                const atendimentosSemana = Array(7).fill(0);
+                
+                // Encontrar início da semana (segunda-feira)
+                const dHoje = new Date();
+                const day = dHoje.getDay();
+                const diffSeg = dHoje.getDate() - day + (day === 0 ? -6 : 1);
+                const seg = new Date(dHoje.getFullYear(), dHoje.getMonth(), diffSeg);
+                
+                const diasSemanaList = [];
+                const diasLabels = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(seg.getFullYear(), seg.getMonth(), seg.getDate() + i);
+                    diasSemanaList.push(getLocalDateStr(d));
+                }
+
+                const somarSemanal = (dataStr, valor) => {
+                    const idx = diasSemanaList.indexOf(dataStr);
+                    if (idx !== -1) {
+                        faturamentoSemana[idx] += Number(valor);
+                        atendimentosSemana[idx]++;
+                    }
+                };
+
+                ags.filter(a => a.status === 'concluido').forEach(a => {
+                    const svc = state.servicos.find(s => s.id === a.servicoId);
+                    if (svc) somarSemanal(a.data, svc.preco);
+                });
+                ents.filter(e => !e.agendamentoId).forEach(e => somarSemanal(e.data, e.valor));
+
+                tblSemanal.innerHTML = diasLabels.map((label, idx) => `
+                    <tr>
+                        <td><b>${label}</b><br><small style="color:var(--cream-dim);">${new Date(diasSemanaList[idx] + 'T00:00:00').toLocaleDateString('pt-BR')}</small></td>
+                        <td style="font-family:var(--font-mono); color:#9cd488; font-weight:600;">${brl(faturamentoSemana[idx])}</td>
+                        <td style="font-family:var(--font-mono);">${atendimentosSemana[idx]}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // --- TOP CLIENTES ---
+            const tblClientes = document.getElementById('tblDashTopClientes');
+            if (tblClientes) {
+                const clientesMap = {};
+                
+                ags.filter(a => a.status === 'concluido').forEach(a => {
+                    if (!a.nome) return;
+                    const cleanNome = a.nome.trim();
+                    const svc = state.servicos.find(s => s.id === a.servicoId);
+                    const valor = svc ? Number(svc.preco) : 0;
+                    if (!clientesMap[cleanNome]) clientesMap[cleanNome] = { valor: 0, visitas: 0 };
+                    clientesMap[cleanNome].valor += valor;
+                    clientesMap[cleanNome].visitas++;
+                });
+
+                ents.filter(e => !e.agendamentoId).forEach(e => {
+                    const cleanNome = (e.clienteNome || e.desc || 'Cliente Avulso').trim();
+                    if (!clientesMap[cleanNome]) clientesMap[cleanNome] = { valor: 0, visitas: 0 };
+                    clientesMap[cleanNome].valor += Number(e.valor);
+                    clientesMap[cleanNome].visitas++;
+                });
+
+                const topList = Object.keys(clientesMap).map(nome => ({
+                    nome,
+                    valor: clientesMap[nome].valor,
+                    visitas: clientesMap[nome].visitas
+                })).sort((a, b) => b.valor - a.valor).slice(0, 8);
+
+                if (!topList.length) {
+                    tblClientes.innerHTML = '<tr><td colspan="3" style="color:var(--cream-faint); text-align:center; padding:16px;">Nenhum faturamento registrado</td></tr>';
+                } else {
+                    tblClientes.innerHTML = topList.map(c => `
+                        <tr>
+                            <td><b>${c.nome}</b></td>
+                            <td style="font-family:var(--font-mono); color:var(--brass-2); font-weight:600;">${brl(c.valor)}</td>
+                            <td style="font-family:var(--font-mono);">${c.visitas}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        }
+
+        /* Accordion helper */
+        function toggleAccordion(id) {
+            const acc = document.getElementById(id);
+            if (acc) {
+                acc.classList.toggle('open');
+            }
+        }
+
+        /* Agenda Timeline */
+        let agendaState = {
+            dataSelecionada: ''
+        };
+
+        function onAgendaDateChange() {
+            const picker = document.getElementById('agendaDatePicker');
+            if (picker && picker.value) {
+                agendaState.dataSelecionada = picker.value;
+                renderAgendaTimeline();
+            }
+        }
+
+        function changeAgendaDay(offset) {
+            if (!agendaState.dataSelecionada) agendaState.dataSelecionada = getLocalDateStr();
+            const d = new Date(agendaState.dataSelecionada + 'T00:00:00');
+            d.setDate(d.getDate() + offset);
+            agendaState.dataSelecionada = getLocalDateStr(d);
+            
+            const picker = document.getElementById('agendaDatePicker');
+            if (picker) picker.value = agendaState.dataSelecionada;
+            
+            renderAgendaTimeline();
+        }
+
+        function setAgendaToday() {
+            agendaState.dataSelecionada = getLocalDateStr();
+            const picker = document.getElementById('agendaDatePicker');
+            if (picker) picker.value = agendaState.dataSelecionada;
+            renderAgendaTimeline();
+        }
+
+        function renderAgendaTimeline() {
+            if (!agendaState.dataSelecionada) {
+                agendaState.dataSelecionada = getLocalDateStr();
+                const picker = document.getElementById('agendaDatePicker');
+                if (picker) picker.value = agendaState.dataSelecionada;
+            }
+
+            const bFilter = document.getElementById('agendaBarbeiroFilter');
+            if (bFilter && bFilter.options.length <= 1) {
+                bFilter.innerHTML = '<option value="">Todos os barbeiros</option>' + 
+                    state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            }
+            
+            const selectedBarb = bFilter ? bFilter.value : '';
+            const dateObj = new Date(agendaState.dataSelecionada + 'T00:00:00');
+            
+            // Header Month
+            const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const headerMonth = document.getElementById('agendaHeaderMonth');
+            if (headerMonth) {
+                headerMonth.textContent = `${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+            }
+
+            // Day Badge
+            const daysShort = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const dayBadge = document.getElementById('agendaDayBadge');
+            if (dayBadge) {
+                dayBadge.innerHTML = `${daysShort[dateObj.getDay()]}<span>${dateObj.getDate()}</span>`;
+            }
+
+            const startHour = 8;  // 08:00
+            const endHour = 20;    // 20:00
+            const hoursList = document.getElementById('timelineHoursList');
+            if (hoursList) {
+                let hoursHTML = '';
+                for (let h = startHour; h <= endHour; h++) {
+                    hoursHTML += `<div class="timeline-hour-slot">${String(h).padStart(2, '0')}:00</div>`;
+                }
+                hoursList.innerHTML = hoursHTML;
+            }
+
+            const lanesContainer = document.getElementById('timelineLanesContainer');
+            if (lanesContainer) {
+                const barbeirosExibir = selectedBarb 
+                    ? state.barbeiros.filter(b => b.id === selectedBarb)
+                    : state.barbeiros;
+
+                if (!barbeirosExibir.length) {
+                    lanesContainer.innerHTML = '<div style="color:var(--cream-faint); padding:30px; text-align:center; width:100%;">Nenhum barbeiro ativo.</div>';
+                    return;
+                }
+
+                let gridLinesHTML = '<div class="timeline-grid-lines">';
+                for (let h = startHour; h <= endHour; h++) {
+                    gridLinesHTML += '<div class="timeline-grid-line"></div>';
+                }
+                gridLinesHTML += '</div>';
+
+                const hojeStr = getLocalDateStr();
+                let nowLineHTML = '';
+                if (agendaState.dataSelecionada === hojeStr) {
+                    const now = new Date();
+                    const nowH = now.getHours();
+                    const nowM = now.getMinutes();
+                    if (nowH >= startHour && nowH <= endHour) {
+                        const topPx = (nowH - startHour) * 60 + nowM;
+                        nowLineHTML = `<div class="timeline-now-line" style="top: ${topPx}px;"></div>`;
+                    }
+                }
+
+                lanesContainer.innerHTML = gridLinesHTML + nowLineHTML + barbeirosExibir.map(b => {
+                    const agsDia = state.agendamentos.filter(a => {
+                        return a.barbeiroId === b.id && 
+                               a.data === agendaState.dataSelecionada &&
+                               a.status !== 'cancelado';
+                    });
+
+                    const blocksHTML = agsDia.map(a => {
+                        const svc = state.servicos.find(s => s.id === a.servicoId);
+                        const duracao = svc ? svc.duracao : 30;
+                        const svcNome = svc ? svc.nome : 'Serviço';
+                        const precoVal = svc ? svc.preco : 0;
+                        
+                        const [h, m] = a.hora.split(':').map(Number);
+                        const topPx = (h - startHour) * 60 + m;
+                        const heightPx = duracao;
+                        const statusClass = `status-${a.status}`;
+
+                        return `
+                            <div class="timeline-block ${statusClass}" style="top: ${topPx}px; height: ${heightPx}px;" onclick="openEntradaFromAgenda(event, '${a.id}')">
+                                <div class="tb-title">${a.nome}</div>
+                                <div class="tb-desc">${a.hora} - ${svcNome} (${brl(precoVal)})</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div class="timeline-lane" onclick="onTimelineLaneClick(event, '${b.id}')">
+                            <div class="timeline-lane-header">${b.nome}</div>
+                            ${blocksHTML}
                         </div>
-                    </td>
-                </tr>`;
-            }).join('');
+                    `;
+                }).join('');
+            }
+        }
+
+        function onTimelineLaneClick(event, barbeiroId) {
+            if (event.target.closest('.timeline-lane-header') || event.target.closest('.timeline-block')) {
+                return;
+            }
+
+            const lane = event.currentTarget;
+            const laneRect = lane.getBoundingClientRect();
+            const header = lane.querySelector('.timeline-lane-header');
+            const headerHeight = header ? header.offsetHeight : 0;
+            
+            const clickY = (event.clientY - laneRect.top) - headerHeight;
+            if (clickY < 0) return;
+
+            const startHour = 8;
+            const minutesFromStart = clickY;
+            const totalMinutes = startHour * 60 + minutesFromStart;
+            
+            const slotSize = 30;
+            const roundedMinutes = Math.round(totalMinutes / slotSize) * slotSize;
+            
+            let hours = Math.floor(roundedMinutes / 60);
+            let mins = roundedMinutes % 60;
+            
+            if (hours > 20) { hours = 20; mins = 0; }
+            if (hours < 8) { hours = 8; mins = 0; }
+
+            const formattedTime = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+            
+            openManualAgendamentoModal(barbeiroId, agendaState.dataSelecionada, formattedTime);
+        }
+
+        function openManualAgendamentoModal(barbeiroId, dateStr, timeStr) {
+            document.getElementById('newAgId').value = '';
+            document.getElementById('newAgCliente').value = '';
+            document.getElementById('newAgTelefone').value = '';
+            
+            const bSel = document.getElementById('newAgBarbeiro');
+            bSel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            bSel.value = barbeiroId;
+            
+            const sSel = document.getElementById('newAgServico');
+            sSel.innerHTML = state.servicos.map(s => `<option value="${s.id}">${s.nome} (${brl(s.preco)})</option>`).join('');
+            if (state.servicos[0]) sSel.value = state.servicos[0].id;
+            
+            document.getElementById('newAgData').value = dateStr || getLocalDateStr();
+            document.getElementById('newAgHora').value = timeStr || '09:00';
+            
+            openModal('modalCriarAgendamento');
+        }
+
+        async function saveManualAgendamento() {
+            const id = document.getElementById('newAgId').value;
+            const nome = document.getElementById('newAgCliente').value.trim();
+            const tel = document.getElementById('newAgTelefone').value.trim().replace(/\D/g, '');
+            const barbeiroId = document.getElementById('newAgBarbeiro').value;
+            const servicoId = document.getElementById('newAgServico').value;
+            const data = document.getElementById('newAgData').value;
+            const hora = document.getElementById('newAgHora').value;
+
+            if (!nome || !tel || !data || !hora || !barbeiroId || !servicoId) {
+                toast('Por favor, preencha todos os campos do agendamento.');
+                return;
+            }
+
+            const payload = {
+                id: id || undefined,
+                nome,
+                tel,
+                barbeiroId,
+                servicoId,
+                data,
+                hora,
+                status: 'pendente'
+            };
+
+            if (cloudConfig.isNeonConnected) {
+                try {
+                    const res = await apiFetch('/api/agendamentos', 'POST', payload);
+                    if (res && res.agendamento) {
+                        payload.id = res.agendamento.id;
+                    }
+                } catch (err) {
+                    toast('Erro ao salvar no banco: ' + err.message);
+                    return;
+                }
+            }
+
+            payload.id = payload.id || ('ag_' + uid());
+
+            if (id) {
+                Object.assign(state.agendamentos.find(x => x.id === id), payload);
+            } else {
+                state.agendamentos.push(payload);
+            }
+
+            await persist();
+            closeModal('modalCriarAgendamento');
+            
+            renderAgendaTimeline();
+            renderDashboard();
+            renderFinanceiro();
+            renderAgendamentos();
+            
+            toast('Atendimento agendado com sucesso!');
+        }
+
+        function openEntradaFromAgenda(event, agId) {
+            if (event) event.stopPropagation();
+            
+            const ag = state.agendamentos.find(a => a.id === agId);
+            if (!ag) return;
+            
+            const b = state.barbeiros.find(x => x.id === ag.barbeiroId);
+            const s = state.servicos.find(x => x.id === ag.servicoId);
+            const statusLabel = ag.status === 'concluido' ? 'Concluído' : (ag.status === 'cancelado' ? 'Cancelado' : 'Pendente');
+
+            const action = confirm(
+                `Agendamento de ${ag.nome}\n` +
+                `Profissional: ${b ? b.nome : '—'}\n` +
+                `Serviço: ${s ? s.nome : '—'} (${brl(s ? s.preco : 0)})\n` +
+                `Horário: ${ag.hora}\n` +
+                `Status atual: ${statusLabel}\n\n` +
+                `Deseja marcar este agendamento como CONCLUÍDO e lançar o faturamento no caixa?`
+            );
+
+            if (action) {
+                setAgStatus(agId, 'concluido');
+                const eExist = state.entradas.some(e => e.agendamentoId === agId);
+                if (!eExist && s) {
+                    const payload = {
+                        desc: `Atendimento: ${ag.nome}`,
+                        data: ag.data,
+                        valor: Number(s.preco),
+                        barbeiroId: ag.barbeiroId,
+                        servicoId: ag.servicoId,
+                        clienteNome: ag.nome,
+                        agendamentoId: agId,
+                        obs: 'Lançado via Agenda'
+                    };
+                    
+                    (async () => {
+                        if (cloudConfig.isNeonConnected) {
+                            try {
+                                const res = await apiFetch('/api/entradas', 'POST', payload);
+                                if (res && res.entrada) payload.id = res.entrada.id;
+                            } catch (e) {}
+                        }
+                        payload.id = payload.id || ('e_' + uid());
+                        state.entradas.push(payload);
+                        await persist();
+                        renderAgendaTimeline();
+                        renderDashboard();
+                        renderFinanceiro();
+                        toast('Atendimento concluído e lançado no caixa!');
+                    })();
+                }
+            }
         }
 
         /* Financeiro */
@@ -3030,7 +4213,6 @@
             renderFinanceiro();
             toast('Pagamento de comissão registrado');
         }
-
         async function deletePagamentoComissao(id) {
             if (!confirm('Excluir este registro de pagamento de comissão?')) return;
             if (cloudConfig.isNeonConnected) {
@@ -3045,240 +4227,276 @@
             toast('Registro de pagamento excluído');
         }
 
+        function addMinutesToTime(timeStr, mins) {
+            if (!timeStr || !timeStr.includes(':')) return '—';
+            const [h, m] = timeStr.split(':').map(Number);
+            const totalMins = h * 60 + m + Number(mins);
+            const endH = Math.floor(totalMins / 60) % 24;
+            const endM = totalMins % 60;
+            return String(endH).padStart(2, '0') + ':' + String(endM).padStart(2, '0');
+        }
+
         function renderFinanceiro() {
             const barbFilterSel = document.getElementById('finFiltroBarbeiro');
-            if (barbFilterSel) {
-                const curVal = barbFilterSel.value;
+            if (barbFilterSel && barbFilterSel.options.length <= 1) {
                 barbFilterSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
-                barbFilterSel.value = curVal;
             }
 
             const { start, end } = getPeriodoRange();
             const bFiltro = document.getElementById('finFiltroBarbeiro')?.value || '';
             const cFiltro = document.getElementById('finFiltroCategoria')?.value || '';
 
-            // 1. Receitas de Agendamentos Concluídos no período
-            const agsConcluidos = state.agendamentos.filter(a => {
-                if (a.status !== 'concluido') return false;
+            const dtStartFmt = new Date(start + 'T00:00:00').toLocaleDateString('pt-BR');
+            const dtEndFmt = new Date(end + 'T00:00:00').toLocaleDateString('pt-BR');
+            const periodText = document.getElementById('fatFilterPeriodoText');
+            if (periodText) periodText.textContent = `Período: A partir de ${dtStartFmt} Até ${dtEndFmt}`;
+            
+            const selectedBarbName = bFiltro ? (state.barbeiros.find(b => b.id === bFiltro)?.nome || 'Todos') : 'Todos';
+            const barbsText = document.getElementById('fatFilterBarbeirosText');
+            if (barbsText) barbsText.textContent = `Profissionais: ${selectedBarbName}`;
+
+            const agsFiltrados = state.agendamentos.filter(a => {
                 if (a.data < start || a.data > end) return false;
                 if (bFiltro && a.barbeiroId !== bFiltro) return false;
                 return true;
             });
 
-            const receitaAgendamentos = agsConcluidos.reduce((sum, a) => {
-                const svc = state.servicos.find(s => s.id === a.servicoId);
-                return sum + (svc ? Number(svc.preco) : 0);
-            }, 0);
-
-            // 2. Entradas Manuais/Retroativas no período
             const entradasFiltradas = state.entradas.filter(e => {
                 if (e.data < start || e.data > end) return false;
                 if (bFiltro && e.barbeiroId !== bFiltro) return false;
                 return true;
             });
 
-            const receitaEntradas = entradasFiltradas.reduce((sum, e) => sum + Number(e.valor), 0);
-            const totalReceita = receitaAgendamentos + receitaEntradas;
+            let countSemPag = 0;
+            let valSemPag = 0;
+            let countParcial = 0;
+            let valParcial = 0;
 
-            // 3. Despesas no período
-            const despesasFiltradas = state.despesas.filter(d => {
-                if (d.data < start || d.data > end) return false;
-                if (cFiltro && d.cat !== cFiltro) return false;
-                return true;
+            agsFiltrados.forEach(a => {
+                const svc = state.servicos.find(s => s.id === a.servicoId);
+                const preco = svc ? Number(svc.preco) : 0;
+                
+                if (a.status === 'pendente') {
+                    countSemPag++;
+                    valSemPag += preco;
+                } else if (a.status === 'parcial') {
+                    countParcial++;
+                    const pago = entradasFiltradas.filter(e => e.agendamentoId === a.id).reduce((sum, e) => sum + Number(e.valor), 0);
+                    valParcial += (pago > 0 ? pago : preco * 0.5);
+                }
             });
 
-            const totalDespesas = despesasFiltradas.reduce((sum, d) => sum + Number(d.valor), 0);
+            const countSemPagEl = document.getElementById('dashCountSemPag');
+            if (countSemPagEl) countSemPagEl.textContent = countSemPag;
+            const valSemPagEl = document.getElementById('dashValSemPag');
+            if (valSemPagEl) valSemPagEl.textContent = brl(valSemPag);
+            const countParcialEl = document.getElementById('dashCountParcial');
+            if (countParcialEl) countParcialEl.textContent = countParcial;
+            const valParcialEl = document.getElementById('dashValParcial');
+            if (valParcialEl) valParcialEl.textContent = brl(valParcial);
 
-            // 4. Comissões calculadas no período por barbeiro (Agendamentos + Entradas Retroativas do barbeiro)
+            const tickets = [
+                ...agsFiltrados.map(a => {
+                    const svc = state.servicos.find(s => s.id === a.servicoId);
+                    const preco = svc ? Number(svc.preco) : 0;
+                    const duracao = svc ? svc.duracao : 20;
+                    const horaFim = addMinutesToTime(a.hora, duracao);
+                    
+                    return {
+                        id: a.id,
+                        tipo: 'agendamento',
+                        cliente: a.nome,
+                        horaLabel: `${a.hora} → ${horaFim}`,
+                        dataLabel: new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                        valor: preco,
+                        status: a.status,
+                        badgeText: a.status === 'concluido' ? 'Atendido' : (a.status === 'pendente' ? 'Pendente' : (a.status === 'parcial' ? 'Parcial' : 'Cancelado')),
+                        raw: a
+                    };
+                }),
+                ...entradasFiltradas.filter(e => !e.agendamentoId).map(e => {
+                    return {
+                        id: e.id,
+                        tipo: 'entrada_manual',
+                        cliente: e.clienteNome || e.desc || 'Entrada Manual',
+                        horaLabel: 'Avulso',
+                        dataLabel: new Date(e.data + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                        valor: e.valor,
+                        status: 'concluido',
+                        badgeText: 'Pago',
+                        raw: e
+                    };
+                })
+            ].sort((a, b) => {
+                const dataA = a.raw.data;
+                const dataB = b.raw.data;
+                return dataB.localeCompare(dataA);
+            });
+
+            const ticketsContainer = document.getElementById('fatTicketsList');
+            if (ticketsContainer) {
+                if (!tickets.length) {
+                    ticketsContainer.innerHTML = '<div style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhuma comanda ou atendimento encontrado no período.</div>';
+                } else {
+                    ticketsContainer.innerHTML = tickets.map(t => {
+                        const statusClass = `status-${t.status}`;
+                        let actionBtn = '';
+                        if (t.tipo === 'agendamento' && t.status !== 'concluido') {
+                            actionBtn = `<button class="btn ghost small" onclick="setAgStatus('${t.id}', 'concluido')" style="padding: 4px 8px; font-size: 11px; margin-right:6px;">Pagar ✓</button>`;
+                        }
+                        return `
+                            <div class="fat-ticket-item ${statusClass}">
+                                <div class="fat-ticket-info">
+                                    <div class="fat-ticket-client">${t.cliente}</div>
+                                    <div class="fat-ticket-time">
+                                        <span>📅 ${t.dataLabel}</span>
+                                        <span>•</span>
+                                        <span>⏰ ${t.horaLabel}</span>
+                                    </div>
+                                </div>
+                                <div class="fat-ticket-amount">
+                                    <div class="fat-ticket-price">${brl(t.valor)}</div>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        ${actionBtn}
+                                        <span class="fat-ticket-badge ${statusClass}">${t.badgeText}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            const concluidosCount = agsFiltrados.filter(a => a.status === 'concluido').length + entradasFiltradas.filter(e => !e.agendamentoId).length;
+            const totalFaturadoAg = agsFiltrados.filter(a => a.status === 'concluido').reduce((sum, a) => {
+                const svc = state.servicos.find(s => s.id === a.servicoId);
+                return sum + (svc ? Number(svc.preco) : 0);
+            }, 0);
+            const totalFaturadoEnt = entradasFiltradas.filter(e => !e.agendamentoId).reduce((sum, e) => sum + Number(e.valor), 0);
+            const totalFaturadoReal = totalFaturadoAg + totalFaturadoEnt;
+
+            const qtyEl = document.getElementById('fatDrawerQty');
+            if (qtyEl) qtyEl.textContent = concluidosCount;
+            const totalEl = document.getElementById('fatDrawerTotal');
+            if (totalEl) totalEl.textContent = brl(totalFaturadoReal);
+
+            const tbDespesas = document.getElementById('tblDespesas');
+            if (tbDespesas) {
+                const filteredDesp = state.despesas.filter(d => {
+                    if (d.data < start || d.data > end) return false;
+                    if (cFiltro && d.cat !== cFiltro) return false;
+                    return true;
+                }).sort((a, b) => b.data.localeCompare(a.data));
+
+                if (!filteredDesp.length) {
+                    tbDespesas.innerHTML = '<tr><td colspan="6" style="color:var(--cream-faint); text-align:center; padding:18px;">Nenhuma despesa registrada</td></tr>';
+                } else {
+                    tbDespesas.innerHTML = filteredDesp.map(d => {
+                        const dataFmt = new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                        return `<tr>
+                            <td style="font-family:var(--font-mono);">${dataFmt}</td>
+                            <td><b>${d.desc}</b></td>
+                            <td><span class="badge" style="background:var(--panel-2); border:1px solid var(--line);">${d.cat}</span></td>
+                            <td style="color:var(--cream-dim);">${d.obs || '—'}</td>
+                            <td style="font-family:var(--font-mono); color:var(--danger); font-weight:600;">${brl(d.valor)}</td>
+                            <td style="text-align:right;">
+                                <div class="row-actions">
+                                    <button class="icon-btn" onclick="openDespesaModal('${d.id}')" title="Editar">✎</button>
+                                    <button class="icon-btn del" onclick="deleteDespesa('${d.id}')" title="Excluir">✕</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
+            }
+
             let totalComissoesGeradas = 0;
+            const agsConcluidos = state.agendamentos.filter(a => {
+                if (a.status !== 'concluido') return false;
+                if (a.data < start || a.data > end) return false;
+                if (bFiltro && a.barbeiroId !== bFiltro) return false;
+                return true;
+            });
             const producaoBarbeiros = state.barbeiros.map(b => {
                 const agsB = agsConcluidos.filter(a => a.barbeiroId === b.id);
-                const entradasB = entradasFiltradas.filter(e => e.barbeiroId === b.id);
-
+                const entradasB = entradasFiltradas.filter(e => e.barbeiroId === b.id && !e.agendamentoId);
                 const fatAgendamentos = agsB.reduce((sum, a) => {
                     const svc = state.servicos.find(s => s.id === a.servicoId);
                     return sum + (svc ? Number(svc.preco) : 0);
                 }, 0);
-
                 const fatEntradas = entradasB.reduce((sum, e) => sum + Number(e.valor), 0);
                 const fatGerado = fatAgendamentos + fatEntradas;
                 const numAtendimentos = agsB.length + entradasB.length;
-
                 const pct = b.comissaoPct !== undefined ? Number(b.comissaoPct) : 40;
                 const comissaoGerada = fatGerado * (pct / 100);
-
                 const pagamentosB = state.pagamentosComissao.filter(pg => {
                     if (pg.barbeiroId !== b.id) return false;
                     return pg.dataPagamento >= start && pg.dataPagamento <= end;
                 });
                 const pagoNoPeriodo = pagamentosB.reduce((sum, pg) => sum + Number(pg.valor), 0);
                 const saldoPendente = comissaoGerada - pagoNoPeriodo;
-
                 totalComissoesGeradas += comissaoGerada;
-
-                return {
-                    id: b.id,
-                    nome: b.nome,
-                    foto: b.foto,
-                    pct,
-                    numAtendimentos,
-                    fatGerado,
-                    comissaoGerada,
-                    pagoNoPeriodo,
-                    saldoPendente
-                };
+                return { id: b.id, nome: b.nome, pct, numAtendimentos, fatGerado, comissaoGerada, pagoNoPeriodo, saldoPendente };
             });
 
-            const saldoLiquido = totalReceita - totalDespesas - totalComissoesGeradas;
-
-            // Render Stats
-            document.getElementById('finStats').innerHTML = `
-                <div class="stat-card"><div class="label">Total Entradas (Receitas)</div><div class="value small" style="color:#9cd488;">${brl(totalReceita)}</div></div>
-                <div class="stat-card"><div class="label">Total Despesas</div><div class="value small" style="color:var(--danger);">${brl(totalDespesas)}</div></div>
-                <div class="stat-card"><div class="label">Comissões Barbeiros</div><div class="value small" style="color:var(--brass-2);">${brl(totalComissoesGeradas)}</div></div>
-                <div class="stat-card"><div class="label">Resultado Líquido</div><div class="value small" style="color:${saldoLiquido >= 0 ? '#9cd488' : 'var(--danger)'};">${brl(saldoLiquido)}</div></div>
-                <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${agsConcluidos.length + entradasFiltradas.length}</div></div>
-            `;
-
-            // Tabela 1: Entradas
-            const tbEntradas = document.getElementById('tblEntradas');
-            const listaEntradas = [
-                ...entradasFiltradas.map(e => {
-                    const b = state.barbeiros.find(x => x.id === e.barbeiroId);
-                    const s = state.servicos.find(x => x.id === e.servicoId);
-                    return {
-                        id: e.id,
-                        data: e.data,
-                        desc: e.desc + (e.obs ? ` (${e.obs})` : ''),
-                        cliente: e.clienteNome || '—',
-                        barbeiro: b ? b.nome : '—',
-                        servico: s ? s.nome : '—',
-                        valor: e.valor,
-                        tipo: 'manual',
-                        raw: e
-                    };
-                }),
-                ...agsConcluidos.map(a => {
-                    const b = state.barbeiros.find(x => x.id === a.barbeiroId);
-                    const s = state.servicos.find(x => x.id === a.servicoId);
-                    const val = s ? Number(s.preco) : 0;
-                    return {
-                        id: a.id,
-                        data: a.data,
-                        desc: `Agendamento: ${a.nome}`,
-                        cliente: a.nome,
-                        barbeiro: b ? b.nome : '—',
-                        servico: s ? s.nome : '—',
-                        valor: val,
-                        tipo: 'agendamento'
-                    };
-                })
-            ].sort((a, b) => b.data.localeCompare(a.data));
-
-            if (!listaEntradas.length) {
-                tbEntradas.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhuma entrada registrada neste período</td></tr>';
-            } else {
-                tbEntradas.innerHTML = listaEntradas.map(item => {
-                    const dataFmt = new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                    const badge = item.tipo === 'agendamento' 
-                        ? '<span class="badge ok">Agendamento</span>' 
-                        : '<span class="badge pending">Manual/Retroativo</span>';
-                    const acoes = item.tipo === 'manual' 
-                        ? `<div class="row-actions">
-                             <button class="icon-btn" onclick="openEntradaModal('${item.id}')" title="Editar">✎</button>
-                             <button class="icon-btn del" onclick="deleteEntrada('${item.id}')" title="Excluir">✕</button>
-                           </div>` 
-                        : '—';
-                    return `<tr>
-                        <td style="font-family:var(--font-mono);">${dataFmt}</td>
-                        <td><b>${item.desc}</b></td>
-                        <td>${item.barbeiro}</td>
-                        <td>${item.servico}</td>
-                        <td style="font-family:var(--font-mono); color:#9cd488; font-weight:600;">${brl(item.valor)}</td>
-                        <td>${badge}</td>
-                        <td style="text-align:right;">${acoes}</td>
-                    </tr>`;
-                }).join('');
-            }
-
-            // Tabela 2: Despesas
-            const tbDespesas = document.getElementById('tblDespesas');
-            if (!despesasFiltradas.length) {
-                tbDespesas.innerHTML = '<tr><td colspan="6" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhuma despesa registrada neste período</td></tr>';
-            } else {
-                tbDespesas.innerHTML = despesasFiltradas.sort((a, b) => b.data.localeCompare(a.data)).map(d => {
-                    const dataFmt = new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR');
-                    return `<tr>
-                        <td style="font-family:var(--font-mono);">${dataFmt}</td>
-                        <td><b>${d.desc}</b></td>
-                        <td><span class="badge" style="background:var(--panel-2); border:1px solid var(--line);">${d.cat}</span></td>
-                        <td style="color:var(--cream-dim);">${d.obs || '—'}</td>
-                        <td style="font-family:var(--font-mono); color:var(--danger); font-weight:600;">${brl(d.valor)}</td>
-                        <td style="text-align:right;">
-                            <div class="row-actions">
-                                <button class="icon-btn" onclick="openDespesaModal('${d.id}')" title="Editar">✎</button>
-                                <button class="icon-btn del" onclick="deleteDespesa('${d.id}')" title="Excluir">✕</button>
-                            </div>
-                        </td>
-                    </tr>`;
-                }).join('');
-            }
-
-            // Tabela 3: Comissões por Barbeiro
             const tbComiss = document.getElementById('tblComissoesBarbeiros');
-            const barbeirosExibir = bFiltro ? producaoBarbeiros.filter(p => p.id === bFiltro) : producaoBarbeiros;
-            if (!barbeirosExibir.length) {
-                tbComiss.innerHTML = '<tr><td colspan="8" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhum barbeiro cadastrado</td></tr>';
-            } else {
-                tbComiss.innerHTML = barbeirosExibir.map(p => `
-                    <tr>
-                        <td><b>${p.nome}</b></td>
-                        <td style="font-family:var(--font-mono);">${p.pct}%</td>
-                        <td style="font-family:var(--font-mono);">${p.numAtendimentos}</td>
-                        <td style="font-family:var(--font-mono);">${brl(p.fatGerado)}</td>
-                        <td style="font-family:var(--font-mono); color:var(--brass-2); font-weight:600;">${brl(p.comissaoGerada)}</td>
-                        <td style="font-family:var(--font-mono); color:#9cd488;">${brl(p.pagoNoPeriodo)}</td>
-                        <td style="font-family:var(--font-mono); color:${p.saldoPendente > 0 ? 'var(--danger)' : 'var(--cream-dim)'}; font-weight:600;">${brl(p.saldoPendente)}</td>
-                        <td style="text-align:right;">
-                            <button class="btn small" onclick="openPagarComissaoModal('${p.id}', ${p.saldoPendente}, '${start}', '${end}')">Marcar como Pago</button>
-                        </td>
-                    </tr>
-                `).join('');
+            if (tbComiss) {
+                const barbeirosExibir = bFiltro ? producaoBarbeiros.filter(p => p.id === bFiltro) : producaoBarbeiros;
+                if (!barbeirosExibir.length) {
+                    tbComiss.innerHTML = '<tr><td colspan="8" style="color:var(--cream-faint); text-align:center; padding:18px;">Nenhum barbeiro cadastrado</td></tr>';
+                } else {
+                    tbComiss.innerHTML = barbeirosExibir.map(p => `
+                        <tr>
+                            <td><b>${p.nome}</b></td>
+                            <td style="font-family:var(--font-mono);">${p.pct}%</td>
+                            <td style="font-family:var(--font-mono);">${p.numAtendimentos}</td>
+                            <td style="font-family:var(--font-mono);">${brl(p.fatGerado)}</td>
+                            <td style="font-family:var(--font-mono); color:var(--brass-2); font-weight:600;">${brl(p.comissaoGerada)}</td>
+                            <td style="font-family:var(--font-mono); color:#9cd488;">${brl(p.pagoNoPeriodo)}</td>
+                            <td style="font-family:var(--font-mono); color:${p.saldoPendente > 0 ? 'var(--danger)' : 'var(--cream-dim)'}; font-weight:600;">${brl(p.saldoPendente)}</td>
+                            <td style="text-align:right;">
+                                <button class="btn small" onclick="openPagarComissaoModal('${p.id}', ${p.saldoPendente}, '${start}', '${end}')">Repassar</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
             }
 
-            // Tabela 4: Histórico de Pagamentos de Comissão
             const tbHist = document.getElementById('tblHistoricoComissoes');
-            const histFiltrado = state.pagamentosComissao.filter(pg => {
-                if (bFiltro && pg.barbeiroId !== bFiltro) return false;
-                return true;
-            }).sort((a, b) => b.dataPagamento.localeCompare(a.dataPagamento));
+            if (tbHist) {
+                const histFiltrado = state.pagamentosComissao.filter(pg => {
+                    if (bFiltro && pg.barbeiroId !== bFiltro) return false;
+                    return true;
+                }).sort((a, b) => b.dataPagamento.localeCompare(a.dataPagamento));
 
-            if (!histFiltrado.length) {
-                tbHist.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:24px;">Nenhum pagamento de comissão registrado</td></tr>';
-            } else {
-                tbHist.innerHTML = histFiltrado.map(pg => {
-                    const b = state.barbeiros.find(x => x.id === pg.barbeiroId);
-                    const dtPagFmt = new Date(pg.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR');
-                    const dtIniFmt = new Date(pg.periodoInicio + 'T00:00:00').toLocaleDateString('pt-BR');
-                    const dtFimFmt = new Date(pg.periodoFim + 'T00:00:00').toLocaleDateString('pt-BR');
-                    return `<tr>
-                        <td><b>${b ? b.nome : '—'}</b></td>
-                        <td style="font-family:var(--font-mono); size:11.5px;">${dtIniFmt} a ${dtFimFmt}</td>
-                        <td style="font-family:var(--font-mono);">${dtPagFmt}</td>
-                        <td style="font-family:var(--font-mono); color:#9cd488; font-weight:600;">${brl(pg.valor)}</td>
-                        <td style="color:var(--cream-dim);">${pg.obs || '—'}</td>
-                        <td><span class="badge ok">${pg.status || 'pago'}</span></td>
-                        <td style="text-align:right;">
-                            <button class="icon-btn del" onclick="deletePagamentoComissao('${pg.id}')" title="Excluir">✕</button>
-                        </td>
-                    </tr>`;
-                }).join('');
+                if (!histFiltrado.length) {
+                    tbHist.innerHTML = '<tr><td colspan="7" style="color:var(--cream-faint); text-align:center; padding:18px;">Nenhum pagamento registrado</td></tr>';
+                } else {
+                    tbHist.innerHTML = histFiltrado.map(pg => {
+                        const b = state.barbeiros.find(x => x.id === pg.barbeiroId);
+                        const dtPagFmt = new Date(pg.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR');
+                        const dtIniFmt = new Date(pg.periodoInicio + 'T00:00:00').toLocaleDateString('pt-BR');
+                        const dtFimFmt = new Date(pg.periodoFim + 'T00:00:00').toLocaleDateString('pt-BR');
+                        return `<tr>
+                            <td><b>${b ? b.nome : '—'}</b></td>
+                            <td style="font-family:var(--font-mono); font-size:11.5px;">${dtIniFmt} a ${dtFimFmt}</td>
+                            <td style="font-family:var(--font-mono);">${dtPagFmt}</td>
+                            <td style="font-family:var(--font-mono); color:#9cd488; font-weight:600;">${brl(pg.valor)}</td>
+                            <td style="color:var(--cream-dim);">${pg.obs || '—'}</td>
+                            <td><span class="badge ok">${pg.status || 'pago'}</span></td>
+                            <td style="text-align:right;">
+                                <button class="icon-btn del" onclick="deletePagamentoComissao('${pg.id}')" title="Excluir">✕</button>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
             }
         }
 
         function renderAdmin() {
             renderBarbeirosTable(); renderServicosTable(); renderHorarios();
             renderAgendamentos(); renderDashboard(); renderFinanceiro();
+            renderAgendaTimeline();
         }
 
         if (sessionStorage.getItem('apolo_admin_auth') === 'true') {
