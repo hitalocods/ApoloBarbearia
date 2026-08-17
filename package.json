@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "init-db": "node scripts/init-db.js",
-    "dev": "npx serve .",
-    "start": "npx serve ."
+    "dev": "node dev-server.js",
+    "start": "node dev-server.js"
   },
   "keywords": [
     "barbearia",

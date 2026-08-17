@@ -1,7 +1,7 @@
 // api/financeiro.js
 // Gestão de Despesas, Entradas e Comissões da Apolo Barbearia
 import { query, isDbConfigured } from '../lib/db.js';
-import { requireAdminAuth } from '../lib/authCheck.js';
+import { requireAdminAuth, requireAnyAuth } from '../lib/authCheck.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
-    if (!requireAdminAuth(req, res)) return;
 
     if (!isDbConfigured) {
         return res.status(200).json({ ok: false, isDbConfigured: false, message: 'DATABASE_URL não configurada.' });
@@ -22,9 +21,11 @@ export default async function handler(req, res) {
 
     try {
         // ============================================================
-        // 1. DESPESAS
+        // 1. DESPESAS (Apenas Administrador)
         // ============================================================
         if (isDespesas) {
+            if (!requireAdminAuth(req, res)) return;
+
             if (req.method === 'GET') {
                 const despesas = await query`
                     SELECT id, descricao as desc, categoria as cat, to_char(data, 'YYYY-MM-DD') as data, valor::float as valor, observacao as obs 
@@ -78,9 +79,11 @@ export default async function handler(req, res) {
         }
 
         // ============================================================
-        // 2. COMISSÕES
+        // 2. COMISSÕES (Apenas Administrador)
         // ============================================================
         if (isComissoes) {
+            if (!requireAdminAuth(req, res)) return;
+
             if (req.method === 'GET') {
                 const pagamentos = await query`
                     SELECT id, barbeiro_id as "barbeiroId", valor::float as valor, 
@@ -140,9 +143,12 @@ export default async function handler(req, res) {
         }
 
         // ============================================================
-        // 3. ENTRADAS
+        // 3. ENTRADAS / ATENDIMENTOS (Admin e Barbeiros autorizados)
         // ============================================================
         if (isEntradas) {
+            const auth = await requireAnyAuth(req, res);
+            if (!auth) return;
+
             if (req.method === 'GET') {
                 const entradas = await query`
                     SELECT id, descricao as desc, valor::float as valor, 
@@ -162,8 +168,9 @@ export default async function handler(req, res) {
                     return res.status(400).json({ ok: false, error: 'Descrição, data e valor são obrigatórios.' });
                 }
 
+                // Se o usuário logado for barbeiro, assegurar que o registro seja associado a ele
+                const bId = (auth.role === 'barbeiro' && auth.barbeiroId) ? auth.barbeiroId : (barbeiroId || null);
                 const numValor = parseFloat(valor);
-                const bId = barbeiroId || null;
                 const sId = servicoId || null;
                 const client = clienteNome || null;
                 const agId = agendamentoId || null;

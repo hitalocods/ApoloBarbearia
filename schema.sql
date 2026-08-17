@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS barbeiros (
     whatsapp TEXT NOT NULL,
     foto TEXT,
     comissao_pct NUMERIC(5, 2) DEFAULT 40.00,
+    senha TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 

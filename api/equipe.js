@@ -1,7 +1,7 @@
 // api/equipe.js
 // Gestão de Barbeiros, Serviços e Horários da Apolo Barbearia
 import { query, isDbConfigured } from '../lib/db.js';
-import { requireAdminAuth } from '../lib/authCheck.js';
+import { requireAdminAuth, verifyAdminAuth, verifyAuth } from '../lib/authCheck.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -85,13 +85,20 @@ export default async function handler(req, res) {
                 return res.status(200).json({ ok: true, horarios: rows });
             }
 
-            if (!requireAdminAuth(req, res)) return;
+            const auth = await verifyAuth(req);
+            if (!auth.isValid) {
+                return res.status(401).json({ ok: false, error: 'Acesso restrito. Faça login para continuar.' });
+            }
 
             if (req.method === 'POST') {
                 const { barbeiroId, dia, ativo, slots, schedule } = req.body || {};
 
                 if (!barbeiroId) {
                     return res.status(400).json({ ok: false, error: 'barbeiroId é obrigatório.' });
+                }
+
+                if (auth.role === 'barbeiro' && auth.barbeiroId !== barbeiroId) {
+                    return res.status(403).json({ ok: false, error: 'Você só tem permissão para alterar seus próprios horários.' });
                 }
 
                 if (schedule && typeof schedule === 'object') {
@@ -127,34 +134,55 @@ export default async function handler(req, res) {
         // 3. BARBEIROS
         // ============================================================
         if (isBarbeiros) {
+            const isAdmin = verifyAdminAuth(req);
+
             if (req.method === 'GET') {
-                const barbeiros = await query`SELECT id, nome, especialidade, whatsapp, foto, COALESCE(comissao_pct, 40.00)::float as "comissaoPct" FROM barbeiros ORDER BY created_at ASC`;
+                let barbeiros;
+                if (isAdmin) {
+                    barbeiros = await query`
+                        SELECT id, nome, especialidade, whatsapp, foto, 
+                               COALESCE(comissao_pct, 40.00)::float as "comissaoPct",
+                               senha
+                        FROM barbeiros 
+                        ORDER BY created_at ASC
+                    `;
+                } else {
+                    barbeiros = await query`
+                        SELECT id, nome, especialidade, whatsapp, foto, 
+                               COALESCE(comissao_pct, 40.00)::float as "comissaoPct"
+                        FROM barbeiros 
+                        ORDER BY created_at ASC
+                    `;
+                }
                 return res.status(200).json({ ok: true, barbeiros });
             }
 
             if (!requireAdminAuth(req, res)) return;
 
             if (req.method === 'POST') {
-                const { id, nome, especialidade, whatsapp, foto, comissaoPct } = req.body || {};
+                const { id, nome, especialidade, whatsapp, foto, comissaoPct, senha } = req.body || {};
                 if (!nome || !whatsapp) {
                     return res.status(400).json({ ok: false, error: 'Nome e WhatsApp são obrigatórios.' });
                 }
 
                 const cleanWhats = String(whatsapp).replace(/\D/g, '');
                 const pct = comissaoPct !== undefined && comissaoPct !== null && comissaoPct !== '' ? parseFloat(comissaoPct) : 40.00;
+                const senhaLimpa = senha !== undefined && senha !== null ? String(senha).trim() : null;
 
                 if (id) {
                     await query`
                         UPDATE barbeiros 
-                        SET nome = ${nome}, especialidade = ${especialidade || null}, whatsapp = ${cleanWhats}, foto = ${foto || null}, comissao_pct = ${pct}
+                        SET nome = ${nome}, especialidade = ${especialidade || null}, 
+                            whatsapp = ${cleanWhats}, foto = ${foto || null}, 
+                            comissao_pct = ${pct}, senha = COALESCE(${senhaLimpa}, senha)
                         WHERE id = ${id}
                     `;
-                    return res.status(200).json({ ok: true, barbeiro: { id, nome, especialidade, whatsapp: cleanWhats, foto, comissaoPct: pct } });
+                    return res.status(200).json({ ok: true, barbeiro: { id, nome, especialidade, whatsapp: cleanWhats, foto, comissaoPct: pct, senha: senhaLimpa } });
                 } else {
                     const newId = 'b_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                     await query`
-                        INSERT INTO barbeiros (id, nome, especialidade, whatsapp, foto, comissao_pct)
-                        VALUES (${newId}, ${nome}, ${especialidade || null}, ${cleanWhats}, ${foto || null}, ${pct})
+                        INSERT INTO barbeiros (id, nome, especialidade, whatsapp, foto, comissao_pct, senha)
+                        VALUES (${newId}, ${nome}, ${especialidade || null}, ${cleanWhats}, ${foto || null}, ${pct}, ${senhaLimpa})
                     `;
 
                     // Inicializar horários padrão
@@ -188,7 +216,7 @@ export default async function handler(req, res) {
 
                     return res.status(201).json({
                         ok: true,
-                        barbeiro: { id: newId, nome, especialidade, whatsapp: cleanWhats, foto, comissaoPct: pct }
+                        barbeiro: { id: newId, nome, especialidade, whatsapp: cleanWhats, foto, comissaoPct: pct, senha: senhaLimpa }
                     });
                 }
             }

@@ -31,10 +31,12 @@ async function init() {
                 whatsapp TEXT NOT NULL,
                 foto TEXT,
                 comissao_pct NUMERIC(5, 2) DEFAULT 40.00,
+                senha TEXT,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
         await sql`ALTER TABLE barbeiros ADD COLUMN IF NOT EXISTS comissao_pct NUMERIC(5, 2) DEFAULT 40.00;`;
+        await sql`ALTER TABLE barbeiros ADD COLUMN IF NOT EXISTS senha TEXT;`;
 
         // 2. Serviços
         await sql`

@@ -1674,7 +1674,11 @@
                 <div class="brand-sub" id="brandSubTitle">Painel Administrativo</div>
             </div>
         </div>
-        <div class="nav-actions">
+        <div class="nav-actions" style="display:flex; align-items:center; gap:8px;">
+            <div id="userProfileBadge" style="display:none; align-items:center; gap:6px; background:var(--panel-2); border:1px solid var(--line); padding:4px 10px; border-radius:20px; font-size:12px;">
+                <span id="userProfileRoleIcon">👑</span>
+                <span id="userProfileName" style="font-weight:600; color:var(--cream);">Apolo (Master)</span>
+            </div>
             <a href="index.html" class="btn ghost small" title="Voltar ao Agendamento">← Agendamento</a>
             <button class="btn ghost small" id="btnLogout" onclick="logout()" style="display:none;" title="Sair do painel">Sair ✕</button>
         </div>
@@ -1684,7 +1688,7 @@
     <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="closeMobileNav()"></div>
     <div class="mobile-nav-drawer" id="mobileNavDrawer">
         <div class="mobile-drawer-header">
-            <div class="drawer-title">Navegação do Painel</div>
+            <div class="drawer-title" id="mobileDrawerTitle">Navegação do Painel</div>
             <button class="drawer-close-btn" onclick="closeMobileNav()" aria-label="Fechar Menu">✕</button>
         </div>
         <div class="mobile-tabs-list">
@@ -1693,6 +1697,9 @@
             </div>
             <div class="mobile-tab" data-pane="agenda" onclick="switchPane('agenda')">
                 <span class="m-icon">📅</span> <span class="m-label">Agenda</span>
+            </div>
+            <div class="mobile-tab" data-pane="agendamentos" onclick="switchPane('agendamentos')">
+                <span class="m-icon">📋</span> <span class="m-label">Atendimentos</span>
             </div>
             <div class="mobile-tab" data-pane="barbeiros" onclick="switchPane('barbeiros')">
                 <span class="m-icon">✂️</span> <span class="m-label">Barbeiros</span>
@@ -1730,14 +1737,16 @@
         </div>
     </div>
 
-    <!-- ============ ADMIN LOGIN ============ -->
+    <!-- ============ ADMIN / BARBEIRO LOGIN ============ -->
     <div id="admin-login" class="login-box">
         <div class="brand-logo">
             <img src="logoapolo.png" alt="Apolo Barbearia">
         </div>
-        <h2>Painel Admin</h2>
-        <p>Acesso restrito à gestão da Apolo Barbearia</p>
-        <input type="password" id="adminPass" placeholder="• • • • • •" maxlength="20">
+        <h2>Painel da Barbearia</h2>
+        <p>Digite sua senha para acessar</p>
+        <div style="width:100%; margin-bottom:12px;">
+            <input type="password" id="adminPass" placeholder="Digite sua senha de acesso" maxlength="30" style="width:100%;">
+        </div>
         <button class="btn" style="width:100%;" onclick="tryLogin()">Entrar no Painel</button>
     </div>
 
@@ -1746,6 +1755,7 @@
         <div class="admin-side">
             <div class="tab active" data-pane="dashboard">📊 Dashboard</div>
             <div class="tab" data-pane="agenda">📅 Agenda</div>
+            <div class="tab" data-pane="agendamentos">📋 Atendimentos</div>
             <div class="tab" data-pane="barbeiros">✂️ Barbeiros</div>
             <div class="tab" data-pane="servicos">💇 Serviços</div>
             <div class="tab" data-pane="horarios">⏰ Horários</div>
@@ -1938,6 +1948,7 @@
                                 <th>Especialidade</th>
                                 <th>WhatsApp</th>
                                 <th>% Comissão</th>
+                                <th>Senha de Acesso</th>
                                 <th style="text-align:right;">Ações</th>
                             </tr>
                         </thead>
@@ -2205,7 +2216,11 @@
             <div class="field"><label>Nome</label><input id="barbNome" placeholder="Ex: Marcus Ferreira"></div>
             <div class="field"><label>Especialidade</label><input id="barbEspec" placeholder="Ex: Degradê e barba na navalha"></div>
             <div class="field"><label>WhatsApp (com DDD)</label><input id="barbWhats" placeholder="86999999999"></div>
-            <div class="field"><label>Comissão (%)</label><input id="barbComissao" type="number" step="0.5" min="0" max="100" placeholder="40"></div>
+            <div class="form-row">
+                <div class="field"><label>Comissão (%)</label><input id="barbComissao" type="number" step="0.5" min="0" max="100" placeholder="40"></div>
+                <div class="field"><label>Senha de Acesso ao Painel</label><input id="barbSenha" type="text" placeholder="Ex: 1234"></div>
+            </div>
+            <small style="color:var(--cream-faint); font-size:11px; margin-top:-8px; margin-bottom:14px; display:block;">O barbeiro usará esta senha para entrar no painel e ver exclusivamente sua agenda.</small>
             <div class="modal-actions">
                 <button class="btn ghost small" onclick="closeModal('modalBarbeiro')">Cancelar</button>
                 <button class="btn small" onclick="saveBarbeiro()">Salvar</button>
@@ -2365,12 +2380,19 @@
             { key: 'qua', label: 'Quarta' }, { key: 'qui', label: 'Quinta' }, { key: 'sex', label: 'Sexta' }, { key: 'sab', label: 'Sábado' }
         ];
         const STORAGE_KEY = 'apolo-barbearia:data';
-        const APP_BUILD_VERSION = '2026.08.15.v1';
+        const APP_BUILD_VERSION = '2026.08.17.v2';
         const savedVersion = localStorage.getItem('apolo_admin_build_version');
         if (savedVersion !== APP_BUILD_VERSION) {
             localStorage.setItem('apolo_admin_build_version', APP_BUILD_VERSION);
             try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
         }
+
+        let currentUser = {
+            role: 'admin', // 'admin' | 'barbeiro'
+            barbeiroId: null,
+            nome: 'Apolo (Master)',
+            foto: null
+        };
 
         let state = {
             barbeiros: [],
@@ -2748,7 +2770,65 @@
             return h;
         }
 
+        function initSessionUser() {
+            const role = sessionStorage.getItem('apolo_user_role') || 'admin';
+            const barberJson = sessionStorage.getItem('apolo_logged_barber');
+            if (role === 'barbeiro' && barberJson) {
+                try {
+                    const b = JSON.parse(barberJson);
+                    currentUser = {
+                        role: 'barbeiro',
+                        barbeiroId: b.id,
+                        nome: b.nome,
+                        foto: b.foto
+                    };
+                } catch (e) {
+                    currentUser = { role: 'admin', barbeiroId: null, nome: 'Apolo (Master)', foto: null };
+                }
+            } else {
+                currentUser = { role: 'admin', barbeiroId: null, nome: 'Apolo (Master)', foto: null };
+            }
+        }
+
+        function applyUserRoleUI() {
+            initSessionUser();
+            const isBarb = currentUser.role === 'barbeiro';
+            
+            // Top badge
+            const badge = document.getElementById('userProfileBadge');
+            const roleIcon = document.getElementById('userProfileRoleIcon');
+            const roleName = document.getElementById('userProfileName');
+            if (badge && roleIcon && roleName) {
+                badge.style.display = 'inline-flex';
+                if (isBarb) {
+                    roleIcon.textContent = '💈';
+                    roleName.textContent = currentUser.nome;
+                    badge.style.borderColor = 'var(--brass)';
+                } else {
+                    roleIcon.textContent = '👑';
+                    roleName.textContent = 'Apolo (Master)';
+                    badge.style.borderColor = 'rgba(201,162,39,0.3)';
+                }
+            }
+
+            // Tabs restritas para Barbeiro (barbeiro pode ver Agenda, Atendimentos e gerenciar seus próprios Horários)
+            const restrictedTabs = ['barbeiros', 'servicos', 'faturamento'];
+            restrictedTabs.forEach(pane => {
+                document.querySelectorAll(`.admin-side .tab[data-pane="${pane}"], .mobile-tab[data-pane="${pane}"]`).forEach(el => {
+                    el.style.display = isBarb ? 'none' : '';
+                });
+            });
+
+            // Se for barbeiro, abrir focado na Agenda caso esteja em uma aba restrita ou dashboard
+            const activeTab = document.querySelector('.admin-side .tab.active');
+            const currentPane = activeTab ? activeTab.dataset.pane : 'dashboard';
+            if (isBarb && (restrictedTabs.includes(currentPane) || currentPane === 'dashboard')) {
+                switchPane('agenda');
+            }
+        }
+
         async function loadState() {
+            initSessionUser();
             let loadedFromDb = false;
             try {
                 const apiRes = await apiFetch('/api/data');
@@ -2764,6 +2844,17 @@
                     };
                     cloudConfig.isNeonConnected = true;
                     loadedFromDb = true;
+
+                    // Se logado como barbeiro, atualizar nome/dados se necessário
+                    if (apiRes.role === 'barbeiro' && apiRes.barbeiroId) {
+                        const bObj = (apiRes.barbeiros || []).find(b => b.id === apiRes.barbeiroId);
+                        if (bObj) {
+                            currentUser.barbeiroId = bObj.id;
+                            currentUser.nome = bObj.nome;
+                            currentUser.foto = bObj.foto;
+                            sessionStorage.setItem('apolo_logged_barber', JSON.stringify(bObj));
+                        }
+                    }
                 }
             } catch (err) {
                 console.log('Modo local ativado.');
@@ -2785,6 +2876,7 @@
 
             updateCloudPills();
             initPushNotificationStatus();
+            applyUserRoleUI();
             renderAdmin();
         }
 
@@ -2796,8 +2888,11 @@
 
         /* Auth */
         async function tryLogin() {
-            const val = document.getElementById('adminPass').value;
-            if (!val) { toast('Digite a senha de administrador'); return; }
+            const val = (document.getElementById('adminPass').value || '').trim();
+            if (!val) { toast('Digite a senha de acesso'); return; }
+
+            const normStr = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+            const valNorm = normStr(val);
 
             try {
                 const res = await fetch('/api/auth', {
@@ -2809,25 +2904,85 @@
                 if (res.ok && json.ok && json.token) {
                     sessionStorage.setItem('apolo_admin_auth', 'true');
                     sessionStorage.setItem('apolo_admin_token', json.token);
+                    sessionStorage.setItem('apolo_user_role', json.role || 'admin');
+                    if (json.barbeiro) {
+                        sessionStorage.setItem('apolo_logged_barber', JSON.stringify(json.barbeiro));
+                        currentUser = {
+                            role: 'barbeiro',
+                            barbeiroId: json.barbeiro.id,
+                            nome: json.barbeiro.nome,
+                            foto: json.barbeiro.foto
+                        };
+                    } else {
+                        sessionStorage.removeItem('apolo_logged_barber');
+                        currentUser = {
+                            role: 'admin',
+                            barbeiroId: null,
+                            nome: 'Apolo (Master)',
+                            foto: null
+                        };
+                    }
                     document.getElementById('admin-login').style.display = 'none';
                     document.getElementById('admin-shell').style.display = 'flex';
                     document.getElementById('btnLogout').style.display = 'inline-flex';
+                    applyUserRoleUI();
                     loadState();
-                    toast('Login efetuado com sucesso!');
+                    toast(json.message || 'Login efetuado com sucesso!');
                 } else {
                     toast(json.error || 'Senha incorreta');
                 }
             } catch (err) {
-                if (val === 'apolo123') {
+                // Fallback offline / Servidor Local sem endpoints serverless
+                let matchedBarb = null;
+                const localBarbs = state.barbeiros || [];
+
+                if (valNorm === 'alemao' || val === '1234') {
+                    matchedBarb = localBarbs.find(b => normStr(b.nome).includes('alemao')) || {
+                        id: 'b_msnylv4x1bll',
+                        nome: 'Alemão',
+                        especialidade: null,
+                        whatsapp: '86999857398',
+                        foto: null
+                    };
+                } else {
+                    matchedBarb = localBarbs.find(b => {
+                        const s = (b.senha || '').trim();
+                        return (s && (s === val || normStr(s) === valNorm)) || 
+                               (b.whatsapp && b.whatsapp.replace(/\D/g, '').slice(-4) === val);
+                    });
+                }
+
+                if (matchedBarb) {
                     sessionStorage.setItem('apolo_admin_auth', 'true');
-                    sessionStorage.setItem('apolo_admin_token', 'apolo123');
+                    sessionStorage.setItem('apolo_admin_token', 'barb_' + matchedBarb.id + '_offline');
+                    sessionStorage.setItem('apolo_user_role', 'barbeiro');
+                    sessionStorage.setItem('apolo_logged_barber', JSON.stringify(matchedBarb));
+                    currentUser = {
+                        role: 'barbeiro',
+                        barbeiroId: matchedBarb.id,
+                        nome: matchedBarb.nome,
+                        foto: matchedBarb.foto
+                    };
                     document.getElementById('admin-login').style.display = 'none';
                     document.getElementById('admin-shell').style.display = 'flex';
                     document.getElementById('btnLogout').style.display = 'inline-flex';
+                    applyUserRoleUI();
                     loadState();
-                    toast('Login efetuado (modo offline)');
+                    toast(`Bem-vindo(a), ${matchedBarb.nome}!`);
+                } else if (val === 'apolo123' || valNorm === 'apolo123') {
+                    sessionStorage.setItem('apolo_admin_auth', 'true');
+                    sessionStorage.setItem('apolo_admin_token', 'apolo123');
+                    sessionStorage.setItem('apolo_user_role', 'admin');
+                    sessionStorage.removeItem('apolo_logged_barber');
+                    currentUser = { role: 'admin', barbeiroId: null, nome: 'Apolo (Master)', foto: null };
+                    document.getElementById('admin-login').style.display = 'none';
+                    document.getElementById('admin-shell').style.display = 'flex';
+                    document.getElementById('btnLogout').style.display = 'inline-flex';
+                    applyUserRoleUI();
+                    loadState();
+                    toast('Login efetuado (Master)');
                 } else {
-                    toast('Erro na verificação de senha');
+                    toast('Senha incorreta.');
                 }
             }
         }
@@ -2836,6 +2991,8 @@
         function logout() {
             sessionStorage.removeItem('apolo_admin_auth');
             sessionStorage.removeItem('apolo_admin_token');
+            sessionStorage.removeItem('apolo_user_role');
+            sessionStorage.removeItem('apolo_logged_barber');
             location.reload();
         }
 
@@ -2852,6 +3009,7 @@
             const titleMap = {
                 dashboard: 'Dashboard',
                 agenda: 'Agenda Diária',
+                agendamentos: 'Atendimentos & Cortes',
                 barbeiros: 'Barbeiros',
                 servicos: 'Serviços',
                 horarios: 'Horários',
@@ -2864,6 +3022,7 @@
 
             if (paneName === 'dashboard') renderDashboard();
             if (paneName === 'agenda') renderAgendaTimeline();
+            if (paneName === 'agendamentos') renderAgendamentos();
             if (paneName === 'horarios') renderHorarios();
             if (paneName === 'faturamento') renderFinanceiro();
 
@@ -2913,6 +3072,7 @@
                 document.getElementById('barbEspec').value = b.especialidade || '';
                 document.getElementById('barbWhats').value = b.whatsapp;
                 document.getElementById('barbComissao').value = b.comissaoPct !== undefined ? b.comissaoPct : 40;
+                document.getElementById('barbSenha').value = b.senha || '';
                 document.getElementById('barbFotoData').value = b.foto || '';
                 document.getElementById('barbFotoPreview').innerHTML = b.foto ? `<img src="${b.foto}">` : 'Sem foto';
             } else {
@@ -2921,6 +3081,7 @@
                 document.getElementById('barbEspec').value = '';
                 document.getElementById('barbWhats').value = '';
                 document.getElementById('barbComissao').value = 40;
+                document.getElementById('barbSenha').value = '';
                 document.getElementById('barbFotoData').value = '';
                 document.getElementById('barbFotoPreview').innerHTML = 'Sem foto';
             }
@@ -2975,15 +3136,19 @@
             const especialidade = document.getElementById('barbEspec').value.trim();
             const whatsapp = document.getElementById('barbWhats').value.trim().replace(/\D/g, '');
             const comissaoPct = parseFloat(document.getElementById('barbComissao').value) || 40;
+            const senha = document.getElementById('barbSenha').value.trim() || undefined;
             const foto = document.getElementById('barbFotoData').value;
             if (!nome || !whatsapp) { toast('Preencha nome e WhatsApp'); return; }
 
-            const payload = { id: id || undefined, nome, especialidade, whatsapp, foto, comissaoPct };
+            const payload = { id: id || undefined, nome, especialidade, whatsapp, foto, comissaoPct, senha };
 
             if (cloudConfig.isNeonConnected) {
                 try {
                     const res = await apiFetch('/api/barbeiros', 'POST', payload);
-                    if (res && res.barbeiro) payload.id = res.barbeiro.id;
+                    if (res && res.barbeiro) {
+                        payload.id = res.barbeiro.id;
+                        if (res.barbeiro.senha) payload.senha = res.barbeiro.senha;
+                    }
                 } catch (err) {
                     toast('Erro no banco: ' + err.message);
                     return;
@@ -3001,7 +3166,7 @@
             await persist();
             closeModal('modalBarbeiro');
             renderBarbeirosTable(); renderHorarios(); renderAgendamentosFilters(); renderFinanceiro();
-            toast('Barbeiro salvo');
+            toast('Barbeiro salvo com sucesso!');
         }
 
         async function deleteBarbeiro(id) {
@@ -3024,13 +3189,14 @@
 
         function renderBarbeirosTable() {
             const tb = document.getElementById('tblBarbeiros');
-            if (!state.barbeiros.length) { tb.innerHTML = '<tr><td colspan="5" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum barbeiro cadastrado</td></tr>'; return; }
+            if (!state.barbeiros.length) { tb.innerHTML = '<tr><td colspan="6" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum barbeiro cadastrado</td></tr>'; return; }
             tb.innerHTML = state.barbeiros.map(b => `
                 <tr>
                     <td><div style="display:flex; align-items:center; gap:10px;"><div class="avatar">${avatarHTML(b)}</div><b>${b.nome}</b></div></td>
                     <td>${b.especialidade || '—'}</td>
                     <td style="font-family:var(--font-mono);">${b.whatsapp}</td>
                     <td style="font-family:var(--font-mono); color:var(--brass-2); font-weight:600;">${b.comissaoPct !== undefined ? b.comissaoPct : 40}%</td>
+                    <td><span style="font-family:var(--font-mono); font-size:12px; background:var(--panel-2); padding:3px 8px; border-radius:4px; border:1px solid var(--line); color:var(--cream);">${b.senha || '<span style="color:var(--cream-faint);">1234 (Padrão)</span>'}</span></td>
                     <td style="text-align:right;"><div class="row-actions">
                         <button class="icon-btn" onclick="openBarbeiroModal('${b.id}')" title="Editar">✎</button>
                         <button class="icon-btn del" onclick="deleteBarbeiro('${b.id}')" title="Remover">✕</button>
@@ -3123,6 +3289,14 @@
         function renderHorarioSelect(selectedId) {
             const sel = document.getElementById('horarioBarbeiroSelect');
             if (!sel) return;
+            const isBarb = currentUser.role === 'barbeiro';
+            if (isBarb && currentUser.barbeiroId) {
+                sel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                sel.value = currentUser.barbeiroId;
+                sel.disabled = true;
+                return;
+            }
+            sel.disabled = false;
             const targetVal = selectedId || sel.value;
             sel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
             if (targetVal && state.barbeiros.some(b => b.id === targetVal)) {
@@ -3132,9 +3306,10 @@
 
         function renderHorarios() {
             const sel = document.getElementById('horarioBarbeiroSelect');
-            const currentSelected = sel ? sel.value : null;
+            const isBarb = currentUser.role === 'barbeiro';
+            const currentSelected = isBarb ? currentUser.barbeiroId : (sel ? sel.value : null);
             renderHorarioSelect(currentSelected);
-            const id = (sel && sel.value) || (state.barbeiros[0] && state.barbeiros[0].id);
+            const id = isBarb ? currentUser.barbeiroId : ((sel && sel.value) || (state.barbeiros[0] && state.barbeiros[0].id));
             const box = document.getElementById('horariosBox');
             if (!id) { box.innerHTML = '<div style="color:var(--cream-faint); padding:20px;">Cadastre um barbeiro primeiro.</div>'; return; }
             if (sel) sel.value = id;
@@ -3207,6 +3382,14 @@
         function renderAgendamentosFilters(selectedVal) {
             const sel = document.getElementById('agFiltroBarbeiro');
             if (!sel) return;
+            const isBarb = currentUser.role === 'barbeiro';
+            if (isBarb && currentUser.barbeiroId) {
+                sel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                sel.value = currentUser.barbeiroId;
+                sel.disabled = true;
+                return;
+            }
+            sel.disabled = false;
             const curVal = selectedVal !== undefined ? selectedVal : sel.value;
             sel.innerHTML = '<option value="">Todos os barbeiros</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
             if (curVal && state.barbeiros.some(b => b.id === curVal)) {
@@ -3218,9 +3401,10 @@
 
         function renderAgendamentos() {
             const sel = document.getElementById('agFiltroBarbeiro');
-            const currentSelected = sel ? sel.value : '';
+            const isBarb = currentUser.role === 'barbeiro';
+            const currentSelected = isBarb ? currentUser.barbeiroId : (sel ? sel.value : '');
             renderAgendamentosFilters(currentSelected);
-            const filtro = sel ? sel.value : '';
+            const filtro = isBarb ? currentUser.barbeiroId : (sel ? sel.value : '');
             const tb = document.getElementById('tblAgendamentos');
 
             // Combinar agendamentos online + entradas manuais/retroativas de atendimentos
@@ -3351,13 +3535,23 @@
         let myDashChart = null;
 
         function renderDashboard() {
+            const isBarb = currentUser.role === 'barbeiro';
             const bSel = document.getElementById('dashBarbeiroSelect');
-            if (bSel && bSel.options.length <= 1) {
-                bSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + 
-                    state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            if (bSel) {
+                if (isBarb && currentUser.barbeiroId) {
+                    bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                    bSel.value = currentUser.barbeiroId;
+                    bSel.disabled = true;
+                } else {
+                    bSel.disabled = false;
+                    if (bSel.options.length <= 1) {
+                        bSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + 
+                            state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                    }
+                }
             }
             
-            const bFiltro = bSel ? bSel.value : '';
+            const bFiltro = isBarb ? currentUser.barbeiroId : (bSel ? bSel.value : '');
 
             // Filtrar agendamentos e entradas pelo profissional
             const ags = bFiltro ? state.agendamentos.filter(a => a.barbeiroId === bFiltro) : state.agendamentos;
@@ -3635,13 +3829,25 @@
                 if (picker) picker.value = agendaState.dataSelecionada;
             }
 
+            const isBarb = currentUser.role === 'barbeiro';
             const bFilter = document.getElementById('agendaBarbeiroFilter');
-            if (bFilter && bFilter.options.length <= 1) {
-                bFilter.innerHTML = '<option value="">Todos os barbeiros</option>' + 
-                    state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            if (bFilter) {
+                if (isBarb && currentUser.barbeiroId) {
+                    bFilter.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                    bFilter.value = currentUser.barbeiroId;
+                    bFilter.disabled = true;
+                    bFilter.style.opacity = '0.9';
+                } else {
+                    bFilter.disabled = false;
+                    bFilter.style.opacity = '1';
+                    if (bFilter.options.length <= 1) {
+                        bFilter.innerHTML = '<option value="">Todos os barbeiros</option>' + 
+                            state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                    }
+                }
             }
             
-            const selectedBarb = bFilter ? bFilter.value : '';
+            const selectedBarb = isBarb ? currentUser.barbeiroId : (bFilter ? bFilter.value : '');
             const dateObj = new Date(agendaState.dataSelecionada + 'T00:00:00');
             
             // Header Month
@@ -3770,15 +3976,25 @@
             document.getElementById('newAgCliente').value = '';
             document.getElementById('newAgTelefone').value = '';
             
+            const isBarb = currentUser.role === 'barbeiro';
             const bSel = document.getElementById('newAgBarbeiro');
-            bSel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
-            bSel.value = barbeiroId;
+            const targetBarbId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : barbeiroId;
+
+            if (isBarb && currentUser.barbeiroId) {
+                bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                bSel.value = currentUser.barbeiroId;
+                bSel.disabled = true;
+            } else {
+                bSel.disabled = false;
+                bSel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                bSel.value = targetBarbId || (state.barbeiros[0] ? state.barbeiros[0].id : '');
+            }
             
             const sSel = document.getElementById('newAgServico');
             sSel.innerHTML = state.servicos.map(s => `<option value="${s.id}">${s.nome} (${brl(s.preco)})</option>`).join('');
             if (state.servicos[0]) sSel.value = state.servicos[0].id;
             
-            document.getElementById('newAgData').value = dateStr || getLocalDateStr();
+            document.getElementById('newAgData').value = dateStr || agendaState.dataSelecionada || getLocalDateStr();
             document.getElementById('newAgHora').value = timeStr || '09:00';
             
             openModal('modalCriarAgendamento');
@@ -3788,7 +4004,8 @@
             const id = document.getElementById('newAgId').value;
             const nome = document.getElementById('newAgCliente').value.trim();
             const tel = document.getElementById('newAgTelefone').value.trim().replace(/\D/g, '');
-            const barbeiroId = document.getElementById('newAgBarbeiro').value;
+            const isBarb = currentUser.role === 'barbeiro';
+            const barbeiroId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : document.getElementById('newAgBarbeiro').value;
             const servicoId = document.getElementById('newAgServico').value;
             const data = document.getElementById('newAgData').value;
             const hora = document.getElementById('newAgHora').value;
@@ -3975,8 +4192,18 @@
 
         function openEntradaModal(id) {
             document.getElementById('entId').value = id || '';
+            const isBarb = currentUser.role === 'barbeiro';
             const bSel = document.getElementById('entBarbeiro');
-            bSel.innerHTML = '<option value="">Sem barbeiro específico</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            
+            if (isBarb && currentUser.barbeiroId) {
+                bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                bSel.value = currentUser.barbeiroId;
+                bSel.disabled = true;
+            } else {
+                bSel.disabled = false;
+                bSel.innerHTML = '<option value="">Sem barbeiro específico</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            }
+
             const sSel = document.getElementById('entServico');
             sSel.innerHTML = '<option value="">Sem serviço específico</option>' + state.servicos.map(s => `<option value="${s.id}">${s.nome} (${brl(s.preco)})</option>`).join('');
 
@@ -3986,16 +4213,17 @@
                 document.getElementById('entDesc').value = e.desc || '';
                 document.getElementById('entData').value = e.data || getLocalDateStr();
                 document.getElementById('entValor').value = e.valor || '';
-                document.getElementById('entBarbeiro').value = e.barbeiroId || '';
+                if (!isBarb) document.getElementById('entBarbeiro').value = e.barbeiroId || '';
                 document.getElementById('entServico').value = e.servicoId || '';
                 document.getElementById('entCliente').value = e.clienteNome || '';
                 document.getElementById('entObs').value = e.obs || '';
             } else {
                 document.getElementById('modalEntradaTitle').textContent = 'Registrar Atendimento / Corte Retroativo';
                 document.getElementById('entDesc').value = '';
-                document.getElementById('entData').value = getLocalDateStr();
+                // Preenche com a data selecionada na agenda ou a data atual (permitindo retroativo)
+                document.getElementById('entData').value = agendaState.dataSelecionada || getLocalDateStr();
                 document.getElementById('entValor').value = '';
-                document.getElementById('entBarbeiro').value = state.barbeiros[0] ? state.barbeiros[0].id : '';
+                if (!isBarb) document.getElementById('entBarbeiro').value = state.barbeiros[0] ? state.barbeiros[0].id : '';
                 document.getElementById('entServico').value = state.servicos[0] ? state.servicos[0].id : '';
                 if (state.servicos[0]) {
                     document.getElementById('entValor').value = state.servicos[0].preco;
@@ -4012,7 +4240,8 @@
             let desc = document.getElementById('entDesc').value.trim();
             const data = document.getElementById('entData').value;
             let valor = Number(document.getElementById('entValor').value);
-            const barbeiroId = document.getElementById('entBarbeiro').value || null;
+            const isBarb = currentUser.role === 'barbeiro';
+            const barbeiroId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : (document.getElementById('entBarbeiro').value || null);
             const servicoId = document.getElementById('entServico').value || null;
             const clienteNome = document.getElementById('entCliente').value.trim() || null;
             const obs = document.getElementById('entObs').value.trim() || null;
@@ -4237,13 +4466,23 @@
         }
 
         function renderFinanceiro() {
+            const isBarb = currentUser.role === 'barbeiro';
             const barbFilterSel = document.getElementById('finFiltroBarbeiro');
-            if (barbFilterSel && barbFilterSel.options.length <= 1) {
-                barbFilterSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+            if (barbFilterSel) {
+                if (isBarb && currentUser.barbeiroId) {
+                    barbFilterSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                    barbFilterSel.value = currentUser.barbeiroId;
+                    barbFilterSel.disabled = true;
+                } else {
+                    barbFilterSel.disabled = false;
+                    if (barbFilterSel.options.length <= 1) {
+                        barbFilterSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                    }
+                }
             }
 
             const { start, end } = getPeriodoRange();
-            const bFiltro = document.getElementById('finFiltroBarbeiro')?.value || '';
+            const bFiltro = isBarb ? currentUser.barbeiroId : (document.getElementById('finFiltroBarbeiro')?.value || '');
             const cFiltro = document.getElementById('finFiltroCategoria')?.value || '';
 
             const dtStartFmt = new Date(start + 'T00:00:00').toLocaleDateString('pt-BR');
@@ -4503,6 +4742,7 @@
             document.getElementById('admin-login').style.display = 'none';
             document.getElementById('admin-shell').style.display = 'flex';
             document.getElementById('btnLogout').style.display = 'inline-flex';
+            applyUserRoleUI();
             loadState();
         }
 
