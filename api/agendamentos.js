@@ -16,18 +16,46 @@ export default async function handler(req, res) {
         if (req.method === 'GET') {
             const rows = await query`
                 SELECT id, barbeiro_id as "barbeiroId", servico_id as "servicoId", 
+                       servicos_ids as "servicoIds",
                        to_char(data, 'YYYY-MM-DD') as data, hora, nome, tel, status, 
                        criado_em as "criadoEm" 
                 FROM agendamentos 
                 ORDER BY data ASC, hora ASC
             `;
-            return res.status(200).json({ ok: true, agendamentos: rows });
+            const formatted = rows.map(r => {
+                let sIds = [];
+                if (Array.isArray(r.servicoIds)) {
+                    sIds = r.servicoIds;
+                } else if (typeof r.servicoIds === 'string') {
+                    try { sIds = JSON.parse(r.servicoIds); } catch (e) { sIds = []; }
+                }
+                if (!sIds.length && r.servicoId) {
+                    sIds = [r.servicoId];
+                }
+                return {
+                    ...r,
+                    servicoIds: sIds,
+                    servicoId: r.servicoId || (sIds[0] || null)
+                };
+            });
+            return res.status(200).json({ ok: true, agendamentos: formatted });
         }
 
         if (req.method === 'POST') {
-            const { id, barbeiroId, servicoId, data, hora, nome, tel, status = 'pendente' } = req.body || {};
-            if (!nome || !tel || !data || !hora || !barbeiroId || !servicoId) {
-                return res.status(400).json({ ok: false, error: 'Dados incompletos para agendamento.' });
+            const { id, barbeiroId, servicoId, servicoIds, data, hora, nome, tel, status = 'pendente' } = req.body || {};
+            
+            // Normalizar lista de serviços
+            let normalizedServicoIds = [];
+            if (Array.isArray(servicoIds) && servicoIds.length > 0) {
+                normalizedServicoIds = servicoIds;
+            } else if (servicoId) {
+                normalizedServicoIds = [servicoId];
+            }
+
+            const primaryServicoId = normalizedServicoIds[0] || servicoId || null;
+
+            if (!nome || !tel || !data || !hora || !barbeiroId || !primaryServicoId) {
+                return res.status(400).json({ ok: false, error: 'Dados incompletos para agendamento (nome, tel, data, hora, barbeiro e ao menos 1 serviço são obrigatórios).' });
             }
 
             const agId = id || 'ag_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -45,19 +73,27 @@ export default async function handler(req, res) {
                 return res.status(409).json({ ok: false, error: 'Este horário acabou de ser preenchido por outro cliente. Por favor, selecione outro.' });
             }
 
+            const servicosIdsJson = JSON.stringify(normalizedServicoIds);
+
             await query`
-                INSERT INTO agendamentos (id, barbeiro_id, servico_id, data, hora, nome, tel, status)
-                VALUES (${agId}, ${barbeiroId}, ${servicoId}, ${data}::date, ${hora}, ${nome}, ${tel}, ${status})
+                INSERT INTO agendamentos (id, barbeiro_id, servico_id, servicos_ids, data, hora, nome, tel, status)
+                VALUES (${agId}, ${barbeiroId}, ${primaryServicoId}, ${servicosIdsJson}::jsonb, ${data}::date, ${hora}, ${nome}, ${tel}, ${status})
             `;
 
             // Disparo de notificação Push para os celulares cadastrados (em background seguro)
             (async () => {
                 try {
-                    // Buscar nomes do barbeiro e serviço para montar mensagem rica
+                    // Buscar nomes do barbeiro e de todos os serviços selecionados
                     const bRes = await query`SELECT nome FROM barbeiros WHERE id = ${barbeiroId}`;
-                    const sRes = await query`SELECT nome FROM servicos WHERE id = ${servicoId}`;
+                    const allServices = await query`SELECT id, nome, preco FROM servicos`;
                     const barbeiroNome = bRes[0]?.nome || 'Barbeiro';
-                    const servicoNome = sRes[0]?.nome || 'Serviço';
+                    
+                    const selectedServices = allServices.filter(s => normalizedServicoIds.includes(s.id));
+                    const servicosNomes = selectedServices.length > 0
+                        ? selectedServices.map(s => s.nome).join(' + ')
+                        : 'Serviço';
+                    const valorTotal = selectedServices.reduce((sum, s) => sum + Number(s.preco || 0), 0);
+                    const valorFmt = valorTotal > 0 ? ` (R$ ${valorTotal.toFixed(2).replace('.', ',')})` : '';
 
                     // Formatar data DD/MM
                     let dataFmt = data;
@@ -76,13 +112,13 @@ export default async function handler(req, res) {
                     }
 
                     const pushTitle = `💈 Novo Agendamento — ${nome}`;
-                    const pushBody = `✂️ ${servicoNome}\n📅 ${dataFmt} às ${hora}\n👤 Barbeiro: ${barbeiroNome}\n📞 ${telFmt}`;
+                    const pushBody = `✂️ ${servicosNomes}${valorFmt}\n📅 ${dataFmt} às ${hora}\n👤 Barbeiro: ${barbeiroNome}\n📞 ${telFmt}`;
 
                     await sendPushToAll({
                         title: pushTitle,
                         body: pushBody,
                         url: '/admin.html',
-                        data: { agendamentoId: agId, data, hora, barbeiroId, nome, servicoNome, barbeiroNome, tel }
+                        data: { agendamentoId: agId, data, hora, barbeiroId, nome, servicoNome: servicosNomes, barbeiroNome, tel }
                     });
                 } catch (pushErr) {
                     console.error('[Agendamentos] Erro ao disparar notificação push:', pushErr);
@@ -91,7 +127,17 @@ export default async function handler(req, res) {
 
             return res.status(201).json({
                 ok: true,
-                agendamento: { id: agId, barbeiroId, servicoId, data, hora, nome, tel, status }
+                agendamento: { 
+                    id: agId, 
+                    barbeiroId, 
+                    servicoId: primaryServicoId, 
+                    servicoIds: normalizedServicoIds, 
+                    data, 
+                    hora, 
+                    nome, 
+                    tel, 
+                    status 
+                }
             });
         }
 

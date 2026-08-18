@@ -795,6 +795,92 @@
             justify-content: flex-end;
         }
 
+        /* Checklist de múltiplos serviços no Admin */
+        .admin-svc-checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 8px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .admin-svc-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all .2s ease;
+            user-select: none;
+            min-height: 48px;
+        }
+
+        .admin-svc-item:hover {
+            border-color: var(--brass-dim);
+        }
+
+        .admin-svc-item.selected {
+            background: rgba(201, 162, 39, 0.12);
+            border-color: var(--brass);
+            box-shadow: 0 0 10px rgba(201, 162, 39, 0.15);
+        }
+
+        .admin-svc-item input[type="checkbox"] {
+            width: 19px;
+            height: 19px;
+            accent-color: var(--brass);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .admin-svc-item .svc-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .admin-svc-item .svc-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--cream);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .admin-svc-item .svc-sub {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--cream-dim);
+            margin-top: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-svc-summary-box {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--brass-2);
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--panel);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--brass-dim);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 6px;
+            align-items: center;
+        }
+
         .photo-upload-row {
             display: flex;
             align-items: center;
@@ -1136,13 +1222,22 @@
                 font-size: 12px;
             }
 
+            .modal-overlay {
+                padding: 10px !important;
+                align-items: flex-end !important;
+            }
             .modal {
-                padding: 18px 14px;
-                max-width: 95vw;
+                padding: 18px 14px !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+                max-height: 92vh !important;
+                max-height: 92dvh !important;
+                border-radius: var(--radius-sm) !important;
             }
             .modal-actions {
                 flex-direction: column-reverse;
                 gap: 8px;
+                margin-top: 14px;
             }
             .modal-actions button {
                 width: 100%;
@@ -1150,6 +1245,23 @@
             .form-row {
                 flex-direction: column;
                 gap: 0;
+            }
+            .admin-svc-checklist {
+                grid-template-columns: 1fr !important;
+                max-height: 190px !important;
+                gap: 6px !important;
+                padding: 6px !important;
+            }
+            .admin-svc-item {
+                padding: 10px 10px !important;
+                min-height: 46px !important;
+            }
+            .admin-svc-item .svc-name {
+                font-size: 13.5px !important;
+            }
+            .admin-svc-summary-box {
+                font-size: 11.5px !important;
+                padding: 7px 10px !important;
             }
         }
 
@@ -1892,7 +2004,8 @@
                                     <option value="">Todos os barbeiros</option>
                                 </select>
                             </div>
-                            <div style="display:flex; gap:6px;">
+                            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                <button class="btn small" onclick="openManualAgendamentoModal()" style="font-weight:600;">+ Novo Agendamento</button>
                                 <button class="btn ghost small" onclick="changeAgendaDay(-1)">◀ Dia Anterior</button>
                                 <button class="btn ghost small" onclick="setAgendaToday()">Hoje</button>
                                 <button class="btn ghost small" onclick="changeAgendaDay(1)">Próximo Dia ▶</button>
@@ -2004,7 +2117,8 @@
                     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                         <select id="agFiltroBarbeiro" onchange="renderAgendamentos()"
                             style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:8px 12px; border-radius:var(--radius-sm); font-size:13px;"></select>
-                        <button class="btn" onclick="openEntradaModal()">+ Registrar Atendimento / Corte</button>
+                        <button class="btn small" onclick="openManualAgendamentoModal()" style="font-weight:600;">+ Novo Agendamento</button>
+                        <button class="btn ghost small" onclick="openEntradaModal()">+ Registrar Retroativo</button>
                     </div>
                 </div>
                 <div class="table-wrap">
@@ -2313,16 +2427,18 @@
     </div>
 
     <div class="modal-overlay" id="modalCriarAgendamento">
-        <div class="modal">
+        <div class="modal" style="max-width:540px;">
             <h3>Novo Agendamento</h3>
             <input type="hidden" id="newAgId">
-            <div class="field">
-                <label>Nome do Cliente</label>
-                <input id="newAgCliente" placeholder="Ex: Guilherme Muniz">
-            </div>
-            <div class="field">
-                <label>Telefone / WhatsApp (com DDD)</label>
-                <input id="newAgTelefone" placeholder="Ex: 86999999999">
+            <div class="form-row">
+                <div class="field">
+                    <label>Nome do Cliente</label>
+                    <input id="newAgCliente" placeholder="Ex: Guilherme Muniz">
+                </div>
+                <div class="field">
+                    <label>Telefone / WhatsApp (com DDD)</label>
+                    <input id="newAgTelefone" placeholder="Ex: 86999999999">
+                </div>
             </div>
             <div class="form-row">
                 <div class="field">
@@ -2330,18 +2446,20 @@
                     <select id="newAgBarbeiro"></select>
                 </div>
                 <div class="field">
-                    <label>Serviço</label>
-                    <select id="newAgServico"></select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="field">
                     <label>Data</label>
                     <input id="newAgData" type="date">
                 </div>
-                <div class="field">
-                    <label>Horário</label>
-                    <input id="newAgHora" type="time">
+            </div>
+            <div class="field">
+                <label>Horário de Início</label>
+                <input id="newAgHora" type="time">
+            </div>
+            <div class="field">
+                <label>Serviços a Realizar (Toque para selecionar)</label>
+                <div id="newAgServicosList" class="admin-svc-checklist"></div>
+                <div id="newAgServicosSummary" class="admin-svc-summary-box">
+                    <span>✂️ 0 serviços selecionados</span>
+                    <span>Total: R$ 0,00</span>
                 </div>
             </div>
             <div class="modal-actions">
@@ -2430,6 +2548,46 @@
         function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
         function brl(v) { return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
         
+        function getAgendamentoServices(ag) {
+            if (!ag) return [];
+            if (Array.isArray(ag.servicoIds) && ag.servicoIds.length > 0) {
+                const found = state.servicos.filter(s => ag.servicoIds.includes(s.id));
+                if (found.length > 0) return found;
+            }
+            if (ag.servicoId) {
+                const s = state.servicos.find(x => x.id === ag.servicoId);
+                return s ? [s] : [];
+            }
+            return [];
+        }
+
+        function getAgendamentoTotalPrice(ag) {
+            if (!ag) return 0;
+            const svcs = getAgendamentoServices(ag);
+            if (svcs.length > 0) {
+                return svcs.reduce((sum, s) => sum + Number(s.preco || 0), 0);
+            }
+            return Number(ag.valor || 0);
+        }
+
+        function getAgendamentoTotalDuration(ag) {
+            if (!ag) return 30;
+            const svcs = getAgendamentoServices(ag);
+            if (svcs.length > 0) {
+                return svcs.reduce((sum, s) => sum + Number(s.duracao || 30), 0);
+            }
+            return 30;
+        }
+
+        function getAgendamentoServicesNames(ag) {
+            if (!ag) return '—';
+            const svcs = getAgendamentoServices(ag);
+            if (svcs.length > 0) {
+                return svcs.map(s => s.nome).join(' + ');
+            }
+            return ag.servicoId ? 'Serviço' : (ag.rawEntrada ? (ag.rawEntrada.desc || '—') : (ag.desc || '—'));
+        }
+
         function toast(msg) {
             const t = document.getElementById('toast');
             t.textContent = msg;
@@ -3415,10 +3573,12 @@
                     tel: a.tel || '—',
                     barbeiroId: a.barbeiroId,
                     servicoId: a.servicoId,
+                    servicoIds: a.servicoIds || (a.servicoId ? [a.servicoId] : []),
                     data: a.data,
                     hora: a.hora || '—',
                     status: a.status,
-                    origem: 'online'
+                    origem: 'online',
+                    rawAg: a
                 })),
                 ...state.entradas.map(e => ({
                     id: e.id,
@@ -3426,6 +3586,7 @@
                     tel: e.obs || '—',
                     barbeiroId: e.barbeiroId,
                     servicoId: e.servicoId,
+                    servicoIds: e.servicoIds || (e.servicoId ? [e.servicoId] : []),
                     data: e.data,
                     hora: 'Retroativo',
                     status: 'concluido',
@@ -3445,7 +3606,6 @@
 
             tb.innerHTML = list.map(a => {
                 const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
-                const svc = state.servicos.find(s => s.id === a.servicoId);
                 const badgeClass = a.status === 'concluido' ? 'ok' : (a.status === 'cancelado' ? 'cancel' : 'pending');
                 const dataFmt = new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR');
                 const cleanTel = (a.tel || '').replace(/\D/g, '');
@@ -3465,13 +3625,14 @@
                     </div>`;
                 }
 
-                const nomeServico = svc ? svc.nome : (a.rawEntrada ? a.rawEntrada.desc : '—');
+                const nomeServico = a.rawAg ? getAgendamentoServicesNames(a.rawAg) : (a.rawEntrada ? a.rawEntrada.desc : '—');
+                const precoTotal = a.rawAg ? getAgendamentoTotalPrice(a.rawAg) : (a.rawEntrada ? Number(a.rawEntrada.valor || 0) : 0);
                 const badgeText = a.status === 'concluido' ? (a.origem === 'manual' ? 'Concluído (Retroativo)' : 'Concluído') : a.status;
 
                 return `<tr>
                     <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
                     <td>${barb ? barb.nome : '—'}</td>
-                    <td>${nomeServico}</td>
+                    <td><b>${nomeServico}</b><br><small style="color:var(--brass-2); font-family:var(--font-mono);">${precoTotal > 0 ? brl(precoTotal) : ''}</small></td>
                     <td>${dataFmt}</td>
                     <td style="font-family:var(--font-mono); font-weight:600;">${a.hora}</td>
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
@@ -3484,7 +3645,9 @@
             const ag = state.agendamentos.find(a => a.id === agendamentoId);
             if (!ag) return;
             const barb = state.barbeiros.find(b => b.id === ag.barbeiroId);
-            const svc = state.servicos.find(s => s.id === ag.servicoId);
+            const nomeServicos = getAgendamentoServicesNames(ag);
+            const valorTotal = getAgendamentoTotalPrice(ag);
+            const duracaoTotal = getAgendamentoTotalDuration(ag);
             const cleanTel = (ag.tel || '').replace(/\D/g, '');
             if (!cleanTel) {
                 toast('Telefone do cliente não cadastrado.');
@@ -3495,7 +3658,9 @@
                 `Olá ${ag.nome}! 💈 Passando para lembrar do seu agendamento na Apolo Barbearia:\n` +
                 `📅 Data: ${dataFmt}\n` +
                 `⏰ Horário: ${ag.hora}\n` +
-                `✂️ Serviço: ${svc ? svc.nome : 'Atendimento'}\n` +
+                `✂️ Serviços: ${nomeServicos}\n` +
+                `⏱️ Duração: ${duracaoTotal} min\n` +
+                `💰 Valor: ${brl(valorTotal)}\n` +
                 `👤 Barbeiro: ${barb ? barb.nome : 'Apolo'}\n\n` +
                 `Podemos confirmar a sua presença?`
             );
@@ -3563,8 +3728,7 @@
             const concluidos = ags.filter(a => a.status === 'concluido').length + ents.filter(e => !e.agendamentoId).length;
             
             const totalFaturadoAg = ags.filter(a => a.status === 'concluido').reduce((sum, a) => {
-                const svc = state.servicos.find(s => s.id === a.servicoId);
-                return sum + (svc ? Number(svc.preco) : 0);
+                return sum + getAgendamentoTotalPrice(a);
             }, 0);
             const totalFaturadoEnt = ents.filter(e => !e.agendamentoId).reduce((sum, e) => sum + Number(e.valor), 0);
             const totalFaturado = totalFaturadoAg + totalFaturadoEnt;
@@ -3588,12 +3752,13 @@
                 } else {
                     upcoming.innerHTML = proxs.map(a => {
                         const barb = state.barbeiros.find(b => b.id === a.barbeiroId);
-                        const svc = state.servicos.find(s => s.id === a.servicoId);
+                        const svcNome = getAgendamentoServicesNames(a);
+                        const precoVal = getAgendamentoTotalPrice(a);
                         const cleanTel = (a.tel || '').replace(/\D/g, '');
                         return `<tr>
                             <td><b>${a.nome}</b><br><small style="color:var(--cream-dim);">${a.tel}</small></td>
                             <td>${barb ? barb.nome : '—'}</td>
-                            <td>${svc ? svc.nome : '—'}</td>
+                            <td><b>${svcNome}</b><br><small style="color:var(--brass-2); font-family:var(--font-mono);">${precoVal > 0 ? brl(precoVal) : ''}</small></td>
                             <td>${new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')} às <b>${a.hora}</b></td>
                             <td style="text-align:right;">
                                 <div style="display:inline-flex; gap:6px; align-items:center;">
@@ -3634,8 +3799,8 @@
 
             // Somar agendamentos concluídos
             ags.filter(a => a.status === 'concluido').forEach(a => {
-                const svc = state.servicos.find(s => s.id === a.servicoId);
-                if (svc) somarFaturamento(a.data, svc.preco);
+                const totalAgVal = getAgendamentoTotalPrice(a);
+                if (totalAgVal > 0) somarFaturamento(a.data, totalAgVal);
             });
 
             // Somar entradas manuais
@@ -3912,14 +4077,13 @@
                     });
 
                     const blocksHTML = agsDia.map(a => {
-                        const svc = state.servicos.find(s => s.id === a.servicoId);
-                        const duracao = svc ? svc.duracao : 30;
-                        const svcNome = svc ? svc.nome : 'Serviço';
-                        const precoVal = svc ? svc.preco : 0;
+                        const duracao = getAgendamentoTotalDuration(a);
+                        const svcNome = getAgendamentoServicesNames(a);
+                        const precoVal = getAgendamentoTotalPrice(a);
                         
                         const [h, m] = a.hora.split(':').map(Number);
                         const topPx = (h - startHour) * 60 + m;
-                        const heightPx = duracao;
+                        const heightPx = Math.max(duracao, 25);
                         const statusClass = `status-${a.status}`;
 
                         return `
@@ -3971,6 +4135,67 @@
             openManualAgendamentoModal(barbeiroId, agendaState.dataSelecionada, formattedTime);
         }
 
+        function renderNewAgServicosChecklist(selectedIds = []) {
+            const container = document.getElementById('newAgServicosList');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (!state.servicos.length) {
+                container.innerHTML = '<div style="color:var(--cream-faint); font-size:12px; grid-column:1/-1; padding:12px; text-align:center;">Nenhum serviço cadastrado.</div>';
+                updateNewAgServicosSummary();
+                return;
+            }
+
+            state.servicos.forEach(s => {
+                const isChecked = selectedIds.includes(s.id);
+                const item = document.createElement('label');
+                item.className = `admin-svc-item ${isChecked ? 'selected' : ''}`;
+                item.innerHTML = `
+                    <input type="checkbox" class="new-ag-svc-cb" value="${s.id}" ${isChecked ? 'checked' : ''} onchange="onToggleNewAgService(this)">
+                    <div class="svc-info">
+                        <div class="svc-name">${s.nome}</div>
+                        <div class="svc-sub">
+                            <span>⏱️ ${s.duracao} min</span>
+                            <b style="color:var(--brass-2);">${brl(s.preco)}</b>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+            updateNewAgServicosSummary();
+        }
+
+        function onToggleNewAgService(cb) {
+            const label = cb.closest('.admin-svc-item');
+            if (label) {
+                if (cb.checked) {
+                    label.classList.add('selected');
+                } else {
+                    label.classList.remove('selected');
+                }
+            }
+            updateNewAgServicosSummary();
+        }
+
+        function updateNewAgServicosSummary() {
+            const summary = document.getElementById('newAgServicosSummary');
+            if (!summary) return;
+            const cbs = Array.from(document.querySelectorAll('.new-ag-svc-cb:checked'));
+            const selectedIds = cbs.map(c => c.value);
+            const svcs = state.servicos.filter(s => selectedIds.includes(s.id));
+            const totalPreco = svcs.reduce((sum, s) => sum + Number(s.preco || 0), 0);
+            const totalDur = svcs.reduce((sum, s) => sum + Number(s.duracao || 30), 0);
+
+            if (svcs.length === 0) {
+                summary.innerHTML = `<span>✂️ 0 serviços selecionados</span><span>Duração: 0 min</span>`;
+            } else {
+                summary.innerHTML = `
+                    <span>✂️ <b>${svcs.length} ${svcs.length === 1 ? 'serviço' : 'serviços'}</b> (⏱️ ${totalDur} min)</span>
+                    <span>Total: <b style="color:var(--brass-2); font-size:13px;">${brl(totalPreco)}</b></span>
+                `;
+            }
+        }
+
         function openManualAgendamentoModal(barbeiroId, dateStr, timeStr) {
             document.getElementById('newAgId').value = '';
             document.getElementById('newAgCliente').value = '';
@@ -3990,9 +4215,8 @@
                 bSel.value = targetBarbId || (state.barbeiros[0] ? state.barbeiros[0].id : '');
             }
             
-            const sSel = document.getElementById('newAgServico');
-            sSel.innerHTML = state.servicos.map(s => `<option value="${s.id}">${s.nome} (${brl(s.preco)})</option>`).join('');
-            if (state.servicos[0]) sSel.value = state.servicos[0].id;
+            const initialSelected = state.servicos[0] ? [state.servicos[0].id] : [];
+            renderNewAgServicosChecklist(initialSelected);
             
             document.getElementById('newAgData').value = dateStr || agendaState.dataSelecionada || getLocalDateStr();
             document.getElementById('newAgHora').value = timeStr || '09:00';
@@ -4006,12 +4230,15 @@
             const tel = document.getElementById('newAgTelefone').value.trim().replace(/\D/g, '');
             const isBarb = currentUser.role === 'barbeiro';
             const barbeiroId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : document.getElementById('newAgBarbeiro').value;
-            const servicoId = document.getElementById('newAgServico').value;
             const data = document.getElementById('newAgData').value;
             const hora = document.getElementById('newAgHora').value;
 
-            if (!nome || !tel || !data || !hora || !barbeiroId || !servicoId) {
-                toast('Por favor, preencha todos os campos do agendamento.');
+            const cbs = Array.from(document.querySelectorAll('.new-ag-svc-cb:checked'));
+            const servicoIds = cbs.map(c => c.value);
+            const servicoId = servicoIds[0] || null;
+
+            if (!nome || !tel || !data || !hora || !barbeiroId || !servicoIds.length) {
+                toast('Por favor, preencha o cliente, telefone, data, horário e selecione ao menos 1 serviço.');
                 return;
             }
 
@@ -4021,6 +4248,7 @@
                 tel,
                 barbeiroId,
                 servicoId,
+                servicoIds,
                 data,
                 hora,
                 status: 'pendente'
@@ -4064,13 +4292,16 @@
             if (!ag) return;
             
             const b = state.barbeiros.find(x => x.id === ag.barbeiroId);
-            const s = state.servicos.find(x => x.id === ag.servicoId);
+            const svcs = getAgendamentoServices(ag);
+            const svcNome = getAgendamentoServicesNames(ag);
+            const totalPrice = getAgendamentoTotalPrice(ag);
             const statusLabel = ag.status === 'concluido' ? 'Concluído' : (ag.status === 'cancelado' ? 'Cancelado' : 'Pendente');
 
             const action = confirm(
                 `Agendamento de ${ag.nome}\n` +
                 `Profissional: ${b ? b.nome : '—'}\n` +
-                `Serviço: ${s ? s.nome : '—'} (${brl(s ? s.preco : 0)})\n` +
+                `Serviços (${svcs.length}): ${svcNome}\n` +
+                `Valor Total: ${brl(totalPrice)}\n` +
                 `Horário: ${ag.hora}\n` +
                 `Status atual: ${statusLabel}\n\n` +
                 `Deseja marcar este agendamento como CONCLUÍDO e lançar o faturamento no caixa?`
@@ -4079,13 +4310,14 @@
             if (action) {
                 setAgStatus(agId, 'concluido');
                 const eExist = state.entradas.some(e => e.agendamentoId === agId);
-                if (!eExist && s) {
+                if (!eExist) {
                     const payload = {
-                        desc: `Atendimento: ${ag.nome}`,
+                        desc: `Atendimento: ${ag.nome} (${svcNome})`,
                         data: ag.data,
-                        valor: Number(s.preco),
+                        valor: Number(totalPrice),
                         barbeiroId: ag.barbeiroId,
                         servicoId: ag.servicoId,
+                        servicoIds: ag.servicoIds || (ag.servicoId ? [ag.servicoId] : []),
                         clienteNome: ag.nome,
                         agendamentoId: agId,
                         obs: 'Lançado via Agenda'
@@ -4512,8 +4744,7 @@
             let valParcial = 0;
 
             agsFiltrados.forEach(a => {
-                const svc = state.servicos.find(s => s.id === a.servicoId);
-                const preco = svc ? Number(svc.preco) : 0;
+                const preco = getAgendamentoTotalPrice(a);
                 
                 if (a.status === 'pendente') {
                     countSemPag++;
@@ -4536,15 +4767,15 @@
 
             const tickets = [
                 ...agsFiltrados.map(a => {
-                    const svc = state.servicos.find(s => s.id === a.servicoId);
-                    const preco = svc ? Number(svc.preco) : 0;
-                    const duracao = svc ? svc.duracao : 20;
+                    const preco = getAgendamentoTotalPrice(a);
+                    const duracao = getAgendamentoTotalDuration(a);
                     const horaFim = addMinutesToTime(a.hora, duracao);
+                    const nomeServicos = getAgendamentoServicesNames(a);
                     
                     return {
                         id: a.id,
                         tipo: 'agendamento',
-                        cliente: a.nome,
+                        cliente: `${a.nome} (${nomeServicos})`,
                         horaLabel: `${a.hora} → ${horaFim}`,
                         dataLabel: new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
                         valor: preco,
@@ -4608,8 +4839,7 @@
 
             const concluidosCount = agsFiltrados.filter(a => a.status === 'concluido').length + entradasFiltradas.filter(e => !e.agendamentoId).length;
             const totalFaturadoAg = agsFiltrados.filter(a => a.status === 'concluido').reduce((sum, a) => {
-                const svc = state.servicos.find(s => s.id === a.servicoId);
-                return sum + (svc ? Number(svc.preco) : 0);
+                return sum + getAgendamentoTotalPrice(a);
             }, 0);
             const totalFaturadoEnt = entradasFiltradas.filter(e => !e.agendamentoId).reduce((sum, e) => sum + Number(e.valor), 0);
             const totalFaturadoReal = totalFaturadoAg + totalFaturadoEnt;
@@ -4660,8 +4890,7 @@
                 const agsB = agsConcluidos.filter(a => a.barbeiroId === b.id);
                 const entradasB = entradasFiltradas.filter(e => e.barbeiroId === b.id && !e.agendamentoId);
                 const fatAgendamentos = agsB.reduce((sum, a) => {
-                    const svc = state.servicos.find(s => s.id === a.servicoId);
-                    return sum + (svc ? Number(svc.preco) : 0);
+                    return sum + getAgendamentoTotalPrice(a);
                 }, 0);
                 const fatEntradas = entradasB.reduce((sum, e) => sum + Number(e.valor), 0);
                 const fatGerado = fatAgendamentos + fatEntradas;

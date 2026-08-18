@@ -150,28 +150,54 @@ export default async function handler(req, res) {
             if (!auth) return;
 
             if (req.method === 'GET') {
-                const entradas = await query`
+                const rows = await query`
                     SELECT id, descricao as desc, valor::float as valor, 
                            to_char(data, 'YYYY-MM-DD') as data, 
                            barbeiro_id as "barbeiroId", servico_id as "servicoId", 
+                           servicos_ids as "servicoIds",
                            cliente_nome as "clienteNome", agendamento_id as "agendamentoId", 
                            observacao as obs, created_at as "createdAt"
                     FROM entradas 
                     ORDER BY data DESC, created_at DESC
                 `;
+                const entradas = rows.map(r => {
+                    let sIds = [];
+                    if (Array.isArray(r.servicoIds)) {
+                        sIds = r.servicoIds;
+                    } else if (typeof r.servicoIds === 'string') {
+                        try { sIds = JSON.parse(r.servicoIds); } catch (e) { sIds = []; }
+                    }
+                    if (!sIds.length && r.servicoId) {
+                        sIds = [r.servicoId];
+                    }
+                    return {
+                        ...r,
+                        servicoIds: sIds,
+                        servicoId: r.servicoId || (sIds[0] || null)
+                    };
+                });
                 return res.status(200).json({ ok: true, entradas });
             }
 
             if (req.method === 'POST') {
-                const { id, desc, valor, data, barbeiroId, servicoId, clienteNome, agendamentoId, obs } = req.body || {};
+                const { id, desc, valor, data, barbeiroId, servicoId, servicoIds, clienteNome, agendamentoId, obs } = req.body || {};
                 if (!desc || !data || valor === undefined || valor === null) {
                     return res.status(400).json({ ok: false, error: 'Descrição, data e valor são obrigatórios.' });
+                }
+
+                // Normalizar lista de serviços
+                let normalizedServicoIds = [];
+                if (Array.isArray(servicoIds) && servicoIds.length > 0) {
+                    normalizedServicoIds = servicoIds;
+                } else if (servicoId) {
+                    normalizedServicoIds = [servicoId];
                 }
 
                 // Se o usuário logado for barbeiro, assegurar que o registro seja associado a ele
                 const bId = (auth.role === 'barbeiro' && auth.barbeiroId) ? auth.barbeiroId : (barbeiroId || null);
                 const numValor = parseFloat(valor);
-                const sId = servicoId || null;
+                const sId = normalizedServicoIds[0] || servicoId || null;
+                const servicosIdsJson = JSON.stringify(normalizedServicoIds);
                 const client = clienteNome || null;
                 const agId = agendamentoId || null;
                 const observacao = obs || null;
@@ -181,24 +207,25 @@ export default async function handler(req, res) {
                         UPDATE entradas 
                         SET descricao = ${desc}, valor = ${numValor}, data = ${data}::date, 
                             barbeiro_id = ${bId}, servico_id = ${sId}, 
+                            servicos_ids = ${servicosIdsJson}::jsonb,
                             cliente_nome = ${client}, agendamento_id = ${agId}, 
                             observacao = ${observacao}
                         WHERE id = ${id}
                     `;
                     return res.status(200).json({
                         ok: true,
-                        entrada: { id, desc, valor: numValor, data, barbeiroId: bId, servicoId: sId, clienteNome: client, agendamentoId: agId, obs: observacao }
+                        entrada: { id, desc, valor: numValor, data, barbeiroId: bId, servicoId: sId, servicoIds: normalizedServicoIds, clienteNome: client, agendamentoId: agId, obs: observacao }
                     });
                 } else {
                     const newId = 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                     await query`
-                        INSERT INTO entradas (id, descricao, valor, data, barbeiro_id, servico_id, cliente_nome, agendamento_id, observacao)
-                        VALUES (${newId}, ${desc}, ${numValor}, ${data}::date, ${bId}, ${sId}, ${client}, ${agId}, ${observacao})
+                        INSERT INTO entradas (id, descricao, valor, data, barbeiro_id, servico_id, servicos_ids, cliente_nome, agendamento_id, observacao)
+                        VALUES (${newId}, ${desc}, ${numValor}, ${data}::date, ${bId}, ${sId}, ${servicosIdsJson}::jsonb, ${client}, ${agId}, ${observacao})
                     `;
 
                     return res.status(201).json({
                         ok: true,
-                        entrada: { id: newId, desc, valor: numValor, data, barbeiroId: bId, servicoId: sId, clienteNome: client, agendamentoId: agId, obs: observacao }
+                        entrada: { id: newId, desc, valor: numValor, data, barbeiroId: bId, servicoId: sId, servicoIds: normalizedServicoIds, clienteNome: client, agendamentoId: agId, obs: observacao }
                     });
                 }
             }

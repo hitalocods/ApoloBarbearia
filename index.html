@@ -459,6 +459,8 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            position: relative;
+            user-select: none;
         }
 
         .svc-card:hover {
@@ -471,10 +473,35 @@
             box-shadow: 0 0 16px rgba(201, 162, 39, 0.15);
         }
 
+        .svc-card .svc-check {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 1.5px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: transparent;
+            background: var(--panel-2);
+            transition: .2s;
+        }
+
+        .svc-card.selected .svc-check {
+            background: var(--brass);
+            border-color: var(--brass);
+            color: var(--ink);
+            font-weight: 700;
+        }
+
         .svc-card .nome {
             font-family: var(--font-display);
             font-size: 16.5px;
             font-weight: 500;
+            padding-right: 28px;
         }
 
         .svc-card .meta {
@@ -490,6 +517,20 @@
         .svc-card .meta b {
             color: var(--brass-2);
             font-size: 14px;
+        }
+
+        .svc-selection-bar {
+            margin-top: 18px;
+            padding: 14px 16px;
+            background: var(--panel-2);
+            border: 1px solid var(--brass-dim);
+            border-radius: var(--radius-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
         }
 
         .date-row {
@@ -834,9 +875,17 @@
 
         <!-- STEP 2: serviço -->
         <div class="flow-step" id="step-2">
-            <div class="step-label"><span class="n">2</span><span class="t">Escolha o serviço</span></div>
+            <div class="step-label"><span class="n">2</span><span class="t">Escolha os serviços</span></div>
+            <p style="font-size:13.5px; color:var(--cream-dim); margin-bottom:14px;">Você pode escolher <b>mais de um serviço</b> (quantos desejar):</p>
             <div class="svc-grid" id="clientSvcGrid"></div>
-            <div class="step-nav"><button class="btn ghost small" onclick="goStep(1)">← Voltar</button></div>
+            <div class="svc-selection-bar" id="svcSelectionBar" style="display:none;">
+                <div>
+                    <div style="font-size:14.5px; font-weight:600; color:var(--cream);" id="svcCountText">0 serviços selecionados</div>
+                    <div style="font-size:12px; color:var(--cream-dim); font-family:var(--font-mono); margin-top:2px;" id="svcMetaText">Duração: 0 min • Total: R$ 0,00</div>
+                </div>
+                <button class="btn small" onclick="confirmSelectedServices()">Avançar para a Data →</button>
+            </div>
+            <div class="step-nav" style="margin-top:16px;"><button class="btn ghost small" onclick="goStep(1)">← Voltar</button></div>
         </div>
 
         <!-- STEP 3: data -->
@@ -849,6 +898,7 @@
         <!-- STEP 4: horario -->
         <div class="flow-step" id="step-4">
             <div class="step-label"><span class="n">4</span><span class="t">Escolha o horário livre</span></div>
+            <div id="clientDurationNotice" style="font-family:var(--font-mono); font-size:12.5px; color:var(--brass-2); margin-bottom:12px; padding:8px 12px; background:var(--panel-2); border-radius:var(--radius-sm); border:1px solid var(--line); display:none;"></div>
             <div class="slot-grid" id="clientSlotGrid"></div>
             <div class="step-nav"><button class="btn ghost small" onclick="goStep(3)">← Voltar</button></div>
         </div>
@@ -1046,12 +1096,27 @@
         }
 
         /* ============================================================
-           BOOKING FLOW
+           BOOKING FLOW (SUPORTE A MÚLTIPLOS SERVIÇOS)
            ============================================================ */
-        let booking = { barbeiroId: null, servicoId: null, data: null, hora: null };
+        let booking = { barbeiroId: null, servicoIds: [], data: null, hora: null };
 
         function initials(nome) { return (nome || '').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase(); }
         function avatarHTML(b) { return b.foto ? `<img src="${b.foto}" alt="${b.nome}">` : initials(b.nome); }
+
+        function getSelectedServices() {
+            if (!booking.servicoIds || !booking.servicoIds.length) return [];
+            return state.servicos.filter(s => booking.servicoIds.includes(s.id));
+        }
+
+        function getSelectedDuration() {
+            const svcs = getSelectedServices();
+            return svcs.reduce((sum, s) => sum + Number(s.duracao || 30), 0);
+        }
+
+        function getSelectedPrice() {
+            const svcs = getSelectedServices();
+            return svcs.reduce((sum, s) => sum + Number(s.preco || 0), 0);
+        }
 
         function renderClientBarbeiros() {
             const grid = document.getElementById('clientBarbGrid');
@@ -1086,19 +1151,51 @@
             grid.innerHTML = '';
             if (!state.servicos.length) {
                 grid.innerHTML = '<div class="empty-state">Nenhum serviço disponível.</div>';
+                updateServicoSelectionBar();
                 return;
             }
             state.servicos.forEach(s => {
-                grid.innerHTML += `<div class="svc-card ${booking.servicoId === s.id ? 'selected' : ''}" onclick="selectServico('${s.id}')">
+                const isSelected = booking.servicoIds && booking.servicoIds.includes(s.id);
+                grid.innerHTML += `<div class="svc-card ${isSelected ? 'selected' : ''}" onclick="toggleServico('${s.id}')">
+                    <div class="svc-check">${isSelected ? '✓' : ''}</div>
                     <div class="nome">${s.nome}</div>
-                    <div class="meta"><span>${s.duracao} min</span><b>${brl(s.preco)}</b></div>
+                    <div class="meta"><span>⏱️ ${s.duracao} min</span><b>${brl(s.preco)}</b></div>
                 </div>`;
             });
+            updateServicoSelectionBar();
         }
 
-        function selectServico(id) {
-            booking.servicoId = id;
+        function toggleServico(id) {
+            if (!booking.servicoIds) booking.servicoIds = [];
+            const idx = booking.servicoIds.indexOf(id);
+            if (idx > -1) {
+                booking.servicoIds.splice(idx, 1);
+            } else {
+                booking.servicoIds.push(id);
+            }
             renderClientServicos();
+        }
+
+        function updateServicoSelectionBar() {
+            const bar = document.getElementById('svcSelectionBar');
+            if (!bar) return;
+            const count = booking.servicoIds ? booking.servicoIds.length : 0;
+            if (count > 0) {
+                bar.style.display = 'flex';
+                const countText = document.getElementById('svcCountText');
+                const metaText = document.getElementById('svcMetaText');
+                if (countText) countText.textContent = `${count} ${count === 1 ? 'serviço selecionado' : 'serviços selecionados'}`;
+                if (metaText) metaText.textContent = `⏱️ Duração total: ${getSelectedDuration()} min • 💰 Total: ${brl(getSelectedPrice())}`;
+            } else {
+                bar.style.display = 'none';
+            }
+        }
+
+        function confirmSelectedServices() {
+            if (!booking.servicoIds || !booking.servicoIds.length) {
+                toast('Selecione ao menos um serviço para continuar.');
+                return;
+            }
             goStep(3);
             renderClientDates();
         }
@@ -1133,6 +1230,19 @@
             const grid = document.getElementById('clientSlotGrid');
             if (!grid) return;
             grid.innerHTML = '';
+
+            const notice = document.getElementById('clientDurationNotice');
+            const totalDur = getSelectedDuration();
+            const svcs = getSelectedServices();
+            if (notice) {
+                if (svcs.length > 0) {
+                    notice.style.display = 'block';
+                    notice.innerHTML = `⏱️ <b>Duração estimada: ${totalDur} min</b> (${svcs.length} ${svcs.length === 1 ? 'serviço' : 'serviços'}) — Total: <b>${brl(getSelectedPrice())}</b>`;
+                } else {
+                    notice.style.display = 'none';
+                }
+            }
+
             const barbHor = (state.horarios[booking.barbeiroId] || {});
             const d = new Date(booking.data + 'T00:00:00');
             const key = DOW_SHORT[d.getDay()];
@@ -1168,15 +1278,23 @@
 
         function renderSummary() {
             const barb = state.barbeiros.find(b => b.id === booking.barbeiroId);
-            const svc = state.servicos.find(s => s.id === booking.servicoId);
+            const svcs = getSelectedServices();
+            const totalPreco = getSelectedPrice();
+            const totalDur = getSelectedDuration();
             const d = new Date(booking.data + 'T00:00:00');
             const dataFmt = d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+
+            const svcsListHTML = svcs.map(s => `<div style="font-size:13px; color:var(--cream); display:flex; justify-content:space-between; margin-top:3px;"><span>• ${s.nome} (${s.duracao} min)</span><b>${brl(s.preco)}</b></div>`).join('');
+
             document.getElementById('bookingSummary').innerHTML = `
-                <div class="summary-row"><span>Barbeiro</span><b>${barb ? barb.nome : ''}</b></div>
-                <div class="summary-row"><span>Serviço</span><b>${svc ? svc.nome : ''}</b></div>
+                <div class="summary-row"><span>Barbeiro</span><b>${barb ? barb.nome : '—'}</b></div>
+                <div class="summary-row" style="flex-direction:column; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; width:100%;"><span>Serviços Escolhidos (${svcs.length})</span><b>${totalDur} min total</b></div>
+                    <div style="padding-left:6px; margin-top:4px;">${svcsListHTML}</div>
+                </div>
                 <div class="summary-row"><span>Data</span><b>${dataFmt}</b></div>
-                <div class="summary-row"><span>Horário</span><b>${booking.hora}</b></div>
-                <div class="summary-row"><span>Valor do Serviço</span><b>${svc ? brl(svc.preco) : ''}</b></div>
+                <div class="summary-row"><span>Horário de Início</span><b>${booking.hora}</b></div>
+                <div class="summary-row"><span>Valor Total</span><b>${brl(totalPreco)}</b></div>
             `;
         }
 
@@ -1193,12 +1311,15 @@
             const nome = document.getElementById('cliNome').value.trim();
             const tel = document.getElementById('cliTel').value.trim();
             if (!nome || !tel) { toast('Preencha seu nome e WhatsApp'); return; }
+            if (!booking.servicoIds || !booking.servicoIds.length) { toast('Selecione ao menos um serviço'); return; }
 
             const newAgId = 'ag_' + uid();
+            const primaryServicoId = booking.servicoIds[0];
             const ag = {
                 id: newAgId,
                 barbeiroId: booking.barbeiroId,
-                servicoId: booking.servicoId,
+                servicoId: primaryServicoId,
+                servicoIds: booking.servicoIds,
                 data: booking.data,
                 hora: booking.hora,
                 nome,
@@ -1210,7 +1331,9 @@
             if (isDbConnected) {
                 try {
                     const res = await apiFetch('/api/agendamentos', 'POST', ag);
-                    if (res && res.agendamento) ag.id = res.agendamento.id;
+                    if (res && res.agendamento) {
+                        ag.id = res.agendamento.id;
+                    }
                 } catch (err) {
                     toast(err.message || 'Erro ao agendar no banco');
                     renderClientSlots();
@@ -1222,10 +1345,20 @@
             await persist();
 
             const barb = state.barbeiros.find(b => b.id === booking.barbeiroId);
-            const svc = state.servicos.find(s => s.id === booking.servicoId);
+            const svcs = getSelectedServices();
+            const servicosNomes = svcs.map(s => s.nome).join(' + ');
+            const totalValor = getSelectedPrice();
+            const totalDur = getSelectedDuration();
             const d = new Date(booking.data + 'T00:00:00');
             const dataFmt = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            const msg = encodeURIComponent(`Olá ${barb ? barb.nome : ''}! Sou ${nome} e acabei de agendar ${svc ? svc.nome : ''} no dia ${dataFmt} às ${booking.hora} pela Apolo Barbearia.`);
+            
+            const msg = encodeURIComponent(
+                `Olá ${barb ? barb.nome : ''}! Sou ${nome} e acabei de agendar na Apolo Barbearia:\n` +
+                `✂️ Serviços: ${servicosNomes}\n` +
+                `⏱️ Duração: ${totalDur} min\n` +
+                `💰 Total: ${brl(totalValor)}\n` +
+                `📅 Data: ${dataFmt} às ${booking.hora}`
+            );
             
             if (barb && barb.whatsapp) {
                 window.open(`https://wa.me/55${barb.whatsapp.replace(/\D/g, '')}?text=${msg}`, '_blank');
@@ -1236,7 +1369,7 @@
         }
 
         function resetBooking() {
-            booking = { barbeiroId: null, servicoId: null, data: null, hora: null };
+            booking = { barbeiroId: null, servicoIds: [], data: null, hora: null };
             document.getElementById('cliNome').value = '';
             document.getElementById('cliTel').value = '';
             renderClientBarbeiros();
