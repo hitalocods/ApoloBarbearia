@@ -58,14 +58,24 @@ export default async function handler(req, res) {
                     // Encontrar o barbeiro correspondente
                     const matchedBarber = barbeiros.find(b => {
                         const savedPass = (b.senha || '').trim();
-                        if (savedPass) {
-                            return savedPass === cleanPass || normalizeStr(savedPass) === cleanPassNorm;
-                        }
-                        // Se o barbeiro for o Alemão e a senha digitada for 'alemao' ou 'alemão'
-                        if (normalizeStr(b.nome).includes('alemao') && (cleanPassNorm === 'alemao' || cleanPass === '1234')) {
+                        const bNomeNorm = normalizeStr(b.nome);
+
+                        // 1. Senha exata cadastrada ou normalizada
+                        if (savedPass && (savedPass === cleanPass || normalizeStr(savedPass) === cleanPassNorm)) {
                             return true;
                         }
-                        // Se não tem senha definida ainda, permitir 4 últimos dígitos do WhatsApp ou '1234'
+
+                        // 2. Se o barbeiro for o Alemão, permitir 'alemao', 'alemão', 'alemao123' ou '1234'
+                        if (bNomeNorm.includes('alemao') && (cleanPassNorm === 'alemao' || cleanPassNorm === 'alemao123' || cleanPass === '1234')) {
+                            return true;
+                        }
+
+                        // 3. Se digitou exatamente o primeiro nome do barbeiro
+                        if (cleanPassNorm && bNomeNorm.split(' ')[0] === cleanPassNorm) {
+                            return true;
+                        }
+
+                        // 4. Se não tem senha definida ainda, permitir 4 últimos dígitos do WhatsApp ou '1234'
                         const lastDigits = (b.whatsapp || '').replace(/\D/g, '').slice(-4);
                         return cleanPass === '1234' || (lastDigits && cleanPass === lastDigits);
                     });
