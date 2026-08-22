@@ -1856,6 +1856,286 @@
             transform: scale(1.08) rotate(90deg);
             background: #654ad8;
         }
+
+        /* --- COMISSÃO DETALHADA --- */
+        .comissao-filter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comissao-filter-presets {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .comissao-filter-inputs {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .comissao-date-group,
+        .comissao-barber-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 140px;
+            flex: 1;
+        }
+
+        .comissao-barber-group {
+            min-width: 200px;
+            flex: 1.5;
+        }
+
+        .comissao-label {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--cream-dim);
+        }
+
+        .comissao-input,
+        .comissao-select {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            color: var(--cream);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            width: 100%;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .comissao-input:focus,
+        .comissao-select:focus {
+            border-color: var(--brass);
+        }
+
+        .comissao-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .comissao-barb-card {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color .2s, transform .2s;
+        }
+
+        .comissao-barb-card:hover {
+            border-color: var(--brass-dim);
+            transform: translateY(-2px);
+        }
+
+        .comissao-barb-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comissao-barb-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1.5px solid var(--brass);
+            overflow: hidden;
+            background: var(--panel-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 14px;
+            color: var(--brass-2);
+            flex-shrink: 0;
+        }
+
+        .comissao-barb-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comissao-barb-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .comissao-barb-nome {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--cream);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .comissao-barb-pct-badge {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            background: rgba(201, 162, 39, 0.15);
+            color: var(--brass-2);
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            padding: 2px 7px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 3px;
+        }
+
+        .comissao-barb-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: var(--panel);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+        }
+
+        .comissao-metric-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comissao-metric-label {
+            font-family: var(--font-mono);
+            font-size: 9.5px;
+            text-transform: uppercase;
+            color: var(--cream-dim);
+            letter-spacing: .05em;
+        }
+
+        .comissao-metric-val {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .comissao-metric-val.bruto { color: var(--cream); }
+        .comissao-metric-val.comissao { color: #9cd488; }
+        .comissao-metric-val.liquido { color: var(--brass-2); }
+        .comissao-metric-val.qty { color: var(--cream-dim); }
+
+        /* Lista Mobile de Comissões */
+        .comissao-mobile-list {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .comissao-mobile-item {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .comissao-mobile-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .comissao-mobile-client {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--cream);
+        }
+
+        .comissao-mobile-barber {
+            font-size: 11.5px;
+            color: var(--brass-2);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .comissao-mobile-services {
+            font-size: 12px;
+            color: var(--cream-dim);
+            background: var(--panel);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(243, 234, 217, 0.05);
+        }
+
+        .comissao-mobile-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--line);
+            padding-top: 8px;
+            margin-top: 2px;
+        }
+
+        .comissao-mobile-foot-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comissao-mobile-foot-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .comissao-desktop-table {
+                display: none;
+            }
+            .comissao-mobile-list {
+                display: flex;
+            }
+            .comissao-filter-inputs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .comissao-date-group,
+            .comissao-barber-group {
+                width: 100%;
+            }
+            .comissao-filter-presets {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+                width: 100%;
+            }
+            .comissao-filter-presets button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .topnav, .admin-side, .mobile-nav-drawer, .mobile-nav-backdrop, .fat-bottom-drawer, .comissao-filter-presets, .nav-actions, .icon-btn, .btn { display: none !important; }
+            .admin-shell { margin: 0 !important; padding: 0 !important; }
+            .admin-main { max-width: 100% !important; padding: 0 !important; }
+            .panel-box, .stat-card, .comissao-barb-card { border: 1px solid #ddd !important; background: #fff !important; color: #000 !important; box-shadow: none !important; }
+            .stat-card .value, .comissao-metric-val { color: #000 !important; }
+            .comissao-desktop-table { display: block !important; }
+            .comissao-mobile-list { display: none !important; }
+            table.data-table th, table.data-table td { color: #000 !important; border-bottom: 1px solid #ccc !important; }
+        }
     </style>
 </head>
 
@@ -1914,6 +2194,9 @@
             <div class="mobile-tab" data-pane="faturamento" onclick="switchPane('faturamento')">
                 <span class="m-icon">💰</span> <span class="m-label">Faturamento</span>
             </div>
+            <div class="mobile-tab" data-pane="comissao-detalhada" onclick="switchPane('comissao-detalhada')">
+                <span class="m-icon">💵</span> <span class="m-label">Comissão Detalhada</span>
+            </div>
         </div>
         <div class="mobile-drawer-footer">
             <div class="admin-cloud-status" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
@@ -1961,6 +2244,7 @@
             <div class="tab" data-pane="servicos">💇 Serviços</div>
             <div class="tab" data-pane="horarios">⏰ Horários</div>
             <div class="tab" data-pane="faturamento">💰 Faturamento</div>
+            <div class="tab" data-pane="comissao-detalhada">💵 Comissão Detalhada</div>
 
             <div class="admin-cloud-status">
                 <div class="cloud-pill offline" id="pillNeon">
@@ -2393,6 +2677,120 @@
                         </div>
                     </div>
                     <button class="fat-fab-btn" onclick="openEntradaModal()" title="Registrar Atendimento">+</button>
+                </div>
+            </div>
+
+            <!-- COMISSÃO DETALHADA -->
+            <div class="admin-pane" id="pane-comissao-detalhada">
+                <div class="toolbar" style="margin-bottom:16px;">
+                    <div>
+                        <div class="eyebrow">Relatório Financeiro & Produção</div>
+                        <h2 style="font-family:var(--font-display); font-size:24px; margin-top:2px;">Comissão Detalhada</h2>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <button class="btn ghost small" onclick="printComissaoReport()" title="Imprimir / Salvar em PDF">🖨️ Imprimir Relatório</button>
+                    </div>
+                </div>
+
+                <!-- FILTROS PRINCIPAIS DE COMISSÃO -->
+                <div class="panel-box" style="padding:16px; margin-bottom:16px;">
+                    <div class="comissao-filter-container">
+                        <!-- Presets de Período -->
+                        <div class="comissao-filter-presets">
+                            <button class="btn small com-period-btn ghost" id="btnComPeriodoHoje" onclick="setComissaoPeriodo('hoje')">Hoje</button>
+                            <button class="btn small com-period-btn ghost" id="btnComPeriodoSemana" onclick="setComissaoPeriodo('semana')">Esta Semana</button>
+                            <button class="btn small com-period-btn active" id="btnComPeriodoMes" onclick="setComissaoPeriodo('mes')">Este Mês</button>
+                            <button class="btn small com-period-btn ghost" id="btnComPeriodoMesAnt" onclick="setComissaoPeriodo('mes_anterior')">Mês Anterior</button>
+                            <button class="btn small com-period-btn ghost" id="btnComPeriodoCustom" onclick="setComissaoPeriodo('custom')">Personalizado</button>
+                        </div>
+                        
+                        <!-- Inputs de Data Início e Fim + Seletor de Barbeiro -->
+                        <div class="comissao-filter-inputs">
+                            <div class="comissao-date-group">
+                                <label class="comissao-label">Data Início</label>
+                                <input type="date" id="comissaoDataInicio" onchange="onComissaoCustomDateChange()" oninput="onComissaoCustomDateChange()" class="comissao-input">
+                            </div>
+                            <div class="comissao-date-group">
+                                <label class="comissao-label">Data Fim</label>
+                                <input type="date" id="comissaoDataFim" onchange="onComissaoCustomDateChange()" oninput="onComissaoCustomDateChange()" class="comissao-input">
+                            </div>
+                            <div class="comissao-barber-group">
+                                <label class="comissao-label">Barbeiro / Profissional</label>
+                                <select id="comissaoBarbeiroSelect" onchange="onComissaoBarbeiroChange()" class="comissao-select">
+                                    <option value="">Todos os Barbeiros</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEADER DO FILTRO ATIVO -->
+                <div class="fat-filter-header" style="margin-bottom:16px;">
+                    <div class="fat-filter-periodo" id="comissaoFilterPeriodoText">Período: Calculando...</div>
+                    <div class="fat-filter-profissionais" id="comissaoFilterBarbeirosText">Profissionais: Todos</div>
+                </div>
+
+                <!-- CARDS DE RESUMO GERAL (KPIs) -->
+                <div class="stat-grid" id="comissaoKPIs" style="margin-bottom:20px;">
+                    <div class="stat-card">
+                        <div class="label">Atendimentos Concluídos</div>
+                        <div class="value" id="comissaoKpiAtendimentos">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Valor Bruto Total</div>
+                        <div class="value" id="comissaoKpiBruto" style="color:var(--brass-2);">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Total Comissões</div>
+                        <div class="value" id="comissaoKpiComissao" style="color:#9cd488;">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Líquido Barbearia</div>
+                        <div class="value" id="comissaoKpiLiquido" style="color:var(--cream);">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO: RESUMO POR PROFISSIONAL -->
+                <div class="panel-box" style="margin-bottom:20px;">
+                    <h3 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                        <span>Produção & Comissões por Barbeiro</span>
+                        <small style="font-size:11px; font-family:var(--font-mono); color:var(--cream-dim);">Conforme % cadastrada do barbeiro</small>
+                    </h3>
+                    <div class="comissao-cards-grid" id="comissaoBarbersCards">
+                        <!-- Gerado dinamicamente no JS -->
+                    </div>
+                </div>
+
+                <!-- SEÇÃO: TABELA & LISTA DETALHADA DE ATENDIMENTOS -->
+                <div class="panel-box" style="margin-bottom:20px;">
+                    <div class="toolbar" style="margin-bottom:12px;">
+                        <h3 style="margin-bottom:0;">Detalhamento Individual dos Atendimentos</h3>
+                        <span id="comissaoCountBadge" class="badge ok">0 registros</span>
+                    </div>
+
+                    <!-- Tabela Desktop -->
+                    <div class="table-wrap comissao-desktop-table" style="margin-bottom:0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Data / Hora</th>
+                                    <th>Profissional</th>
+                                    <th>Cliente</th>
+                                    <th>Serviço(s)</th>
+                                    <th>Valor Bruto</th>
+                                    <th>% Comissão</th>
+                                    <th>Comissão (R$)</th>
+                                    <th>Líquido Loja</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblComissaoDetalhes"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cards Mobile (100% Responsivo) -->
+                    <div class="comissao-mobile-list" id="comissaoMobileList">
+                        <!-- Gerado dinamicamente para telas mobile -->
+                    </div>
                 </div>
             </div>
 
@@ -3260,7 +3658,8 @@
                 barbeiros: 'Barbeiros',
                 servicos: 'Serviços',
                 horarios: 'Horários',
-                faturamento: 'Faturamento'
+                faturamento: 'Faturamento',
+                'comissao-detalhada': 'Comissão Detalhada'
             };
             const subTitle = document.getElementById('brandSubTitle');
             if (subTitle && titleMap[paneName]) {
@@ -3272,6 +3671,7 @@
             if (paneName === 'agendamentos') renderAgendamentos();
             if (paneName === 'horarios') renderHorarios();
             if (paneName === 'faturamento') renderFinanceiro();
+            if (paneName === 'comissao-detalhada') renderComissaoDetalhada();
 
             closeMobileNav();
         }
@@ -5062,9 +5462,381 @@
             }
         }
 
+        /* ============================================================
+           MÓDULO: COMISSÃO DETALHADA
+           ============================================================ */
+        let comissaoFilter = {
+            periodo: 'mes', // 'hoje' | 'semana' | 'mes' | 'mes_anterior' | 'custom'
+            dataInicio: '',
+            dataFim: '',
+            barbeiroId: ''
+        };
+
+        function getComissaoPeriodoRange() {
+            const now = new Date();
+            const todayStr = getLocalDateStr(now);
+
+            if (comissaoFilter.periodo === 'hoje') {
+                return { start: todayStr, end: todayStr };
+            }
+            if (comissaoFilter.periodo === 'semana') {
+                const day = now.getDay();
+                const diffSeg = now.getDate() - day + (day === 0 ? -6 : 1);
+                const seg = new Date(now.getFullYear(), now.getMonth(), diffSeg);
+                const dom = new Date(now.getFullYear(), now.getMonth(), diffSeg + 6);
+                return { start: getLocalDateStr(seg), end: getLocalDateStr(dom) };
+            }
+            if (comissaoFilter.periodo === 'mes') {
+                const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const end = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                return { start, end };
+            }
+            if (comissaoFilter.periodo === 'mes_anterior') {
+                const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const start = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}-01`;
+                const lastDay = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1, 0).getDate();
+                const end = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                return { start, end };
+            }
+            if (comissaoFilter.periodo === 'custom') {
+                const start = document.getElementById('comissaoDataInicio')?.value || getLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
+                const end = document.getElementById('comissaoDataFim')?.value || todayStr;
+                return { start, end };
+            }
+            return { start: '2000-01-01', end: '2099-12-31' };
+        }
+
+        function setComissaoPeriodo(p) {
+            comissaoFilter.periodo = p;
+            document.querySelectorAll('.com-period-btn').forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('ghost');
+            });
+            const map = {
+                hoje: 'btnComPeriodoHoje',
+                semana: 'btnComPeriodoSemana',
+                mes: 'btnComPeriodoMes',
+                mes_anterior: 'btnComPeriodoMesAnt',
+                custom: 'btnComPeriodoCustom'
+            };
+            const activeBtn = document.getElementById(map[p]);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.classList.remove('ghost');
+            }
+            const range = getComissaoPeriodoRange();
+            const dIni = document.getElementById('comissaoDataInicio');
+            const dFim = document.getElementById('comissaoDataFim');
+            if (dIni) dIni.value = range.start;
+            if (dFim) dFim.value = range.end;
+            renderComissaoDetalhada();
+        }
+
+        function onComissaoCustomDateChange() {
+            comissaoFilter.periodo = 'custom';
+            document.querySelectorAll('.com-period-btn').forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('ghost');
+            });
+            const customBtn = document.getElementById('btnComPeriodoCustom');
+            if (customBtn) {
+                customBtn.classList.add('active');
+                customBtn.classList.remove('ghost');
+            }
+            renderComissaoDetalhada();
+        }
+
+        function onComissaoBarbeiroChange() {
+            const sel = document.getElementById('comissaoBarbeiroSelect');
+            if (sel) comissaoFilter.barbeiroId = sel.value;
+            renderComissaoDetalhada();
+        }
+
+        function printComissaoReport() {
+            window.print();
+        }
+
+        function renderComissaoDetalhada() {
+            const isBarb = currentUser.role === 'barbeiro';
+            const bSel = document.getElementById('comissaoBarbeiroSelect');
+            if (bSel) {
+                if (isBarb && currentUser.barbeiroId) {
+                    bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                    bSel.value = currentUser.barbeiroId;
+                    bSel.disabled = true;
+                } else {
+                    bSel.disabled = false;
+                    const curVal = bSel.value;
+                    bSel.innerHTML = '<option value="">Todos os Barbeiros</option>' + state.barbeiros.map(b => {
+                        const pct = b.comissaoPct !== undefined ? Number(b.comissaoPct) : 40;
+                        return `<option value="${b.id}">${b.nome} (${pct}%)</option>`;
+                    }).join('');
+                    if (curVal !== undefined && curVal !== null) {
+                        bSel.value = curVal;
+                    }
+                }
+            }
+
+            const range = getComissaoPeriodoRange();
+            const dIni = document.getElementById('comissaoDataInicio');
+            const dFim = document.getElementById('comissaoDataFim');
+            if (dIni && !dIni.value) dIni.value = range.start;
+            if (dFim && !dFim.value) dFim.value = range.end;
+
+            const start = dIni ? dIni.value : range.start;
+            const end = dFim ? dFim.value : range.end;
+            const bFiltro = isBarb ? currentUser.barbeiroId : (bSel ? bSel.value : '');
+
+            // Atualizar header de status
+            const dtStartFmt = new Date(start + 'T00:00:00').toLocaleDateString('pt-BR');
+            const dtEndFmt = new Date(end + 'T00:00:00').toLocaleDateString('pt-BR');
+            const periodText = document.getElementById('comissaoFilterPeriodoText');
+            if (periodText) periodText.textContent = `Período: ${dtStartFmt} até ${dtEndFmt}`;
+
+            const selectedBarb = state.barbeiros.find(b => b.id === bFiltro);
+            const barbsText = document.getElementById('comissaoFilterBarbeirosText');
+            if (barbsText) {
+                barbsText.textContent = selectedBarb ? `Profissional: ${selectedBarb.nome} (${selectedBarb.comissaoPct || 40}%)` : 'Profissionais: Todos os Cadastrados';
+            }
+
+            // Filtrar agendamentos concluídos
+            const agsConcluidos = state.agendamentos.filter(a => {
+                if (a.status !== 'concluido') return false;
+                if (a.data < start || a.data > end) return false;
+                if (bFiltro && a.barbeiroId !== bFiltro) return false;
+                return true;
+            });
+
+            // Filtrar entradas manuais
+            const entradasFiltradas = state.entradas.filter(e => {
+                if (e.data < start || e.data > end) return false;
+                if (bFiltro && e.barbeiroId !== bFiltro) return false;
+                return true;
+            });
+
+            // Estruturar lista unificada de itens para detalhamento
+            const itensDetalhados = [];
+
+            agsConcluidos.forEach(ag => {
+                const b = state.barbeiros.find(x => x.id === ag.barbeiroId) || { nome: 'Não identificado', comissaoPct: 40, foto: null };
+                const pct = b.comissaoPct !== undefined ? Number(b.comissaoPct) : 40;
+                const bruto = getAgendamentoTotalPrice(ag);
+                const comissao = bruto * (pct / 100);
+                const liquido = bruto - comissao;
+                const svcs = getAgendamentoServices(ag);
+                const nomesSvcs = getAgendamentoServicesNames(ag);
+
+                itensDetalhados.push({
+                    id: ag.id,
+                    tipo: 'agendamento',
+                    data: ag.data,
+                    hora: ag.hora,
+                    barbeiroId: ag.barbeiroId,
+                    barbeiroNome: b.nome,
+                    barbeiroFoto: b.foto,
+                    pctComissao: pct,
+                    clienteNome: ag.nome,
+                    clienteTel: ag.tel,
+                    servicos: nomesSvcs,
+                    valorBruto: bruto,
+                    valorComissao: comissao,
+                    valorLiquido: liquido,
+                    raw: ag
+                });
+            });
+
+            entradasFiltradas.filter(e => !e.agendamentoId).forEach(ent => {
+                const b = state.barbeiros.find(x => x.id === ent.barbeiroId) || { nome: 'Atendimento Avulso', comissaoPct: 40, foto: null };
+                const pct = b.comissaoPct !== undefined ? Number(b.comissaoPct) : 40;
+                const bruto = Number(ent.valor || 0);
+                const comissao = bruto * (pct / 100);
+                const liquido = bruto - comissao;
+
+                itensDetalhados.push({
+                    id: ent.id,
+                    tipo: 'entrada_manual',
+                    data: ent.data,
+                    hora: '—',
+                    barbeiroId: ent.barbeiroId,
+                    barbeiroNome: b.nome,
+                    barbeiroFoto: b.foto,
+                    pctComissao: pct,
+                    clienteNome: ent.clienteNome || 'Cliente Avulso',
+                    clienteTel: '—',
+                    servicos: ent.desc || 'Atendimento / Entrada',
+                    valorBruto: bruto,
+                    valorComissao: comissao,
+                    valorLiquido: liquido,
+                    raw: ent
+                });
+            });
+
+            // Ordenar por data decrescente
+            itensDetalhados.sort((a, b) => {
+                const cmp = b.data.localeCompare(a.data);
+                if (cmp !== 0) return cmp;
+                return (b.hora || '').localeCompare(a.hora || '');
+            });
+
+            // Calcular KPIs Gerais
+            const totalAtendimentos = itensDetalhados.length;
+            const totalBruto = itensDetalhados.reduce((sum, item) => sum + item.valorBruto, 0);
+            const totalComissoes = itensDetalhados.reduce((sum, item) => sum + item.valorComissao, 0);
+            const totalLiquido = totalBruto - totalComissoes;
+
+            // Atualizar elementos de KPIs
+            const kpiAtend = document.getElementById('comissaoKpiAtendimentos');
+            if (kpiAtend) kpiAtend.textContent = totalAtendimentos;
+            const kpiBruto = document.getElementById('comissaoKpiBruto');
+            if (kpiBruto) kpiBruto.textContent = brl(totalBruto);
+            const kpiComiss = document.getElementById('comissaoKpiComissao');
+            if (kpiComiss) kpiComiss.textContent = brl(totalComissoes);
+            const kpiLiq = document.getElementById('comissaoKpiLiquido');
+            if (kpiLiq) kpiLiq.textContent = brl(totalLiquido);
+
+            const countBadge = document.getElementById('comissaoCountBadge');
+            if (countBadge) countBadge.textContent = `${totalAtendimentos} ${totalAtendimentos === 1 ? 'atendimento' : 'atendimentos'}`;
+
+            // Calcular e Renderizar Cards por Barbeiro
+            const barbersToDisplay = bFiltro ? state.barbeiros.filter(b => b.id === bFiltro) : state.barbeiros;
+            const barbersCardsContainer = document.getElementById('comissaoBarbersCards');
+            
+            if (barbersCardsContainer) {
+                if (!barbersToDisplay.length) {
+                    barbersCardsContainer.innerHTML = '<div style="color:var(--cream-faint); text-align:center; padding:20px; grid-column:1/-1;">Nenhum barbeiro cadastrado no sistema.</div>';
+                } else {
+                    barbersCardsContainer.innerHTML = barbersToDisplay.map(b => {
+                        const pct = b.comissaoPct !== undefined ? Number(b.comissaoPct) : 40;
+                        const itensB = itensDetalhados.filter(item => item.barbeiroId === b.id);
+                        const countB = itensB.length;
+                        const brutoB = itensB.reduce((sum, item) => sum + item.valorBruto, 0);
+                        const comissaoB = brutoB * (pct / 100);
+                        const liquidoB = brutoB - comissaoB;
+
+                        const avatarContent = b.foto ? `<img src="${b.foto}" alt="${b.nome}">` : initials(b.nome);
+
+                        return `
+                            <div class="comissao-barb-card">
+                                <div class="comissao-barb-header">
+                                    <div class="comissao-barb-avatar">${avatarContent}</div>
+                                    <div class="comissao-barb-info">
+                                        <div class="comissao-barb-nome">${b.nome}</div>
+                                        <div style="font-size:11px; color:var(--cream-dim);">${b.especialidade || 'Barbeiro Profissional'}</div>
+                                        <div class="comissao-barb-pct-badge">✂️ Comissão: <b>${pct}%</b></div>
+                                    </div>
+                                </div>
+                                <div class="comissao-barb-metrics">
+                                    <div class="comissao-metric-item">
+                                        <span class="comissao-metric-label">Atendimentos</span>
+                                        <span class="comissao-metric-val qty">${countB}</span>
+                                    </div>
+                                    <div class="comissao-metric-item">
+                                        <span class="comissao-metric-label">Valor Bruto</span>
+                                        <span class="comissao-metric-val bruto">${brl(brutoB)}</span>
+                                    </div>
+                                    <div class="comissao-metric-item">
+                                        <span class="comissao-metric-label">A Repassar (${pct}%)</span>
+                                        <span class="comissao-metric-val comissao">${brl(comissaoB)}</span>
+                                    </div>
+                                    <div class="comissao-metric-item">
+                                        <span class="comissao-metric-label">Barbearia (${100 - pct}%)</span>
+                                        <span class="comissao-metric-val liquido">${brl(liquidoB)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // Renderizar Tabela Desktop
+            const tbDetalhes = document.getElementById('tblComissaoDetalhes');
+            if (tbDetalhes) {
+                if (!itensDetalhados.length) {
+                    tbDetalhes.innerHTML = '<tr><td colspan="8" style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum atendimento ou comanda concluída no período selecionado.</td></tr>';
+                } else {
+                    tbDetalhes.innerHTML = itensDetalhados.map(item => {
+                        const dataFmt = new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                        const horaFmt = item.hora && item.hora !== '—' ? item.hora : 'Avulso';
+                        return `
+                            <tr>
+                                <td style="font-family:var(--font-mono); font-size:12px; white-space:nowrap;">
+                                    <b>${dataFmt}</b> <span style="color:var(--cream-dim);">${horaFmt}</span>
+                                </td>
+                                <td>
+                                    <b>${item.barbeiroNome}</b>
+                                </td>
+                                <td>
+                                    <div><b>${item.clienteNome}</b></div>
+                                    ${item.clienteTel && item.clienteTel !== '—' && item.clienteTel !== '***' ? `<div style="font-size:10.5px; color:var(--cream-faint); font-family:var(--font-mono);">${item.clienteTel}</div>` : ''}
+                                </td>
+                                <td style="color:var(--cream-dim); font-size:12.5px;">
+                                    ${item.servicos}
+                                </td>
+                                <td style="font-family:var(--font-mono); font-weight:600; color:var(--cream);">
+                                    ${brl(item.valorBruto)}
+                                </td>
+                                <td style="font-family:var(--font-mono); font-size:12px;">
+                                    <span class="badge" style="background:rgba(201,162,39,0.12); color:var(--brass-2);">${item.pctComissao}%</span>
+                                </td>
+                                <td style="font-family:var(--font-mono); font-weight:700; color:#9cd488;">
+                                    ${brl(item.valorComissao)}
+                                </td>
+                                <td style="font-family:var(--font-mono); color:var(--cream-dim);">
+                                    ${brl(item.valorLiquido)}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // Renderizar Cards Mobile (100% Responsivo)
+            const mobileList = document.getElementById('comissaoMobileList');
+            if (mobileList) {
+                if (!itensDetalhados.length) {
+                    mobileList.innerHTML = '<div style="color:var(--cream-faint); text-align:center; padding:30px;">Nenhum atendimento no período selecionado.</div>';
+                } else {
+                    mobileList.innerHTML = itensDetalhados.map(item => {
+                        const dataFmt = new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                        const horaFmt = item.hora && item.hora !== '—' ? item.hora : 'Avulso';
+                        return `
+                            <div class="comissao-mobile-item">
+                                <div class="comissao-mobile-head">
+                                    <div>
+                                        <div class="comissao-mobile-client">${item.clienteNome}</div>
+                                        <div class="comissao-mobile-barber">💈 <b>${item.barbeiroNome}</b></div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-family:var(--font-mono); font-size:11px; color:var(--cream-dim);">📅 ${dataFmt}</div>
+                                        <div style="font-family:var(--font-mono); font-size:11px; color:var(--cream-dim);">⏰ ${horaFmt}</div>
+                                    </div>
+                                </div>
+                                <div class="comissao-mobile-services">
+                                    ✂️ ${item.servicos}
+                                </div>
+                                <div class="comissao-mobile-foot">
+                                    <div class="comissao-mobile-foot-left">
+                                        <span style="font-family:var(--font-mono); font-size:10px; text-transform:uppercase; color:var(--cream-dim);">Valor Bruto</span>
+                                        <span style="font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--cream);">${brl(item.valorBruto)}</span>
+                                    </div>
+                                    <div class="comissao-mobile-foot-right">
+                                        <span style="font-family:var(--font-mono); font-size:10px; text-transform:uppercase; color:#9cd488;">Comissão (${item.pctComissao}%)</span>
+                                        <span style="font-family:var(--font-mono); font-size:15px; font-weight:700; color:#9cd488;">${brl(item.valorComissao)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        }
+
         function renderAdmin() {
             renderBarbeirosTable(); renderServicosTable(); renderHorarios();
             renderAgendamentos(); renderDashboard(); renderFinanceiro();
+            renderComissaoDetalhada();
             renderAgendaTimeline();
         }
 
