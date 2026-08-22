@@ -132,16 +132,22 @@ async function init() {
             );
         `;
 
-        // Índices
+        // Índices de Alta Performance (Otimização para Plano Free Neon)
         await sql`CREATE INDEX IF NOT EXISTS idx_agendamentos_data_hora ON agendamentos(data, hora);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_agendamentos_barbeiro ON agendamentos(barbeiro_id);`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_agendamentos_status ON agendamentos(status);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_horarios_barbeiro ON horarios(barbeiro_id);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_despesas_data ON despesas(data);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_entradas_data ON entradas(data);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_pagamentos_comissao_barbeiro ON pagamentos_comissao(barbeiro_id);`;
         await sql`CREATE INDEX IF NOT EXISTS idx_push_endpoint ON push_subscriptions(endpoint);`;
 
-        console.log('✅ Tabelas e colunas criadas/verificadas com sucesso!');
+        // Limpeza Inteligente Automática: Remove agendamentos cancelados com mais de 180 dias para economizar espaço
+        try {
+            await sql`DELETE FROM agendamentos WHERE status = 'cancelado' AND data < CURRENT_DATE - INTERVAL '180 days'`;
+        } catch (e) {}
+
+        console.log('✅ Tabelas, índices otimizados e limpeza de histórico verificados!');
 
         // Verificar se existem barbeiros
         const barbeirosExistentes = await sql`SELECT COUNT(*) as total FROM barbeiros`;

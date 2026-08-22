@@ -96,9 +96,10 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- ÍNDICES PARA ALTA PERFORMANCE DE CONSULTA
+-- ÍNDICES PARA ALTA PERFORMANCE DE CONSULTA (Otimização para Plano Free Neon)
 CREATE INDEX IF NOT EXISTS idx_agendamentos_data_hora ON agendamentos(data, hora);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_barbeiro ON agendamentos(barbeiro_id);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_status ON agendamentos(status);
 CREATE INDEX IF NOT EXISTS idx_horarios_barbeiro ON horarios(barbeiro_id);
 CREATE INDEX IF NOT EXISTS idx_despesas_data ON despesas(data);
 CREATE INDEX IF NOT EXISTS idx_entradas_data ON entradas(data);

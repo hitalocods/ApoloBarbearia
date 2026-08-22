@@ -13,6 +13,11 @@ export default async function handler(req, res) {
     }
 
     try {
+        // Limpeza inteligente automática em background (remove cancelados com mais de 180 dias para economizar o plano Neon)
+        if (Math.random() < 0.1) {
+            query`DELETE FROM agendamentos WHERE status = 'cancelado' AND data < CURRENT_DATE - INTERVAL '180 days'`.catch(() => {});
+        }
+
         if (req.method === 'GET') {
             const rows = await query`
                 SELECT id, barbeiro_id as "barbeiroId", servico_id as "servicoId", 
