@@ -2271,18 +2271,18 @@
                 </div>
 
                 <!-- BANNER DE NOTIFICAÇÕES PUSH -->
-                <div class="panel-box" id="pushNotificationBanner" style="display:none; background:linear-gradient(135deg, rgba(201,162,39,0.12), rgba(22,18,9,0.95)); border:1px solid var(--brass-dim); margin-bottom:18px; padding:16px 18px;">
+                <div class="panel-box push-notification-banner" id="pushNotificationBanner" style="display:none; background:linear-gradient(135deg, rgba(201,162,39,0.12), rgba(22,18,9,0.95)); border:1px solid var(--brass-dim); margin-bottom:18px; padding:16px 18px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                         <div style="display:flex; align-items:center; gap:12px;">
                             <div style="font-size:26px; line-height:1;">🔔</div>
                             <div>
-                                <div style="font-weight:600; font-size:14.5px; color:var(--cream);" id="pushBannerTitle">Notificações no Celular</div>
-                                <div style="font-size:12px; color:var(--cream-dim);" id="pushBannerSub">Receba alertas na tela do celular a cada novo agendamento de cliente.</div>
+                                <div style="font-weight:600; font-size:14.5px; color:var(--cream);" id="pushBannerTitle" class="banner-title">Notificações no Celular</div>
+                                <div style="font-size:12px; color:var(--cream-dim);" id="pushBannerSub" class="banner-sub">Receba alertas na tela do celular a cada novo agendamento de cliente.</div>
                             </div>
                         </div>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;" id="pushBannerActions">
-                            <button class="btn small" id="btnBannerSubscribe" onclick="subscribeToPush()">🔔 Ativar Notificações</button>
-                            <button class="btn ghost small" id="btnBannerTest" onclick="testPushNotification()" style="display:none;">📲 Testar Alerta</button>
+                            <button class="btn small btn-banner-sub" id="btnBannerSubscribe" onclick="subscribeToPush()">🔔 Ativar Notificações</button>
+                            <button class="btn ghost small btn-banner-test" id="btnBannerTest" onclick="testPushNotification()" style="display:none;">📲 Testar Alerta</button>
                         </div>
                     </div>
                 </div>
@@ -2363,6 +2363,23 @@
 
             <!-- AGENDA (CALENDÁRIO DIÁRIO TIMELINE) -->
             <div class="admin-pane" id="pane-agenda">
+                <!-- BANNER DE NOTIFICAÇÕES PUSH (AGENDA) -->
+                <div class="panel-box push-notification-banner" id="pushNotificationBannerAgenda" style="display:none; background:linear-gradient(135deg, rgba(201,162,39,0.12), rgba(22,18,9,0.95)); border:1px solid var(--brass-dim); margin-bottom:18px; padding:16px 18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="font-size:26px; line-height:1;">🔔</div>
+                            <div>
+                                <div style="font-weight:600; font-size:14.5px; color:var(--cream);" class="banner-title">Notificações no Celular</div>
+                                <div style="font-size:12px; color:var(--cream-dim);" class="banner-sub">Receba alertas na tela do celular a cada novo agendamento de cliente.</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="btn small btn-banner-sub" onclick="subscribeToPush()">🔔 Ativar Notificações</button>
+                            <button class="btn ghost small btn-banner-test" onclick="testPushNotification()" style="display:none;">📲 Testar Alerta</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="agenda-header">
                     <div>
                         <div class="eyebrow">Expediente</div>
@@ -2482,6 +2499,23 @@
 
             <!-- AGENDAMENTOS -->
             <div class="admin-pane" id="pane-agendamentos">
+                <!-- BANNER DE NOTIFICAÇÕES PUSH (AGENDAMENTOS) -->
+                <div class="panel-box push-notification-banner" id="pushNotificationBannerAgendamentos" style="display:none; background:linear-gradient(135deg, rgba(201,162,39,0.12), rgba(22,18,9,0.95)); border:1px solid var(--brass-dim); margin-bottom:18px; padding:16px 18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="font-size:26px; line-height:1;">🔔</div>
+                            <div>
+                                <div style="font-weight:600; font-size:14.5px; color:var(--cream);" class="banner-title">Notificações no Celular</div>
+                                <div style="font-size:12px; color:var(--cream-dim);" class="banner-sub">Receba alertas na tela do celular a cada novo agendamento de cliente.</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="btn small btn-banner-sub" onclick="subscribeToPush()">🔔 Ativar Notificações</button>
+                            <button class="btn ghost small btn-banner-test" onclick="testPushNotification()" style="display:none;">📲 Testar Alerta</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="toolbar">
                     <div>
                         <div class="eyebrow">Fila de Atendimento</div>
@@ -3125,16 +3159,45 @@
             return outputArray;
         }
 
+        function playNotificationSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const now = ctx.currentTime;
+                
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(659.25, now);
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.3);
+
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(880, now + 0.15);
+                gain2.gain.setValueAtTime(0.35, now + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.15);
+                osc2.stop(now + 0.55);
+            } catch (e) {
+                console.warn('Audio sound error:', e);
+            }
+        }
+
         function updatePushUI() {
             const pPushes = [document.getElementById('pillPush'), document.getElementById('pillPushMobile')];
             const btnActions = [document.getElementById('btnPushAction'), document.getElementById('btnPushActionMobile')];
             const btnTests = [document.getElementById('btnPushTest'), document.getElementById('btnPushTestMobile')];
             
-            const banner = document.getElementById('pushNotificationBanner');
-            const btnBannerSub = document.getElementById('btnBannerSubscribe');
-            const btnBannerTest = document.getElementById('btnBannerTest');
-            const bannerTitle = document.getElementById('pushBannerTitle');
-            const bannerSub = document.getElementById('pushBannerSub');
+            const banners = document.querySelectorAll('.push-notification-banner, #pushNotificationBanner');
 
             if (!pushState.isSupported) {
                 pPushes.forEach(p => {
@@ -3145,9 +3208,41 @@
                 });
                 btnActions.forEach(b => { if (b) b.style.display = 'none'; });
                 btnTests.forEach(b => { if (b) b.style.display = 'none'; });
-                if (banner) banner.style.display = 'none';
+                banners.forEach(b => { if (b) b.style.display = 'none'; });
                 return;
             }
+
+            banners.forEach(banner => {
+                if (!banner) return;
+                const btnBannerSub = banner.querySelector('.btn-banner-sub') || document.getElementById('btnBannerSubscribe');
+                const btnBannerTest = banner.querySelector('.btn-banner-test') || document.getElementById('btnBannerTest');
+                const bannerTitle = banner.querySelector('.banner-title') || document.getElementById('pushBannerTitle');
+                const bannerSub = banner.querySelector('.banner-sub') || document.getElementById('pushBannerSub');
+
+                if (pushState.isSubscribed) {
+                    banner.style.display = 'block';
+                    banner.style.border = '1px solid rgba(92, 127, 79, 0.4)';
+                    banner.style.background = 'linear-gradient(135deg, rgba(92, 127, 79, 0.12), rgba(22, 18, 9, 0.95))';
+                    if (bannerTitle) bannerTitle.innerHTML = '🔔 Notificações Ativadas neste Celular';
+                    if (bannerSub) bannerSub.textContent = 'Seu dispositivo está pronto para receber alertas na tela a cada agendamento.';
+                    if (btnBannerSub) {
+                        btnBannerSub.textContent = '🔕 Desativar Notificações';
+                        btnBannerSub.className = 'btn ghost small btn-banner-sub';
+                    }
+                    if (btnBannerTest) btnBannerTest.style.display = 'inline-flex';
+                } else {
+                    banner.style.display = 'block';
+                    banner.style.border = '1px solid var(--brass-dim)';
+                    banner.style.background = 'linear-gradient(135deg, rgba(201, 162, 39, 0.12), rgba(22, 18, 9, 0.95))';
+                    if (bannerTitle) bannerTitle.innerHTML = '🔔 Notificações no Celular';
+                    if (bannerSub) bannerSub.textContent = 'Receba alertas sonoros e na tela de bloqueio a cada novo agendamento!';
+                    if (btnBannerSub) {
+                        btnBannerSub.textContent = '🔔 Ativar Notificações';
+                        btnBannerSub.className = 'btn small btn-banner-sub';
+                    }
+                    if (btnBannerTest) btnBannerTest.style.display = 'none';
+                }
+            });
 
             if (pushState.isSubscribed) {
                 pPushes.forEach(p => {
@@ -3163,19 +3258,6 @@
                     }
                 });
                 btnTests.forEach(b => { if (b) b.style.display = 'block'; });
-
-                if (banner) {
-                    banner.style.display = 'block';
-                    banner.style.border = '1px solid rgba(92, 127, 79, 0.4)';
-                    banner.style.background = 'linear-gradient(135deg, rgba(92, 127, 79, 0.12), rgba(22, 18, 9, 0.95))';
-                    if (bannerTitle) bannerTitle.innerHTML = '🔔 Notificações Ativadas neste Celular';
-                    if (bannerSub) bannerSub.textContent = 'Seu dispositivo está pronto para receber alertas na tela a cada agendamento.';
-                    if (btnBannerSub) {
-                        btnBannerSub.textContent = '🔕 Desativar Notificações';
-                        btnBannerSub.className = 'btn ghost small';
-                    }
-                    if (btnBannerTest) btnBannerTest.style.display = 'inline-flex';
-                }
             } else {
                 pPushes.forEach(p => {
                     if (p) {
@@ -3190,19 +3272,6 @@
                     }
                 });
                 btnTests.forEach(b => { if (b) b.style.display = 'none'; });
-
-                if (banner) {
-                    banner.style.display = 'block';
-                    banner.style.border = '1px solid var(--brass-dim)';
-                    banner.style.background = 'linear-gradient(135deg, rgba(201, 162, 39, 0.12), rgba(22, 18, 9, 0.95))';
-                    if (bannerTitle) bannerTitle.innerHTML = '🔔 Notificações no Celular';
-                    if (bannerSub) bannerSub.textContent = 'Receba alertas sonoros e na tela de bloqueio a cada novo agendamento!';
-                    if (btnBannerSub) {
-                        btnBannerSub.textContent = '🔔 Ativar Notificações';
-                        btnBannerSub.className = 'btn small';
-                    }
-                    if (btnBannerTest) btnBannerTest.style.display = 'none';
-                }
             }
         }
 
@@ -3337,6 +3406,7 @@
         }
 
         async function testPushNotification() {
+            playNotificationSound();
             toast('Enviando notificação de teste para os celulares...');
             try {
                 const res = await fetch('/api/push', {
@@ -3472,17 +3542,32 @@
             }
         }
 
-        async function loadState() {
+        let knownAgendamentoIds = new Set();
+        let isFirstStateLoad = true;
+
+        async function loadState(isPolling = false) {
             initSessionUser();
             let loadedFromDb = false;
             try {
                 const apiRes = await apiFetch('/api/data');
                 if (apiRes && apiRes.ok && apiRes.isDbConfigured) {
+                    const fetchedAgendamentos = apiRes.agendamentos || [];
+
+                    if (!isFirstStateLoad && isPolling) {
+                        const hasNew = fetchedAgendamentos.some(ag => ag.id && !knownAgendamentoIds.has(ag.id));
+                        if (hasNew) {
+                            playNotificationSound();
+                            toast('💈 Novo agendamento recebido!');
+                        }
+                    }
+                    knownAgendamentoIds = new Set(fetchedAgendamentos.map(ag => ag.id));
+                    isFirstStateLoad = false;
+
                     state = {
                         barbeiros: apiRes.barbeiros || [],
                         servicos: apiRes.servicos || [],
                         horarios: apiRes.horarios || {},
-                        agendamentos: apiRes.agendamentos || [],
+                        agendamentos: fetchedAgendamentos,
                         despesas: apiRes.despesas || [],
                         entradas: apiRes.entradas || [],
                         pagamentosComissao: apiRes.pagamentosComissao || []
@@ -3524,6 +3609,13 @@
             applyUserRoleUI();
             renderAdmin();
         }
+
+        // Atualização em segundo plano a cada 20 segundos
+        setInterval(() => {
+            if (sessionStorage.getItem('apolo_admin_auth')) {
+                loadState(true);
+            }
+        }, 20000);
 
         async function persist() {
             try {
