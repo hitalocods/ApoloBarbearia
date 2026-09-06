@@ -268,6 +268,7 @@
             object-fit: cover;
             opacity: 0.78;
             filter: brightness(1.02) contrast(1.15) saturate(1.1);
+            pointer-events: none;
         }
 
         .hero-overlay {
@@ -651,27 +652,89 @@
             z-index: 30;
         }
 
-        /* Date Calendar Grid */
+        /* Date Calendar Grid & Month Switcher */
         .calendar-block {
             margin-bottom: 20px;
         }
 
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(145deg, rgba(26, 21, 16, 0.85), rgba(16, 12, 9, 0.9));
+            border: 1px solid var(--line-bright);
+            padding: 10px 16px;
+            border-radius: var(--radius-pill);
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
         .calendar-month-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--brass-2);
             text-transform: capitalize;
-            letter-spacing: .04em;
+            letter-spacing: .03em;
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-bottom: 12px;
+        }
+
+        .cal-nav-btn {
+            background: rgba(201, 162, 39, 0.12);
+            color: var(--brass-2);
+            border: 1px solid rgba(201, 162, 39, 0.25);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cal-nav-btn:hover:not(:disabled) {
+            background: var(--brass);
+            color: var(--ink);
+            border-color: var(--brass);
+            transform: scale(1.08);
+        }
+
+        .cal-nav-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        .date-grid-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .date-grid-weekdays span {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--brass);
+            letter-spacing: .04em;
         }
 
         .date-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 8px;
+        }
+
+        .date-chip.empty-cell {
+            opacity: 0;
+            pointer-events: none;
+            border: none;
+            background: transparent;
+            box-shadow: none;
         }
 
         .date-chip {
@@ -1417,40 +1480,65 @@
             renderClientDates();
         }
 
+        let currentCalendarOffset = 0; // 0 = Mês atual, 1 = Próximo mês...
+
+        function changeCalendarMonth(delta) {
+            currentCalendarOffset += delta;
+            if (currentCalendarOffset < 0) currentCalendarOffset = 0;
+            if (currentCalendarOffset > 3) currentCalendarOffset = 3;
+            renderClientDates();
+        }
+
         function renderClientDates() {
             const row = document.getElementById('clientDateRow');
             if (!row) return;
             row.innerHTML = '';
+
             const dowLabels = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
             const barbHor = state.horarios[booking.barbeiroId] || {};
-            
-            let html = '';
-            let lastMonth = -1;
 
-            for (let i = 0; i < 30; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() + i);
-                const month = d.getMonth();
-                
-                if (month !== lastMonth) {
-                    const monthName = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-                    if (lastMonth !== -1) html += `</div></div>`;
-                    html += `<div class="calendar-block">
-                        <div class="calendar-month-title">📅 ${monthName}</div>
-                        <div class="date-grid">`;
-                    lastMonth = month;
-                }
+            const now = new Date();
+            const targetDate = new Date(now.getFullYear(), now.getMonth() + currentCalendarOffset, 1);
+            const targetMonth = targetDate.getMonth();
+            const targetYear = targetDate.getFullYear();
+            const monthName = targetDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
+            const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+            const firstDayOfWeek = new Date(targetYear, targetMonth, 1).getDay();
+
+            const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().slice(0, 10);
+
+            let html = `
+                <div class="calendar-header">
+                    <button class="cal-nav-btn" onclick="changeCalendarMonth(-1)" ${currentCalendarOffset <= 0 ? 'disabled' : ''}>‹</button>
+                    <div class="calendar-month-title">📅 ${monthName}</div>
+                    <button class="cal-nav-btn" onclick="changeCalendarMonth(1)" ${currentCalendarOffset >= 3 ? 'disabled' : ''}>›</button>
+                </div>
+                <div class="date-grid-weekdays">
+                    <span>DOM</span><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span>
+                </div>
+                <div class="date-grid">
+            `;
+
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                html += `<div class="date-chip empty-cell"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const d = new Date(targetYear, targetMonth, day);
+                const iso = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const key = DOW_SHORT[d.getDay()];
-                const ativo = barbHor[key] && barbHor[key].ativo && barbHor[key].slots && barbHor[key].slots.length;
-                const iso = d.toISOString().slice(0, 10);
-                
-                html += `<div class="date-chip ${booking.data === iso ? 'selected' : ''} ${!ativo ? 'taken' : ''}" ${ativo ? `onclick="selectData('${iso}')"` : ''} style="${!ativo ? 'opacity:.3; cursor:not-allowed;' : ''}">
+
+                const isPast = iso < todayISO;
+                const ativo = !isPast && barbHor[key] && barbHor[key].ativo && barbHor[key].slots && barbHor[key].slots.length;
+
+                html += `<div class="date-chip ${booking.data === iso ? 'selected' : ''} ${!ativo ? 'taken' : ''}" ${ativo ? `onclick="selectData('${iso}')"` : ''} style="${!ativo ? 'opacity:.25; cursor:not-allowed;' : ''}">
                     <div class="dow">${dowLabels[d.getDay()]}</div>
-                    <div class="dnum">${d.getDate()}</div>
+                    <div class="dnum">${day}</div>
                 </div>`;
             }
-            if (lastMonth !== -1) html += `</div></div>`;
+
+            html += `</div>`;
             row.innerHTML = html;
         }
 
