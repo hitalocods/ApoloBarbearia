@@ -2287,12 +2287,23 @@
                     </div>
                 </div>
 
-                <!-- SELETOR DE PROFISSIONAL -->
-                <div class="panel-box" style="padding:14px; margin-bottom:18px;">
-                    <label style="font-size:11px; color:var(--cream-dim); font-family:var(--font-mono); text-transform:uppercase; display:block; margin-bottom:6px;">Selecione o profissional que deseja exibir</label>
-                    <select id="dashBarbeiroSelect" onchange="renderDashboard()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:8px 12px; border-radius:var(--radius-sm); font-size:13.5px; width:100%; max-width:320px;">
-                        <option value="">Todos</option>
-                    </select>
+                <!-- SELETOR DE PERÍODO (MÊS) E PROFISSIONAL -->
+                <div class="panel-box" style="padding:16px; margin-bottom:18px;">
+                    <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+                        <div style="flex:1; min-width:200px;">
+                            <label style="font-size:11px; color:var(--brass); font-family:var(--font-mono); font-weight:700; text-transform:uppercase; display:block; margin-bottom:6px;">🗓️ Período / Mês</label>
+                            <select id="dashMesSelect" onchange="renderDashboard()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:9px 12px; border-radius:var(--radius-sm); font-size:13.5px; width:100%; font-weight:600;">
+                                <option value="atual">Mês Atual (Zerado Automático)</option>
+                                <option value="todos">Todo o Histórico (Acumulado)</option>
+                            </select>
+                        </div>
+                        <div style="flex:1; min-width:200px;">
+                            <label style="font-size:11px; color:var(--brass); font-family:var(--font-mono); font-weight:700; text-transform:uppercase; display:block; margin-bottom:6px;">✂️ Profissional</label>
+                            <select id="dashBarbeiroSelect" onchange="renderDashboard()" style="background:var(--panel-2); border:1px solid var(--line); color:var(--cream); padding:9px 12px; border-radius:var(--radius-sm); font-size:13.5px; width:100%; font-weight:600;">
+                                <option value="">Todos os Barbeiros</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="stat-grid" id="dashStats"></div>
@@ -2949,7 +2960,7 @@
 
     <div class="modal-overlay" id="modalCriarAgendamento">
         <div class="modal" style="max-width:540px;">
-            <h3>Novo Agendamento</h3>
+            <h3 id="modalCriarAgendamentoTitle">Novo Agendamento</h3>
             <input type="hidden" id="newAgId">
             <div class="form-row">
                 <div class="field">
@@ -2971,9 +2982,19 @@
                     <input id="newAgData" type="date">
                 </div>
             </div>
-            <div class="field">
-                <label>Horário de Início</label>
-                <input id="newAgHora" type="time">
+            <div class="form-row">
+                <div class="field">
+                    <label>Horário de Início</label>
+                    <input id="newAgHora" type="time">
+                </div>
+                <div class="field">
+                    <label>Status do Agendamento</label>
+                    <select id="newAgStatus">
+                        <option value="pendente">⏳ Pendente / Confirmado</option>
+                        <option value="concluido">✓ Concluído (Lança Caixa)</option>
+                        <option value="cancelado">✕ Cancelado</option>
+                    </select>
+                </div>
             </div>
             <div class="field">
                 <label>Serviços a Realizar (Toque para selecionar)</label>
@@ -2983,9 +3004,12 @@
                     <span>Total: R$ 0,00</span>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn ghost small" onclick="closeModal('modalCriarAgendamento')">Cancelar</button>
-                <button class="btn small" onclick="saveManualAgendamento()">Salvar Agendamento</button>
+            <div class="modal-actions" style="justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <button class="btn danger small" id="btnDeleteAgendamento" onclick="deleteAgendamentoFromModal()" style="display:none; background:var(--danger); border-color:var(--danger);">🗑️ Excluir Agendamento</button>
+                <div style="display:flex; gap:8px; margin-left:auto; flex-wrap:wrap;">
+                    <button class="btn ghost small" onclick="closeModal('modalCriarAgendamento')">Cancelar</button>
+                    <button class="btn small" onclick="saveManualAgendamento()">Salvar Agendamento</button>
+                </div>
             </div>
         </div>
     </div>
@@ -4199,6 +4223,7 @@
                     </div>`;
                 } else {
                     acoes = `<div class="row-actions">
+                        <button class="icon-btn" onclick="openManualAgendamentoModal(null, null, null, '${a.id}')" title="Editar Agendamento">✏️</button>
                         ${cleanTel ? `<button class="icon-btn" onclick="sendWhatsAppReminder('${a.id}')" title="Enviar Lembrete WhatsApp" style="color:#25d366;">💬</button>` : ''}
                         ${a.status !== 'concluido' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','concluido')" title="Marcar como concluído">✓</button>` : ''}
                         ${a.status !== 'cancelado' ? `<button class="icon-btn" onclick="setAgStatus('${a.id}','cancelado')" title="Cancelar">✕</button>` : ''}
@@ -4299,11 +4324,55 @@
             
             const bFiltro = isBarb ? currentUser.barbeiroId : (bSel ? bSel.value : '');
 
-            // Filtrar agendamentos e entradas pelo profissional
-            const ags = bFiltro ? state.agendamentos.filter(a => a.barbeiroId === bFiltro) : state.agendamentos;
-            const ents = bFiltro ? state.entradas.filter(e => e.barbeiroId === bFiltro) : state.entradas;
+            // População e gerenciamento dinâmico do Seletor de Meses
+            const mSel = document.getElementById('dashMesSelect');
+            const now = new Date();
+            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const currentMonthLabel = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
-            // Stats Básicas
+            if (mSel) {
+                const savedVal = mSel.value || 'atual';
+                const uniqueMonths = new Set();
+                uniqueMonths.add(currentMonthKey);
+                state.agendamentos.forEach(a => { if (a.data) uniqueMonths.add(a.data.slice(0, 7)); });
+                state.entradas.forEach(e => { if (e.data) uniqueMonths.add(e.data.slice(0, 7)); });
+
+                const sortedMonths = Array.from(uniqueMonths).sort().reverse();
+                
+                let mOptions = `<option value="atual">📅 Mês Atual (${currentMonthLabel})</option>`;
+                mOptions += `<option value="todos">🌐 Todo o Histórico (Acumulado)</option>`;
+                
+                sortedMonths.forEach(mKey => {
+                    if (mKey !== currentMonthKey) {
+                        const [y, m] = mKey.split('-').map(Number);
+                        const dt = new Date(y, m - 1, 1);
+                        const l = dt.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                        mOptions += `<option value="${mKey}">🗓️ ${l}</option>`;
+                    }
+                });
+                
+                mSel.innerHTML = mOptions;
+                mSel.value = savedVal;
+            }
+
+            const mFiltro = mSel ? mSel.value : 'atual';
+
+            // Função de filtragem por mês
+            const filterByMonth = item => {
+                if (!item.data) return false;
+                if (mFiltro === 'todos') return true;
+                if (mFiltro === 'atual') return item.data.startsWith(currentMonthKey);
+                return item.data.startsWith(mFiltro);
+            };
+
+            // Filtrar agendamentos e entradas pelo profissional e pelo mês
+            let ags = bFiltro ? state.agendamentos.filter(a => a.barbeiroId === bFiltro) : state.agendamentos;
+            let ents = bFiltro ? state.entradas.filter(e => e.barbeiroId === bFiltro) : state.entradas;
+
+            ags = ags.filter(filterByMonth);
+            ents = ents.filter(filterByMonth);
+
+            // Stats Básicas do Período
             const totalAg = ags.length + ents.filter(e => !e.agendamentoId).length;
             const pendentes = ags.filter(a => a.status === 'pendente').length;
             const concluidos = ags.filter(a => a.status === 'concluido').length + ents.filter(e => !e.agendamentoId).length;
@@ -4314,13 +4383,15 @@
             const totalFaturadoEnt = ents.filter(e => !e.agendamentoId).reduce((sum, e) => sum + Number(e.valor), 0);
             const totalFaturado = totalFaturadoAg + totalFaturadoEnt;
 
+            const labelFaturamento = (mFiltro === 'todos') ? 'Faturamento Total' : 'Faturamento do Mês';
+
             const stats = document.getElementById('dashStats');
             if (stats) {
                 stats.innerHTML = `
                     <div class="stat-card"><div class="label">Total Atendimentos</div><div class="value">${totalAg}</div></div>
                     <div class="stat-card"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
                     <div class="stat-card"><div class="label">Concluídos</div><div class="value">${concluidos}</div></div>
-                    <div class="stat-card"><div class="label">Faturamento Total</div><div class="value small">${brl(totalFaturado)}</div></div>
+                    <div class="stat-card"><div class="label">${labelFaturamento}</div><div class="value small" style="color:var(--brass-2);">${brl(totalFaturado)}</div></div>
                 `;
             }
 
@@ -4673,7 +4744,7 @@
                         const statusClass = `status-${a.status}`;
 
                         return `
-                            <div class="timeline-block ${statusClass}" style="top: ${topPx + 1}px; height: ${heightPx}px;" onclick="openEntradaFromAgenda(event, '${a.id}')" title="${a.nome} - ${a.hora} (${svcNome})">
+                            <div class="timeline-block ${statusClass}" style="top: ${topPx + 1}px; height: ${heightPx}px;" onclick="onAgendaCardClick(event, '${a.id}')" title="Clique para editar — ${a.nome} (${svcNome})">
                                 <div class="tb-top">
                                     <span class="tb-title">${a.nome}</span>
                                     <span class="tb-time-badge">${a.hora}</span>
@@ -4789,31 +4860,81 @@
             }
         }
 
-        function openManualAgendamentoModal(barbeiroId, dateStr, timeStr) {
-            document.getElementById('newAgId').value = '';
-            document.getElementById('newAgCliente').value = '';
-            document.getElementById('newAgTelefone').value = '';
-            
-            const isBarb = currentUser.role === 'barbeiro';
-            const bSel = document.getElementById('newAgBarbeiro');
-            const targetBarbId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : barbeiroId;
+        function onAgendaCardClick(event, agId) {
+            if (event) event.stopPropagation();
+            openManualAgendamentoModal(null, null, null, agId);
+        }
 
-            if (isBarb && currentUser.barbeiroId) {
-                bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
-                bSel.value = currentUser.barbeiroId;
-                bSel.disabled = true;
-            } else {
-                bSel.disabled = false;
-                bSel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
-                bSel.value = targetBarbId || (state.barbeiros[0] ? state.barbeiros[0].id : '');
+        function openManualAgendamentoModal(barbeiroId, dateStr, timeStr, editAgId = null) {
+            const titleEl = document.getElementById('modalCriarAgendamentoTitle');
+            const deleteBtn = document.getElementById('btnDeleteAgendamento');
+            const statusSel = document.getElementById('newAgStatus');
+
+            let agToEdit = null;
+            if (typeof barbeiroId === 'string' && (barbeiroId.startsWith('ag_') || state.agendamentos.some(a => a.id === barbeiroId))) {
+                agToEdit = state.agendamentos.find(a => a.id === barbeiroId);
+            } else if (editAgId) {
+                agToEdit = state.agendamentos.find(a => a.id === editAgId);
             }
-            
-            const initialSelected = state.servicos[0] ? [state.servicos[0].id] : [];
-            renderNewAgServicosChecklist(initialSelected);
-            
-            document.getElementById('newAgData').value = dateStr || agendaState.dataSelecionada || getLocalDateStr();
-            document.getElementById('newAgHora').value = timeStr || '09:00';
-            
+
+            if (agToEdit) {
+                if (titleEl) titleEl.textContent = 'Editar Agendamento';
+                if (deleteBtn) deleteBtn.style.display = 'inline-block';
+
+                document.getElementById('newAgId').value = agToEdit.id;
+                document.getElementById('newAgCliente').value = agToEdit.nome || '';
+                document.getElementById('newAgTelefone').value = agToEdit.tel || '';
+
+                const isBarb = currentUser.role === 'barbeiro';
+                const bSel = document.getElementById('newAgBarbeiro');
+                const targetBarbId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : agToEdit.barbeiroId;
+
+                if (isBarb && currentUser.barbeiroId) {
+                    bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                    bSel.value = currentUser.barbeiroId;
+                    bSel.disabled = true;
+                } else {
+                    bSel.disabled = false;
+                    bSel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                    bSel.value = targetBarbId || (state.barbeiros[0] ? state.barbeiros[0].id : '');
+                }
+
+                const selectedSvcs = agToEdit.servicoIds || (agToEdit.servicoId ? [agToEdit.servicoId] : []);
+                renderNewAgServicosChecklist(selectedSvcs);
+
+                document.getElementById('newAgData').value = agToEdit.data || agendaState.dataSelecionada || getLocalDateStr();
+                document.getElementById('newAgHora').value = agToEdit.hora || '09:00';
+                if (statusSel) statusSel.value = agToEdit.status || 'pendente';
+            } else {
+                if (titleEl) titleEl.textContent = 'Novo Agendamento';
+                if (deleteBtn) deleteBtn.style.display = 'none';
+
+                document.getElementById('newAgId').value = '';
+                document.getElementById('newAgCliente').value = '';
+                document.getElementById('newAgTelefone').value = '';
+
+                const isBarb = currentUser.role === 'barbeiro';
+                const bSel = document.getElementById('newAgBarbeiro');
+                const targetBarbId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : barbeiroId;
+
+                if (isBarb && currentUser.barbeiroId) {
+                    bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
+                    bSel.value = currentUser.barbeiroId;
+                    bSel.disabled = true;
+                } else {
+                    bSel.disabled = false;
+                    bSel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                    bSel.value = targetBarbId || (state.barbeiros[0] ? state.barbeiros[0].id : '');
+                }
+
+                const initialSelected = state.servicos[0] ? [state.servicos[0].id] : [];
+                renderNewAgServicosChecklist(initialSelected);
+
+                document.getElementById('newAgData').value = dateStr || agendaState.dataSelecionada || getLocalDateStr();
+                document.getElementById('newAgHora').value = timeStr || '09:00';
+                if (statusSel) statusSel.value = 'pendente';
+            }
+
             openModal('modalCriarAgendamento');
         }
 
@@ -4825,6 +4946,8 @@
             const barbeiroId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : document.getElementById('newAgBarbeiro').value;
             const data = document.getElementById('newAgData').value;
             const hora = document.getElementById('newAgHora').value;
+            const statusSel = document.getElementById('newAgStatus');
+            const status = statusSel ? statusSel.value : 'pendente';
 
             const cbs = Array.from(document.querySelectorAll('.new-ag-svc-cb:checked'));
             const servicoIds = cbs.map(c => c.value);
@@ -4844,7 +4967,7 @@
                 servicoIds,
                 data,
                 hora,
-                status: 'pendente'
+                status
             };
 
             if (cloudConfig.isNeonConnected) {
@@ -4862,9 +4985,43 @@
             payload.id = payload.id || ('ag_' + uid());
 
             if (id) {
-                Object.assign(state.agendamentos.find(x => x.id === id), payload);
+                const existingIdx = state.agendamentos.findIndex(x => x.id === id);
+                if (existingIdx !== -1) {
+                    Object.assign(state.agendamentos[existingIdx], payload);
+                } else {
+                    state.agendamentos.push(payload);
+                }
             } else {
                 state.agendamentos.push(payload);
+            }
+
+            // Se o status for alterado para concluído, verificar e lançar no caixa se ainda não lançado
+            if (status === 'concluido') {
+                const agRef = state.agendamentos.find(x => x.id === payload.id) || payload;
+                const eExist = state.entradas.some(e => e.agendamentoId === payload.id);
+                if (!eExist) {
+                    const totalPrice = getAgendamentoTotalPrice(agRef);
+                    const svcNome = getAgendamentoServicesNames(agRef);
+                    const entPayload = {
+                        desc: `Atendimento: ${nome} (${svcNome})`,
+                        data,
+                        valor: Number(totalPrice),
+                        barbeiroId,
+                        servicoId,
+                        servicoIds,
+                        clienteNome: nome,
+                        agendamentoId: payload.id,
+                        obs: 'Lançado via Agenda'
+                    };
+                    if (cloudConfig.isNeonConnected) {
+                        try {
+                            const resE = await apiFetch('/api/entradas', 'POST', entPayload);
+                            if (resE && resE.entrada) entPayload.id = resE.entrada.id;
+                        } catch (e) {}
+                    }
+                    entPayload.id = entPayload.id || ('e_' + uid());
+                    state.entradas.push(entPayload);
+                }
             }
 
             await persist();
@@ -4875,7 +5032,36 @@
             renderFinanceiro();
             renderAgendamentos();
             
-            toast('Atendimento agendado com sucesso!');
+            toast(id ? 'Agendamento atualizado com sucesso!' : 'Atendimento agendado com sucesso!');
+        }
+
+        async function deleteAgendamentoFromModal() {
+            const id = document.getElementById('newAgId').value;
+            if (!id) return;
+            const ag = state.agendamentos.find(a => a.id === id);
+            if (!ag) return;
+
+            if (!confirm(`Tem certeza que deseja excluir o agendamento de "${ag.nome}"?`)) return;
+
+            if (cloudConfig.isNeonConnected) {
+                try {
+                    await apiFetch('/api/agendamentos', 'DELETE', { id });
+                } catch (err) {
+                    toast('Erro ao excluir no banco: ' + err.message);
+                    return;
+                }
+            }
+
+            state.agendamentos = state.agendamentos.filter(a => a.id !== id);
+            await persist();
+            closeModal('modalCriarAgendamento');
+
+            renderAgendaTimeline();
+            renderDashboard();
+            renderFinanceiro();
+            renderAgendamentos();
+
+            toast('Agendamento excluído!');
         }
 
         function openEntradaFromAgenda(event, agId) {

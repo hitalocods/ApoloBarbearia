@@ -64,14 +64,16 @@ export default async function handler(req, res) {
             }
 
             const agId = id || 'ag_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+            const isEditMode = !!id;
 
-            // Verificar se o horário já está ocupado
+            // Verificar se o horário já está ocupado por OUTRO agendamento
             const checkCollision = await query`
                 SELECT id FROM agendamentos 
                 WHERE barbeiro_id = ${barbeiroId} 
                   AND data = ${data}::date 
                   AND hora = ${hora} 
                   AND status != 'cancelado'
+                  AND id != ${agId}
             `;
 
             if (checkCollision && checkCollision.length > 0) {
@@ -83,10 +85,19 @@ export default async function handler(req, res) {
             await query`
                 INSERT INTO agendamentos (id, barbeiro_id, servico_id, servicos_ids, data, hora, nome, tel, status)
                 VALUES (${agId}, ${barbeiroId}, ${primaryServicoId}, ${servicosIdsJson}::jsonb, ${data}::date, ${hora}, ${nome}, ${tel}, ${status})
+                ON CONFLICT (id) DO UPDATE SET
+                    barbeiro_id = EXCLUDED.barbeiro_id,
+                    servico_id = EXCLUDED.servico_id,
+                    servicos_ids = EXCLUDED.servicos_ids,
+                    data = EXCLUDED.data,
+                    hora = EXCLUDED.hora,
+                    nome = EXCLUDED.nome,
+                    tel = EXCLUDED.tel,
+                    status = EXCLUDED.status
             `;
 
-            // Disparo de notificação Push para os celulares cadastrados (em background seguro)
-            (async () => {
+            // Disparo de notificação Push para os celulares cadastrados apenas para novos agendamentos
+            if (!isEditMode) (async () => {
                 try {
                     // Buscar nomes do barbeiro e de todos os serviços selecionados
                     const bRes = await query`SELECT nome FROM barbeiros WHERE id = ${barbeiroId}`;
