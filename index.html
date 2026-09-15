@@ -1524,13 +1524,28 @@
                 html += `<div class="date-chip empty-cell"></div>`;
             }
 
+            const now = new Date();
+            const todayYear = now.getFullYear();
+            const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
+            const todayDay = String(now.getDate()).padStart(2, '0');
+            const todayISO = `${todayYear}-${todayMonth}-${todayDay}`;
+            const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const d = new Date(targetYear, targetMonth, day);
                 const iso = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const key = DOW_SHORT[d.getDay()];
 
                 const isPast = iso < todayISO;
-                const ativo = !isPast && barbHor[key] && barbHor[key].ativo && barbHor[key].slots && barbHor[key].slots.length;
+                let ativo = !isPast && barbHor[key] && barbHor[key].ativo && barbHor[key].slots && barbHor[key].slots.length;
+
+                // Se for a data de hoje, verificar se ainda resta algum horário futuro
+                if (ativo && iso === todayISO) {
+                    const temHorarioFuturo = (barbHor[key].slots || []).some(s => s > currentTimeStr);
+                    if (!temHorarioFuturo) {
+                        ativo = false; // Todos os horários de hoje já passaram
+                    }
+                }
 
                 html += `<div class="date-chip ${booking.data === iso ? 'selected' : ''} ${!ativo ? 'taken' : ''}" ${ativo ? `onclick="selectData('${iso}')"` : ''} style="${!ativo ? 'opacity:.25; cursor:not-allowed;' : ''}">
                     <div class="dow">${dowLabels[d.getDay()]}</div>
@@ -1576,11 +1591,29 @@
                 return;
             }
 
+            const now = new Date();
+            const todayYear = now.getFullYear();
+            const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
+            const todayDay = String(now.getDate()).padStart(2, '0');
+            const todayISO = `${todayYear}-${todayMonth}-${todayDay}`;
+            const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const isToday = booking.data === todayISO;
+
+            // Se o horário selecionado anteriormente já passou, reseta
+            if (isToday && booking.hora && booking.hora <= currentTimeStr) {
+                booking.hora = null;
+            }
+
             const taken = state.agendamentos.filter(a => a.barbeiroId === booking.barbeiroId && a.data === booking.data && a.status !== 'cancelado').map(a => a.hora);
             const slots = [...cfg.slots].sort();
             let any = false;
 
             slots.forEach(label => {
+                // Se for hoje e o horário já passou, some automaticamente da tela!
+                if (isToday && label <= currentTimeStr) {
+                    return;
+                }
+
                 const isTaken = taken.includes(label);
                 if (isTaken) {
                     grid.innerHTML += `<div class="slot taken">${label}</div>`;
@@ -1590,7 +1623,9 @@
                 }
             });
 
-            if (!any && !grid.innerHTML) grid.innerHTML = '<div class="empty-state">Sem horários livres neste dia.</div>';
+            if (!any && !grid.innerHTML) {
+                grid.innerHTML = `<div class="empty-state">${isToday ? 'Todos os horários de hoje já foram encerrados.' : 'Sem horários livres neste dia.'}</div>`;
+            }
         }
 
         function selectHora(h) {
@@ -1650,6 +1685,17 @@
             const tel = document.getElementById('cliTel').value.trim();
             if (!nome || !tel) { toast('Preencha seu nome e WhatsApp'); return; }
             if (!booking.servicoIds || !booking.servicoIds.length) { toast('Selecione ao menos um serviço'); return; }
+
+            const now = new Date();
+            const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            if (booking.data === todayISO && booking.hora && booking.hora <= currentTimeStr) {
+                toast('Esse horário já encerrou! Por favor, escolha outro horário.');
+                booking.hora = null;
+                renderClientSlots();
+                goStep(4);
+                return;
+            }
 
             const newAgId = 'ag_' + uid();
             const primaryServicoId = booking.servicoIds[0];
