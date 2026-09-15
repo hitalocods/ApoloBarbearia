@@ -3623,10 +3623,12 @@
                 } catch (e) {}
             }
 
-            try {
-                const blobRes = await apiFetch('/api/upload', 'POST', { test: true });
-                if (blobRes && blobRes.configured) cloudConfig.isBlobConnected = true;
-            } catch (e) {}
+            if (!isPolling) {
+                try {
+                    const blobRes = await apiFetch('/api/upload', 'POST', { test: true });
+                    if (blobRes && blobRes.configured) cloudConfig.isBlobConnected = true;
+                } catch (e) {}
+            }
 
             updateCloudPills();
             initPushNotificationStatus();
@@ -3634,12 +3636,19 @@
             renderAdmin();
         }
 
-        // Atualização em segundo plano a cada 20 segundos
+        // Atualização inteligente: apenas quando a tela estiver visível e a cada 60 segundos
         setInterval(() => {
-            if (sessionStorage.getItem('apolo_admin_auth')) {
+            if (document.visibilityState === 'visible' && sessionStorage.getItem('apolo_admin_auth')) {
                 loadState(true);
             }
-        }, 20000);
+        }, 60000);
+
+        // Ao voltar para a aba ou desbloquear o aparelho, sincronizar na hora
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && sessionStorage.getItem('apolo_admin_auth')) {
+                loadState(true);
+            }
+        });
 
         async function persist() {
             try {
