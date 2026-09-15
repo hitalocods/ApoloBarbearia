@@ -1498,6 +1498,12 @@
             const barbHor = state.horarios[booking.barbeiroId] || {};
 
             const now = new Date();
+            const todayYear = now.getFullYear();
+            const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
+            const todayDay = String(now.getDate()).padStart(2, '0');
+            const todayISO = `${todayYear}-${todayMonth}-${todayDay}`;
+            const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
             const targetDate = new Date(now.getFullYear(), now.getMonth() + currentCalendarOffset, 1);
             const targetMonth = targetDate.getMonth();
             const targetYear = targetDate.getFullYear();
@@ -1505,8 +1511,6 @@
 
             const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
             const firstDayOfWeek = new Date(targetYear, targetMonth, 1).getDay();
-
-            const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().slice(0, 10);
 
             let html = `
                 <div class="calendar-header">
@@ -1523,13 +1527,6 @@
             for (let i = 0; i < firstDayOfWeek; i++) {
                 html += `<div class="date-chip empty-cell"></div>`;
             }
-
-            const now = new Date();
-            const todayYear = now.getFullYear();
-            const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
-            const todayDay = String(now.getDate()).padStart(2, '0');
-            const todayISO = `${todayYear}-${todayMonth}-${todayDay}`;
-            const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const d = new Date(targetYear, targetMonth, day);
