@@ -88,6 +88,8 @@ export default async function handler(req, res) {
         }
 
         // Anonimizar agendamentos se for acesso público (apenas ocupação de horários)
+        const apoloBarber = barbeirosRows.find(b => (b.nome || '').toLowerCase().includes('apolo'));
+
         const agendamentos = agendamentosRows.map(ag => {
             const sIds = parseServicoIds(ag.servicoIds, ag.servicoId);
             const normalizedAg = {
@@ -98,8 +100,11 @@ export default async function handler(req, res) {
 
             if (isAdmin) return normalizedAg;
             if (isBarbeiro) {
-                // Barbeiro vê detalhes completos dos seus próprios agendamentos
-                if (ag.barbeiroId === loggedBarbeiroId) return normalizedAg;
+                // Barbeiro vê seus agendamentos e pode visualizar a agenda do Apolo (modo somente leitura)
+                const isSelf = ag.barbeiroId === loggedBarbeiroId;
+                const isApolo = apoloBarber && ag.barbeiroId === apoloBarber.id;
+                if (isSelf || isApolo) return normalizedAg;
+
                 return {
                     id: ag.id,
                     barbeiroId: ag.barbeiroId,

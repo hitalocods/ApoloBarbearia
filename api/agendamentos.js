@@ -1,5 +1,6 @@
 import { query, isDbConfigured } from '../lib/db.js';
 import { sendPushToAll } from '../lib/pushHelper.js';
+import { verifyAuth } from '../lib/authCheck.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -65,6 +66,22 @@ export default async function handler(req, res) {
 
             const agId = id || 'ag_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
             const isEditMode = !!id;
+
+            // Barbeiro só pode alterar/criar agendamentos na sua própria agenda
+            const auth = await verifyAuth(req);
+            const isBarbeiro = auth.isValid && auth.role === 'barbeiro';
+            const loggedBarbeiroId = isBarbeiro ? auth.barbeiroId : null;
+
+            if (isBarbeiro) {
+                if (isEditMode) {
+                    const existing = await query`SELECT barbeiro_id FROM agendamentos WHERE id = ${agId}`;
+                    if (existing.length > 0 && existing[0].barbeiro_id !== loggedBarbeiroId) {
+                        return res.status(403).json({ ok: false, error: 'Acesso negado. Você só tem permissão de leitura nos agendamentos de outro barbeiro.' });
+                    }
+                } else if (barbeiroId !== loggedBarbeiroId) {
+                    return res.status(403).json({ ok: false, error: 'Acesso negado. Você só pode criar agendamentos na sua própria agenda.' });
+                }
+            }
 
             // Verificar se o horário já está ocupado por OUTRO agendamento
             const checkCollision = await query`
@@ -163,6 +180,14 @@ export default async function handler(req, res) {
                 return res.status(400).json({ ok: false, error: 'ID e status são obrigatórios.' });
             }
 
+            const auth = await verifyAuth(req);
+            if (auth.isValid && auth.role === 'barbeiro') {
+                const existing = await query`SELECT barbeiro_id FROM agendamentos WHERE id = ${id}`;
+                if (existing.length > 0 && existing[0].barbeiro_id !== auth.barbeiroId) {
+                    return res.status(403).json({ ok: false, error: 'Acesso negado. Você só tem permissão de leitura nos agendamentos de outro barbeiro.' });
+                }
+            }
+
             await query`
                 UPDATE agendamentos 
                 SET status = ${status} 
@@ -175,6 +200,14 @@ export default async function handler(req, res) {
         if (req.method === 'DELETE') {
             const id = req.body?.id || req.query?.id;
             if (!id) return res.status(400).json({ ok: false, error: 'ID é obrigatório.' });
+
+            const auth = await verifyAuth(req);
+            if (auth.isValid && auth.role === 'barbeiro') {
+                const existing = await query`SELECT barbeiro_id FROM agendamentos WHERE id = ${id}`;
+                if (existing.length > 0 && existing[0].barbeiro_id !== auth.barbeiroId) {
+                    return res.status(403).json({ ok: false, error: 'Acesso negado. Você só tem permissão de leitura nos agendamentos de outro barbeiro.' });
+                }
+            }
 
             await query`DELETE FROM agendamentos WHERE id = ${id}`;
             return res.status(200).json({ ok: true, id });

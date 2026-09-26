@@ -2961,6 +2961,9 @@
     <div class="modal-overlay" id="modalCriarAgendamento">
         <div class="modal" style="max-width:540px;">
             <h3 id="modalCriarAgendamentoTitle">Novo Agendamento</h3>
+            <div id="newAgReadOnlyBanner" style="display:none; padding:10px 14px; background:rgba(201,162,39,0.12); border:1px solid rgba(201,162,39,0.3); border-radius:var(--radius-sm); margin-bottom:14px; font-size:13px; color:var(--cream); line-height:1.4;">
+                🔒 <b>Modo de Visualização:</b> Este agendamento pertence a <b><span id="newAgReadOnlyBarberName">Apolo</span></b>. Você pode consultar os dados, mas não pode editá-lo ou cancelá-lo.
+            </div>
             <input type="hidden" id="newAgId">
             <div class="form-row">
                 <div class="field">
@@ -3007,8 +3010,8 @@
             <div class="modal-actions" style="justify-content:space-between; flex-wrap:wrap; gap:10px;">
                 <button class="btn danger small" id="btnDeleteAgendamento" onclick="deleteAgendamentoFromModal()" style="display:none; background:var(--danger); border-color:var(--danger);">🗑️ Excluir Agendamento</button>
                 <div style="display:flex; gap:8px; margin-left:auto; flex-wrap:wrap;">
-                    <button class="btn ghost small" onclick="closeModal('modalCriarAgendamento')">Cancelar</button>
-                    <button class="btn small" onclick="saveManualAgendamento()">Salvar Agendamento</button>
+                    <button class="btn ghost small" onclick="closeModal('modalCriarAgendamento')">Fechar</button>
+                    <button class="btn small" id="btnSaveAgendamento" onclick="saveManualAgendamento()">Salvar Agendamento</button>
                 </div>
             </div>
         </div>
@@ -4156,9 +4159,19 @@
             if (!sel) return;
             const isBarb = currentUser.role === 'barbeiro';
             if (isBarb && currentUser.barbeiroId) {
-                sel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
-                sel.value = currentUser.barbeiroId;
-                sel.disabled = true;
+                sel.disabled = false;
+                const otherBarbers = state.barbeiros.filter(b => b.id !== currentUser.barbeiroId);
+                const curVal = selectedVal !== undefined ? selectedVal : sel.value;
+                sel.innerHTML = `
+                    <option value="">Todas as agendas (Minha + Colegas)</option>
+                    <option value="${currentUser.barbeiroId}">Minha agenda (${currentUser.nome})</option>
+                    ${otherBarbers.map(b => `<option value="${b.id}">Agenda de ${b.nome} 🔒 (Somente Leitura)</option>`).join('')}
+                `;
+                if (curVal !== undefined && (curVal === '' || curVal === currentUser.barbeiroId || otherBarbers.some(b => b.id === curVal))) {
+                    sel.value = curVal;
+                } else {
+                    sel.value = '';
+                }
                 return;
             }
             sel.disabled = false;
@@ -4174,9 +4187,9 @@
         function renderAgendamentos() {
             const sel = document.getElementById('agFiltroBarbeiro');
             const isBarb = currentUser.role === 'barbeiro';
-            const currentSelected = isBarb ? currentUser.barbeiroId : (sel ? sel.value : '');
+            const currentSelected = sel ? sel.value : '';
             renderAgendamentosFilters(currentSelected);
-            const filtro = isBarb ? currentUser.barbeiroId : (sel ? sel.value : '');
+            const filtro = sel ? sel.value : '';
             const tb = document.getElementById('tblAgendamentos');
 
             // Combinar agendamentos online + entradas manuais/retroativas de atendimentos
@@ -4225,7 +4238,16 @@
                 const cleanTel = (a.tel || '').replace(/\D/g, '');
                 
                 let acoes = '';
-                if (a.origem === 'manual') {
+                const isOtherAg = isBarb && currentUser.barbeiroId && a.barbeiroId !== currentUser.barbeiroId;
+                if (isOtherAg) {
+                    acoes = `
+                        <div class="row-actions">
+                            <button class="icon-btn" onclick="openManualAgendamentoModal(null, null, null, '${a.id}')" title="Visualizar Detalhes (Somente Leitura)">👁️</button>
+                            ${cleanTel ? `<button class="icon-btn" onclick="sendWhatsAppReminder('${a.id}')" title="Enviar Lembrete WhatsApp" style="color:#25d366;">💬</button>` : ''}
+                            <span style="font-size:11px; color:var(--brass-2); padding:3px 6px; border-radius:4px; background:rgba(201,162,39,0.1); border:1px solid rgba(201,162,39,0.25);" title="Somente Leitura">🔒 Leitura</span>
+                        </div>
+                    `;
+                } else if (a.origem === 'manual') {
                     acoes = `<div class="row-actions">
                         <button class="icon-btn" onclick="openEntradaModal('${a.id}')" title="Editar Atendimento">✎</button>
                         <button class="icon-btn del" onclick="deleteEntrada('${a.id}')" title="Excluir">🗑</button>
@@ -4285,6 +4307,10 @@
         async function setAgStatus(id, status) {
             const ag = state.agendamentos.find(a => a.id === id);
             if (ag) {
+                if (currentUser.role === 'barbeiro' && currentUser.barbeiroId && ag.barbeiroId !== currentUser.barbeiroId) {
+                    toast('Ação não permitida: você não pode alterar agendamentos de outro barbeiro.');
+                    return;
+                }
                 ag.status = status;
                 if (cloudConfig.isNeonConnected) {
                     try { await apiFetch('/api/agendamentos', 'PATCH', { id, status }); } catch (e) {}
@@ -4296,6 +4322,11 @@
         }
 
         async function deleteAgendamento(id) {
+            const ag = state.agendamentos.find(a => a.id === id);
+            if (currentUser.role === 'barbeiro' && currentUser.barbeiroId && ag && ag.barbeiroId !== currentUser.barbeiroId) {
+                toast('Ação não permitida: você não pode excluir agendamentos de outro barbeiro.');
+                return;
+            }
             if (!confirm('Excluir este agendamento?')) return;
             if (cloudConfig.isNeonConnected) {
                 try { 
@@ -4659,21 +4690,35 @@
             const bFilter = document.getElementById('agendaBarbeiroFilter');
             if (bFilter) {
                 if (isBarb && currentUser.barbeiroId) {
-                    bFilter.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
-                    bFilter.value = currentUser.barbeiroId;
-                    bFilter.disabled = true;
-                    bFilter.style.opacity = '0.9';
+                    bFilter.disabled = false;
+                    bFilter.style.opacity = '1';
+                    const curVal = bFilter.value;
+                    const otherBarbers = state.barbeiros.filter(b => b.id !== currentUser.barbeiroId);
+                    bFilter.innerHTML = `
+                        <option value="">Todas as agendas (Minha + Colegas)</option>
+                        <option value="${currentUser.barbeiroId}">Minha agenda (${currentUser.nome})</option>
+                        ${otherBarbers.map(b => `<option value="${b.id}">Agenda de ${b.nome} 🔒 (Somente Leitura)</option>`).join('')}
+                    `;
+                    if (curVal !== undefined && (curVal === '' || curVal === currentUser.barbeiroId || otherBarbers.some(b => b.id === curVal))) {
+                        bFilter.value = curVal;
+                    } else {
+                        bFilter.value = '';
+                    }
                 } else {
                     bFilter.disabled = false;
                     bFilter.style.opacity = '1';
-                    if (bFilter.options.length <= 1) {
-                        bFilter.innerHTML = '<option value="">Todos os barbeiros</option>' + 
-                            state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                    const curVal = bFilter.value;
+                    bFilter.innerHTML = '<option value="">Todos os barbeiros</option>' + 
+                        state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+                    if (curVal && state.barbeiros.some(b => b.id === curVal)) {
+                        bFilter.value = curVal;
+                    } else {
+                        bFilter.value = '';
                     }
                 }
             }
             
-            const selectedBarb = isBarb ? currentUser.barbeiroId : (bFilter ? bFilter.value : '');
+            const selectedBarb = bFilter ? bFilter.value : '';
             const dateObj = new Date(agendaState.dataSelecionada + 'T00:00:00');
             
             // Header Month
@@ -4734,6 +4779,7 @@
                 }
 
                 lanesContainer.innerHTML = gridLinesHTML + nowLineHTML + barbeirosExibir.map(b => {
+                    const isOtherBarber = isBarb && currentUser.barbeiroId && b.id !== currentUser.barbeiroId;
                     const agsDia = state.agendamentos.filter(a => {
                         return a.barbeiroId === b.id && 
                                a.data === agendaState.dataSelecionada &&
@@ -4751,12 +4797,15 @@
                         // Subtrai 3px para dar respiro entre cards consecutivos e evitar empilhamento colado
                         const heightPx = Math.max(duracaoPx - 3, MIN_BLOCK_HEIGHT);
                         const statusClass = `status-${a.status}`;
+                        const cardTitle = isOtherBarber 
+                            ? `Visualizar agendamento (Somente leitura - ${b.nome}) — ${a.nome} (${svcNome})`
+                            : `Clique para editar — ${a.nome} (${svcNome})`;
 
                         return `
-                            <div class="timeline-block ${statusClass}" style="top: ${topPx + 1}px; height: ${heightPx}px;" onclick="onAgendaCardClick(event, '${a.id}')" title="Clique para editar — ${a.nome} (${svcNome})">
+                            <div class="timeline-block ${statusClass}" style="top: ${topPx + 1}px; height: ${heightPx}px;" onclick="onAgendaCardClick(event, '${a.id}')" title="${cardTitle}">
                                 <div class="tb-top">
                                     <span class="tb-title">${a.nome}</span>
-                                    <span class="tb-time-badge">${a.hora}</span>
+                                    <span class="tb-time-badge">${a.hora}${isOtherBarber ? ' 🔒' : ''}</span>
                                 </div>
                                 <div class="tb-bottom">
                                     <span class="tb-desc">${svcNome}</span>
@@ -4766,9 +4815,16 @@
                         `;
                     }).join('');
 
+                    const headerStyle = isOtherBarber 
+                        ? 'background:rgba(201,162,39,0.08); border-bottom:2px solid rgba(201,162,39,0.35);'
+                        : '';
+                    const headerBadge = isOtherBarber
+                        ? `<span style="font-size:10px; font-weight:normal; opacity:0.85; margin-left:6px; padding:2px 7px; border-radius:10px; background:rgba(201,162,39,0.18); color:var(--brass-2);">🔒 Leitura</span>`
+                        : '';
+
                     return `
                         <div class="timeline-lane" onclick="onTimelineLaneClick(event, '${b.id}')">
-                            <div class="timeline-lane-header">${b.nome}</div>
+                            <div class="timeline-lane-header" style="${headerStyle}">${b.nome}${headerBadge}</div>
                             ${blocksHTML}
                         </div>
                     `;
@@ -4778,6 +4834,13 @@
 
         function onTimelineLaneClick(event, barbeiroId) {
             if (event.target.closest('.timeline-lane-header') || event.target.closest('.timeline-block')) {
+                return;
+            }
+
+            const isBarb = currentUser.role === 'barbeiro';
+            if (isBarb && currentUser.barbeiroId && barbeiroId !== currentUser.barbeiroId) {
+                const targetB = state.barbeiros.find(b => b.id === barbeiroId);
+                toast(`🔒 A agenda de ${targetB ? targetB.nome : 'outro barbeiro'} está em modo somente leitura. Você só pode criar agendamentos na sua própria agenda.`);
                 return;
             }
 
@@ -4808,7 +4871,7 @@
             openManualAgendamentoModal(barbeiroId, agendaState.dataSelecionada, formattedTime);
         }
 
-        function renderNewAgServicosChecklist(selectedIds = []) {
+        function renderNewAgServicosChecklist(selectedIds = [], readOnly = false) {
             const container = document.getElementById('newAgServicosList');
             if (!container) return;
             container.innerHTML = '';
@@ -4823,8 +4886,9 @@
                 const isChecked = selectedIds.includes(s.id);
                 const item = document.createElement('label');
                 item.className = `admin-svc-item ${isChecked ? 'selected' : ''}`;
+                if (readOnly) item.style.pointerEvents = 'none';
                 item.innerHTML = `
-                    <input type="checkbox" class="new-ag-svc-cb" value="${s.id}" ${isChecked ? 'checked' : ''} onchange="onToggleNewAgService(this)">
+                    <input type="checkbox" class="new-ag-svc-cb" value="${s.id}" ${isChecked ? 'checked' : ''} ${readOnly ? 'disabled' : ''} onchange="onToggleNewAgService(this)">
                     <div class="svc-info">
                         <div class="svc-name">${s.nome}</div>
                         <div class="svc-sub">
@@ -4877,6 +4941,9 @@
         function openManualAgendamentoModal(barbeiroId, dateStr, timeStr, editAgId = null) {
             const titleEl = document.getElementById('modalCriarAgendamentoTitle');
             const deleteBtn = document.getElementById('btnDeleteAgendamento');
+            const saveBtn = document.getElementById('btnSaveAgendamento');
+            const roBanner = document.getElementById('newAgReadOnlyBanner');
+            const roBarberName = document.getElementById('newAgReadOnlyBarberName');
             const statusSel = document.getElementById('newAgStatus');
 
             let agToEdit = null;
@@ -4886,44 +4953,77 @@
                 agToEdit = state.agendamentos.find(a => a.id === editAgId);
             }
 
+            const isBarb = currentUser.role === 'barbeiro';
+            const isReadOnly = isBarb && agToEdit && currentUser.barbeiroId && agToEdit.barbeiroId !== currentUser.barbeiroId;
+            const targetBarbObj = agToEdit ? state.barbeiros.find(b => b.id === agToEdit.barbeiroId) : null;
+
+            if (roBanner) {
+                roBanner.style.display = isReadOnly ? 'block' : 'none';
+                if (roBarberName && targetBarbObj) roBarberName.textContent = targetBarbObj.nome;
+            }
+            if (saveBtn) saveBtn.style.display = isReadOnly ? 'none' : 'inline-block';
+
             if (agToEdit) {
-                if (titleEl) titleEl.textContent = 'Editar Agendamento';
-                if (deleteBtn) deleteBtn.style.display = 'inline-block';
+                if (titleEl) {
+                    titleEl.textContent = isReadOnly 
+                        ? `Visualizar Agendamento (Somente Leitura)` 
+                        : 'Editar Agendamento';
+                }
+                if (deleteBtn) deleteBtn.style.display = isReadOnly ? 'none' : 'inline-block';
+
+                const clInput = document.getElementById('newAgCliente');
+                const telInput = document.getElementById('newAgTelefone');
+                const dtInput = document.getElementById('newAgData');
+                const hrInput = document.getElementById('newAgHora');
+                const bSel = document.getElementById('newAgBarbeiro');
 
                 document.getElementById('newAgId').value = agToEdit.id;
-                document.getElementById('newAgCliente').value = agToEdit.nome || '';
-                document.getElementById('newAgTelefone').value = agToEdit.tel || '';
+                clInput.value = agToEdit.nome || '';
+                clInput.disabled = isReadOnly;
+                telInput.value = agToEdit.tel || '';
+                telInput.disabled = isReadOnly;
 
-                const isBarb = currentUser.role === 'barbeiro';
-                const bSel = document.getElementById('newAgBarbeiro');
-                const targetBarbId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : agToEdit.barbeiroId;
-
-                if (isBarb && currentUser.barbeiroId) {
+                if (isReadOnly) {
+                    bSel.disabled = true;
+                    bSel.innerHTML = `<option value="${agToEdit.barbeiroId}">${targetBarbObj ? targetBarbObj.nome : 'Outro'}</option>`;
+                    bSel.value = agToEdit.barbeiroId;
+                } else if (isBarb && currentUser.barbeiroId) {
                     bSel.innerHTML = `<option value="${currentUser.barbeiroId}">${currentUser.nome}</option>`;
                     bSel.value = currentUser.barbeiroId;
                     bSel.disabled = true;
                 } else {
                     bSel.disabled = false;
                     bSel.innerHTML = state.barbeiros.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
-                    bSel.value = targetBarbId || (state.barbeiros[0] ? state.barbeiros[0].id : '');
+                    bSel.value = agToEdit.barbeiroId || (state.barbeiros[0] ? state.barbeiros[0].id : '');
                 }
 
                 const selectedSvcs = agToEdit.servicoIds || (agToEdit.servicoId ? [agToEdit.servicoId] : []);
-                renderNewAgServicosChecklist(selectedSvcs);
+                renderNewAgServicosChecklist(selectedSvcs, isReadOnly);
 
-                document.getElementById('newAgData').value = agToEdit.data || agendaState.dataSelecionada || getLocalDateStr();
-                document.getElementById('newAgHora').value = agToEdit.hora || '09:00';
-                if (statusSel) statusSel.value = agToEdit.status || 'pendente';
+                dtInput.value = agToEdit.data || agendaState.dataSelecionada || getLocalDateStr();
+                dtInput.disabled = isReadOnly;
+                hrInput.value = agToEdit.hora || '09:00';
+                hrInput.disabled = isReadOnly;
+                if (statusSel) {
+                    statusSel.value = agToEdit.status || 'pendente';
+                    statusSel.disabled = isReadOnly;
+                }
             } else {
                 if (titleEl) titleEl.textContent = 'Novo Agendamento';
                 if (deleteBtn) deleteBtn.style.display = 'none';
 
-                document.getElementById('newAgId').value = '';
-                document.getElementById('newAgCliente').value = '';
-                document.getElementById('newAgTelefone').value = '';
-
-                const isBarb = currentUser.role === 'barbeiro';
+                const clInput = document.getElementById('newAgCliente');
+                const telInput = document.getElementById('newAgTelefone');
+                const dtInput = document.getElementById('newAgData');
+                const hrInput = document.getElementById('newAgHora');
                 const bSel = document.getElementById('newAgBarbeiro');
+
+                document.getElementById('newAgId').value = '';
+                clInput.value = '';
+                clInput.disabled = false;
+                telInput.value = '';
+                telInput.disabled = false;
+
                 const targetBarbId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : barbeiroId;
 
                 if (isBarb && currentUser.barbeiroId) {
@@ -4937,11 +5037,16 @@
                 }
 
                 const initialSelected = state.servicos[0] ? [state.servicos[0].id] : [];
-                renderNewAgServicosChecklist(initialSelected);
+                renderNewAgServicosChecklist(initialSelected, false);
 
-                document.getElementById('newAgData').value = dateStr || agendaState.dataSelecionada || getLocalDateStr();
-                document.getElementById('newAgHora').value = timeStr || '09:00';
-                if (statusSel) statusSel.value = 'pendente';
+                dtInput.value = dateStr || agendaState.dataSelecionada || getLocalDateStr();
+                dtInput.disabled = false;
+                hrInput.value = timeStr || '09:00';
+                hrInput.disabled = false;
+                if (statusSel) {
+                    statusSel.value = 'pendente';
+                    statusSel.disabled = false;
+                }
             }
 
             openModal('modalCriarAgendamento');
@@ -4952,11 +5057,27 @@
             const nome = document.getElementById('newAgCliente').value.trim();
             const tel = document.getElementById('newAgTelefone').value.trim().replace(/\D/g, '');
             const isBarb = currentUser.role === 'barbeiro';
-            const barbeiroId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : document.getElementById('newAgBarbeiro').value;
+            const bIdFromInput = document.getElementById('newAgBarbeiro').value;
+            const barbeiroId = (isBarb && currentUser.barbeiroId) ? currentUser.barbeiroId : bIdFromInput;
             const data = document.getElementById('newAgData').value;
             const hora = document.getElementById('newAgHora').value;
             const statusSel = document.getElementById('newAgStatus');
             const status = statusSel ? statusSel.value : 'pendente';
+
+            // Segurança: Barbeiro não pode editar agendamento de outro barbeiro
+            if (isBarb && currentUser.barbeiroId) {
+                if (id) {
+                    const existing = state.agendamentos.find(a => a.id === id);
+                    if (existing && existing.barbeiroId !== currentUser.barbeiroId) {
+                        toast('Ação não permitida: você não pode alterar agendamentos de outro barbeiro.');
+                        return;
+                    }
+                }
+                if (bIdFromInput && bIdFromInput !== currentUser.barbeiroId) {
+                    toast('Ação não permitida: você só pode criar agendamentos na sua própria agenda.');
+                    return;
+                }
+            }
 
             const cbs = Array.from(document.querySelectorAll('.new-ag-svc-cb:checked'));
             const servicoIds = cbs.map(c => c.value);
@@ -5049,6 +5170,11 @@
             if (!id) return;
             const ag = state.agendamentos.find(a => a.id === id);
             if (!ag) return;
+
+            if (currentUser.role === 'barbeiro' && currentUser.barbeiroId && ag.barbeiroId !== currentUser.barbeiroId) {
+                toast('Ação não permitida: você não pode excluir agendamentos de outro barbeiro.');
+                return;
+            }
 
             if (!confirm(`Tem certeza que deseja excluir o agendamento de "${ag.nome}"?`)) return;
 
